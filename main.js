@@ -185,10 +185,11 @@ class SceneUpdater {
         continue;
       }
       if (!userData.updating) continue;
+      const yearError = userData.yearError;
       if (p == "venus") {
         let jd = xyzPlanets.jd;
         let [x, y, z, e, a, b, ea, ma, madot] = orbitParams("earth", jd);
-        const jdStep = 2*Math.PI / madot;
+        const jdStep = 2*Math.PI / madot + yearError;
         for (let sprite of rings[p].children) {
           sprite.position.set(...glPlanetPosition(p, jd));
           jd += jdStep;
@@ -197,7 +198,7 @@ class SceneUpdater {
         let jd = xyzPlanets.jd;
         const re = xyzPlanets.xyz("earth");
         let [x, y, z, e, a, b, ea, ma, madot] = orbitParams("mars", jd);
-        const jdStep = 2*Math.PI / madot;
+        const jdStep = 2*Math.PI / madot + yearError;
         const ring = rings[p];
         const children = ring.children;
         for (let j = 0; j < children.length; j += 2) {
@@ -300,6 +301,9 @@ class SceneUpdater {
       sprite.visible = false;
     }
     this.modeLabels[mode].forEach(name => { labels[name].visible = true; });
+    if (mode == "mars" && this.rings.mars.visible) {
+      labels.antisun.visible = false;
+    }
     this.scene3d.setBackground((mode == "sky")? 0.6 : 0.3);
     this.mode = mode;
   }
@@ -359,21 +363,22 @@ class SceneUpdater {
     let jdBest = this.findBestOrbitView(planet, xyzPlanets.jd0);
     let re0 = glPlanetPosition("earth", jdBest);
     const ring = this.rings[planet];
-    ring.visible = true;
     ring.userData.jd0 = jdBest;
     ring.userData.re0 = re0;
     ring.userData.initializing = true;
+    ring.userData.yearError = 0;
     const pref = (planet == "venus")? "earth" : "mars";
     let [x, y, z, e, a, b, ea, ma, madot] = orbitParams(pref, xyzNow.jd);
     const jdStep = 2*Math.PI / madot;
     skyAnimator.chain(500).chain(() => {
       this.setTracking(planet);
+      ring.visible = true;  // after setTracking so antisun still visible
       xyzPlanets.update(jdBest - jdStep);
       skyAnimator.jdRate(jdStep / 6);
       skyAnimator.msEase(800);
       skyAnimator.playUntil(jdBest);
     }).chain(() => {
-      this.labels.antisun.visible = false;  // one symbol too many here
+      this.labels.antisun.visible = false;  // nos remove antisun
       this.mode = "sky";  // lie about mode to prevent following planet
       skyAnimator.jdRate(jdStep);
       skyAnimator.playChain();
@@ -411,10 +416,10 @@ class SceneUpdater {
               skyAnimator.jdRate(40);
               skyAnimator.msEase(0);
               delete ring.userData.initializing;
-              this.showRing(planet, 3000);
               ring.position.set(0, 0, 0);
               this.setTracking(planet);
               xyzPlanets.update(jdBest);
+              this.showRing(planet, 3000);
             }
           });
         })(n, sprite, sunSprite);
@@ -429,7 +434,7 @@ class SceneUpdater {
     // re0 = common viewing position
     // rs = sun - earth + re0
     // rm = mars - earth + re0
-    const rsm = rm.map((v, j) => 1.05*(v - rs[j]) + re0[j]);
+    const rsm = rm.map((v, j) => v - rs[j] + re0[j]);
     this.scene3d.movePoints(this.spokes.children[i], [rs, rm, rsm]);
   }
 
@@ -442,12 +447,6 @@ class SceneUpdater {
     for (let p in this.planets) {
       if (p == "sun") continue;
       this.planets[p].visible = (p == planet);
-    }
-    if (planet == "mars") {
-      // this.spokes.visible = true;
-      for (let s of this.spokes.children) {
-        s.visible = true;
-      }
     }
     if (msFade !== undefined) {
       const v = this.orbits[(planet == "venus")? "venus" : "sun"];
@@ -463,6 +462,75 @@ class SceneUpdater {
       }
     }
     return this.rings[planet];
+  }
+
+  showSpokes(callback) {
+    this.spokes.visible = true;
+    const children = this.spokes.children;
+    const scene3d = this.scene3d;
+    let i = 0, n = children.length;
+    const showNext = () => {
+      children[i].visible = true;
+      scene3d.render();
+      i += 1;
+      if (i < n) setTimeout(() => showNext(), 500);
+      else if (callback) callback(this);
+      else skyAnimator.playChain();
+    };
+    showNext();
+  }
+
+  hideSpokes() {
+    this.spokes.visible = false;
+    for (let spoke of this.spokes.children) {
+      spoke.visible = false;
+    }
+    this.scene3d.render();
+  }
+
+  setYearError(yerr) {
+    const ring = this.rings.venus.visible? this.rings.venus : this.rings.mars;
+    ring.userData.yearError = yerr;
+    xyzNow.update(xyzNow.jd);
+  }
+
+  zoom(bigger, ms, callback) {
+    const [hfov0, hfov1] = bigger? [HFOV, 10] : [10, HFOV];
+    const scene3d = this.scene3d;
+    const zstep = (lhfov) => {
+      scene3d.setSize(undefined, undefined, -Math.exp(lhfov));
+      scene3d.render();
+    };
+    if (!ms || ms < 0) {
+      zstep(Math.log(hfov1));
+      if (callback) callback(this);
+      else skyAnimator.playChain();
+    } else {
+      const rate = (hfov1 - hfov0) / ms;
+      const anim = new ParameterAnimator(
+        Math.log(hfov0), Math.log(hfov1), zstep, ms);
+      anim.play()
+    }
+  }
+
+  pivot(ms) {
+    if (!ms || ms < 0) return;
+    const scene3d = this.scene3d;
+    const camera = scene3d.camera;
+    let r0 = camera.position;
+    const [x0, y0, z0] = [r0.x, r0.y, r0.z];
+    let angle0 = camera.getWorldDirection(_dummyVector);
+    const r = Math.sqrt(angle0.x**2 + angle0.z**2);
+    const y = angle0.y / r;
+    angle0 = Math.atan2(angle0.x, angle0.z);
+    let angle1 = angle0 + 2*Math.PI;
+    const rate = 2*Math.PI / ms;
+    const anim = new ParameterAnimator(
+      angle0, angle1, (angle) => {
+        camera.lookAt(x0 + Math.sin(angle), y0 + y, z0 + Math.cos(angle));
+        scene3d.render();
+      }, ms);
+    anim.play();
   }
 
   hideRing(planet, msFade) {
@@ -560,16 +628,11 @@ function pointsOnCircle(n) {
 }
 
 function fadeColor(obj, mult0, mult1, ms, onFinish) {
-  let slope = (mult1 - mult0) / ms;
-  let anim = new Animator((dms) => {
-    mult0 += slope*dms;
-    const stop = (slope >= 0)? (mult0 >= mult1) : (mult0 <= mult1);
-    if (stop) mult0 = mult1;
-    setColorMultiplier(obj, mult0);
-    scene3d.render();
-    return stop;
-  });
-  if (onFinish) anim.onFinish = onFinish;
+  const anim = new ParameterAnimator(
+    mult0, mult1, (mult) => {
+      setColorMultiplier(obj, mult);
+      scene3d.render();
+    }, ms, onFinish);
   anim.play();
 }
 
@@ -635,8 +698,8 @@ function recenterEcliptic() {
 
 const radii = (() => {
   function makeRadius(c, dashed=false) {
-    const line = scene3d.segments([0, 0, 0,  1, 0, 0], scene3d.createLineStyle(
-      {color: c, linewidth: 2, dashed: dashed, dashSize: 0.03, gapSize: 0.05}));
+    const line = scene3d.segments([0, 0, 0,  1, 0, 0],
+      {color: c, linewidth: 2, dashed: dashed, dashSize: 0.03, gapSize: 0.05});
     line.visible = false;
     return line;
   }
@@ -826,6 +889,23 @@ class SkyAnimator extends Animator {
 
 const skyAnimator = new SkyAnimator(scene3d, xyzNow, 40);
 
+class ParameterAnimator extends Animator {
+  constructor(p0, p1, funp, msDelta, callback) {
+    const rate = (p1 - p0) / msDelta;
+    super((dms) => {
+      p0 += rate * dms;
+      const stop = (rate >= 0)? (p0 >= p1) : (p0 <= p1);
+      if (stop) p0 = p1;
+      funp(p0);
+      if (stop) {
+        if (callback) callback();
+        else skyAnimator.playChain();
+      }
+      return stop;
+    });
+  }
+}
+
 /* ------------------------------------------------------------------------ */
 
 const solidLine = scene3d.createLineStyle({color: 0x335577, linewidth: 2});
@@ -894,9 +974,8 @@ function setupSky() {
   sceneUpdater.addRing("mars", 10);
 
   scene3d.camera.lookAt(-1, 0, 0);  // look at brightest part of Milky Way
-  // sceneUpdater.setTracking("sky");
+  sceneUpdater.setTracking("sky");
   sceneUpdater.initializeRing("mars", xyzNow);
-  // sceneUpdater.showRing("venus");
   // xyzNow.update(xyzNow.jd);
   // scene3d.render();
 }
@@ -915,9 +994,35 @@ scene3d.onContextLost(() => {
   return () => { skyAnimator.play(); }  // resume when context restored
 });
 
+window.scene3d = scene3d;
 window.xyzNow = xyzNow;
 window.sceneUpdater = sceneUpdater;
 window.skyAnimator = skyAnimator;
+
+// Use VisionTester to find that hfov=10 gives roughly 1 arc min resolution
+
+// class VisionTester {
+//   constructor(scene3d) {
+//     this.scene3d = scene3d;
+//     this.lines = scene3d.segments(
+//       [0, -200*Math.tan(5*Math.PI/180), 200,
+//        0, 200*Math.tan(5*Math.PI/180), 200,
+//        200*Math.tan((1/60)*Math.PI/180), -200*Math.tan(0.5*Math.PI/180), 200,
+//        200*Math.tan((1/60)*Math.PI/180), 200*Math.tan(0.5*Math.PI/180), 200],
+//       {color: 0xffff00, linewidth: 1});
+//     this.lines.visible = false;
+//   }
+// 
+//   test(hfov=HFOV) {
+//     skyAnimator.stop();
+//     scene3d.camera.lookAt(0, 0, 200);
+//     this.lines.visible = true;
+//     scene3d.setSize(undefined, undefined, -hfov);
+//     scene3d.render();
+//   }
+// }
+// 
+// window.vision = new VisionTester(scene3d);
 
 /* ------------------------------------------------------------------------ */
 
