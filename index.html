@@ -27,170 +27,100 @@
           box-sizing: border-box;
           margin: 0;
           overflow: hidden;
-          background: black;
+          background: #444;
           color: beige;
           font-family: 'Merriweather', serif;
+          pointer-events: none;
+      }
+      h1, h2 {
+          text-align: center;
       }
       #skymap {
-          position: absolute;
-          z-index: -1;
-          top: 0;
-          left: 0;
+          pointer-events: auto;
           width: 100%;
           height: 100%;
       }
-      h1 {
+      #stardate {
+          position: absolute;
+          bottom: 0.5em;
+          right: 0.5em;
+          display: inline;
+          font: 2em 'Merriweather Sans', Arial, sans-serif;
+          font-variant-numeric: tabular-nums;
           text-align: center;
-          font: bold 32pt 'Merriweather', serif;
+          color: beige;
+          border-radius: 16px;
+          padding: 4px;
+          cursor: pointer;
+          pointer-events: auto;
+          background: #fff4;
+      }
+      #stardate:hover {
+          background: #fff6;
+      }
+      #topbox {
+          overflow: hidden;  /* prevent child top margin from moving topbox */
+          margin: 0 auto;
+          max-width: 40em;
+      }
+      #midbox {
+          top: 0;
+          left: 0;
+          width: 100vw;
+          z-index: -1;
+          pointer-events: none;
+      }
+      #botbox {
+          overflow: auto;
+          margin: 0 auto;
+          max-width: 40em;
+          font-size: large;
       }
 
+      /* Tallest viewport for the skymap to fill it is 16/10 (eg 1920/1200)
+       * any taller (more portrait) and we stack top, mid, and bot boxes
+       * instead of overlapping top and bot over mid.
+       * Common landscape aspect ratios range from 16/10 up to iPhone 39/18.
+       */
+      body {
+          display: grid;
+          height: 100vh;
+          grid-template-rows: 1fr 1fr;
+          /* Max possible ecliptic longitude of Venus is under +-10 degrees;
+           * horizontal FOV is always +-50 degrees; tan(50)/tan(10) = 6.75.
+           */
+          row-gap: 17vw;
+      }
+      #topbox {
+          align-self: start;
+      }
+      #midbox {
+          position: absolute;
+          height: 100vh;
+      }
+      #botbox {
+          align-self: end;
+      }
+      @media (max-aspect-ratio: 16/10) {
+          body {
+              display: block;  /* the default */
+          }
+          #midbox {
+              position: relative;
+              height: calc(100vw * 18 / 39);
+          }
+          #botbox {
+              position: static;  /* top: value ignored */
+          }
+      }
+
+      .hidden {
+          display: none !important;
+      }
       .unselectable {
           -webkit-user-select: none; /* Safari */
           -ms-user-select: none; /* IE 10 and IE 11 */
           user-select: none; /* Standard syntax */
-      }
-
-      .date-buttons {
-          position: absolute;
-          top: 20px;
-          left: 20px;
-          user-select: none;
-      }
-      .top-buttons {
-          position: absolute;
-          top: 20px;
-          right: 0;  /* 20px margin in button takes care of this */
-          user-select: none;
-      }
-      #date {
-          display: inline;
-          font: 2em 'Merriweather Sans', Arial, sans-serif;
-          font-variant-numeric: tabular-nums;
-          color: white;
-      }
-      .button {
-          display: inline-block;
-          vertical-align: text-bottom;
-          margin: 0 20px;
-          fill: white;
-          cursor: pointer;
-      }
-      .tab {
-          display: inline-block;
-          vertical-align: top;
-          padding: 2px 8px 2px 4px;
-          margin: 6px 0px;
-          border-radius: 0px 16px 16px 0px;
-          background: #ffffff80;
-          fill: black;
-          cursor: pointer;
-      }
-      .fs-button {
-          display: inline-block;
-          float: left;
-          fill: black;
-          cursor: pointer;
-      }
-      .hidden {
-          display: none !important;
-      }
-      .disabled {
-          color: #666666;
-          /* font-style: oblique;  changes element width :( */
-      }
-      .left-dialog {
-          display: inline-block;
-          background: #ffffff80;
-          margin: 6px 0px 6px -20px;
-          border-radius: 0px 0px 16px 0px;
-          padding: 10px;
-          transform: translate(0px);
-          font: 1.5em 'Merriweather Sans', Arial, sans-serif;
-          color: black;
-      }
-      #date-box, #restart {
-          font-size: 1em;
-      }
-      .title-container {
-          position: absolute;
-          top: 50px;
-          width: 100%;
-          display: flex;
-          justify-content: center;
-          pointer-events: none;
-      }
-      .title {
-          padding: 10px 12px;
-          overflow: hidden;
-          background: #ffffffc0;
-          color: black;
-          border-radius: 16px;
-          border-style: none;
-          user-select: none;
-          pointer-events: auto;
-      }
-      .title-break {
-          flex-basis: 100%;
-          height: 0;
-      }
-      .text-button {
-          display: table;
-          margin: auto;
-          cursor: pointer;
-          padding: 5px 7px;
-          border-radius: 10px;
-          border-width: 3px;
-          border-style: solid;
-          border-color: #000000;
-          background: #cccccc;
-      }
-      .text-button:hover {
-          background: #aaaaaa;
-          border-style: outset;
-      }
-      .text-button:active {
-          background: #eeeeee;
-          border-style: inset;
-      }
-      .title-close {
-          float: right;
-          cursor: pointer;
-          border-radius: 6px;
-      }
-      .title-close:hover {
-          background: #cccccc;
-      }
-      .tour-h2 {
-          text-align: center;
-          font-style: bold;
-          font-size: 1.5em;
-      }
-      .tour-p {
-          text-align: center;
-          font-size: 1.2em;
-      }
-      .info-container {
-          position: absolute;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          pointer-events: none;
-      }
-      .info {
-          box-sizing: border-box;
-          padding: 10px 12px;
-          max-width: 650px;
-          width: 60%;
-          height: 100%;
-          background: #ffffffc0;
-          color: black;
-          pointer-events: auto;
-          overflow: auto;
-      }
-      .info h1,h2 {
-          text-align: center;
       }
     </style>
   </head>
@@ -198,9 +128,21 @@
 
 <!-- --------------------------------------------------------------------- -->
 
-<canvas id="skymap"></canvas>
-<div>
+<div id="topbox">
   <h1>Seeing the Solar System</h1>
+  <h2>How to map planetary orbits in 3D by naked eye</h2>
+</div>
+<div id="midbox">
+  <canvas id="skymap"></canvas>
+  <div id="stardate" class="unselectable">2024<br>01-02</div>
+</div>
+<div id="botbox">
+  <p>Here is everything you can see in the sky with your own eyes on a
+    perfect night, excepting the Moon.  (You can never see the Sun at
+    the same time as the planets and stars, but with clocks people
+    have worked out exactly where the Sun is among the stars since
+    ancient times.)  This wide angle view is 100&deg; from side to
+    side.  Drag the sky to look around.</p>
 </div>
 
 <!-- --------------------------------------------------------------------- -->

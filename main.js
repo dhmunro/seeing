@@ -29,6 +29,10 @@ import {SkyControls} from './skycontrols.js';
  */
 
 const HFOV = 100;  // horizontal field of view
+const MAX_ASPECT = 39 / 18;  // iPhone screen most extreme common case
+const MIN_ASPECT = 16 / 10;  // tall laptop screen
+
+const STARDATE = document.getElementById("stardate");
 
 const scene3d = new PerspectiveScene("skymap", -HFOV, 0, 0.01, 2000);
 const camera = scene3d.camera;
@@ -113,6 +117,7 @@ class SceneUpdater {
     this.mode = "sky";
 
     xyz.onUpdate(xyzPlanets => this.update(xyzPlanets));
+    this.updateDate(xyz.jd);
 
     // label visibility for different tracking modes
     this.modeLabels = {
@@ -164,6 +169,7 @@ class SceneUpdater {
         sprite.position.set(...ms);
       }
     }
+    this.updateDate(xyzPlanets.jd);
     if (jd0 !== undefined) {
       this.updateOrbits(xyzPlanets, jd0);
     }
@@ -357,7 +363,7 @@ class SceneUpdater {
   }
 
   initializeRing(planet, xyzPlanets) {
-    skyAnimator.stop();
+    skyAnimator.clearChain().stop();
     // Run forward or backward by up to half a year to find the
     // most open view of the orbit.
     let jdBest = this.findBestOrbitView(planet, xyzPlanets.jd0);
@@ -542,7 +548,7 @@ class SceneUpdater {
     }
     this.spokes.visible = false;
     const v = this.orbits[(planet == "venus")? "venus" : "sun"];
-    hideOrbit(planet, 0.25, msFade);
+    this.hideOrbit(planet, 0.25, msFade);
   }
 
   showOrbit(planet, mult, msFade) {
@@ -618,6 +624,10 @@ class SceneUpdater {
     skyAnimator.msEase(800);
     skyAnimator.playChain();
   }
+
+  updateDate(jd) {
+    STARDATE.innerHTML = date4jd(jd);
+  }
 }
 
 function pointsOnCircle(n) {
@@ -648,7 +658,7 @@ const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
 
 function date4jd(jd) {
   let date = dateOfDay(jd);
-  return (date.getFullYear() + "-" +
+  return (date.getFullYear() + "<br>" +
           ("0" + (1+date.getMonth())).slice(-2) + "-" +
           ("0" + date.getDate()).slice(-2));
 }
@@ -841,13 +851,15 @@ class SkyAnimator extends Animator {
   }
 
   playFor(djd) {
-    if (djd <= 0) return;
-    this.jdStop(djd);
-    if (this.isPaused) this.play();
+    if (djd > 0) {
+      this.jdStop(djd);
+      if (this.isPaused) this.play();
+    }
+    return this;
   }
 
   playUntil(jd) {
-    this.playFor(jd - this.xyzNow.jd);
+    return this.playFor(jd - this.xyzNow.jd);
   }
 
   pauseAfter(ms) {
@@ -856,6 +868,7 @@ class SkyAnimator extends Animator {
       delete this._timeout;
       this.pause();
     }, ms);
+    return this;
   }
 
   cancelPauseAfter() {
@@ -864,6 +877,7 @@ class SkyAnimator extends Animator {
       delete this._timeout;
       clearTimeout(id);
     }
+    return this;
   }
 
   // callback can be pause time in ms or callback(this skyAnimator)
@@ -884,6 +898,23 @@ class SkyAnimator extends Animator {
 
   playChain() {
     if (this._chain.length) this._chain.shift()(this);
+    return this;
+  }
+
+  clearChain() {
+    this._chain = [];
+    return this;  // anim.clearChain().stop() to abort a chain
+  }
+
+  playLoop(djd) {
+    const xyzPlanets = this.xyzNow;
+    const jdStart = xyzPlanets.jd;
+    this.clearChain();
+    this.playFor(djd).chain(1000).chain((self) => {
+      xyzPlanets.update(jdStart);
+      self.playLoop(djd);
+    });
+    return this;
   }
 }
 
@@ -975,9 +1006,10 @@ function setupSky() {
 
   scene3d.camera.lookAt(-1, 0, 0);  // look at brightest part of Milky Way
   sceneUpdater.setTracking("sky");
-  sceneUpdater.initializeRing("mars", xyzNow);
-  // xyzNow.update(xyzNow.jd);
-  // scene3d.render();
+  skyAnimator.playLoop(7305);
+  // sceneUpdater.initializeRing("venus", xyzNow);
+  xyzNow.update(xyzNow.jd);
+  scene3d.render();
 }
 
 /* ------------------------------------------------------------------------ */
@@ -1056,34 +1088,5 @@ function toggleFullscreen() {
     FULLSCREEN_ICON.setAttribute("xlink:href", "#fa-compress");
   }
 }
-
-/* ------------------------------------------------------------------------ */
-
-let tourReject;
-function playForDays(djd) {
-  let jd = xyzNow.jd;
-  const jdFinal = jd + djd/tourSpeedup;
-  const checker = (resolve) => {
-    jd = xyzNow.jd;
-    if (jd >= jdFinal) {
-      resolve();
-      return;
-    }
-    setTimeout(() => checker(resolve), 1000);
-  };
-  return new Promise((resolve, reject) => {
-    tourReject = reject;
-    checker(resolve);
-  });
-}
-
-function playForSeconds(n=4000) {
-  return new Promise((resolve, reject) => {
-    tourReject = reject;
-    setTimeout(resolve, n/tourSpeedup);
-  });
-}
-
-let tourSpeedup = 1;
 
 /* ------------------------------------------------------------------------ */

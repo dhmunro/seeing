@@ -50,7 +50,7 @@ export class PerspectiveScene {
    */
   constructor(canvas, fov, aspect, near, far) {
     if (typeof canvas === "string" || canvas instanceof String) {
-      canvas = document.getElementById("skymap");
+      canvas = document.getElementById(canvas);
     }
     checkAvailability(canvas);
     this.renderer = new WebGLRenderer(
@@ -71,11 +71,15 @@ export class PerspectiveScene {
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
     this.sprites = [];
     this.lineMaterials = [];
-
-    window.addEventListener("resize", () => {
-      this.setSize();
+    // Relies on canvas being inside a div whose dimensions are determined
+    // by CSS.  The renderer will set absolute canvas dimensions, so canvas
+    // never changes size by itself when layout changes.
+    this.resizeObserver = new ResizeObserver(() => {
+      const parent = this.renderer.domElement.parentElement;
+      this.setSize(parent.offsetWidth, parent.offsetHeight);
       this.render();
-    }, false);
+    });
+    this.resizeObserver.observe(canvas.parentElement);
     this.nContextLosses = 0;
   }
 
@@ -94,7 +98,7 @@ export class PerspectiveScene {
           canvas.addEventListener("webglcontextrestored", listener);
         }
       });
-    return this;
+    return this;  // allow chained calls
   }
 
   get canvas() {
@@ -122,6 +126,7 @@ export class PerspectiveScene {
       // }
       obj.removeFromParent();
     }
+    return this;  // allow chained calls
   }
 
   clear() {
@@ -154,8 +159,9 @@ export class PerspectiveScene {
   }
 
   setSize(width, height, fov) {
-    if (width === undefined) {
-      [width, height] = [window.innerWidth, window.innerHeight];
+    if (width === undefined || height === undefined) {
+      const canvas = this.renderer.domElement;
+      [width, height] = [canvas.clientWidth, canvas.clientHeight];
     }
     this.camera.aspect = width / height;
     this.renderer.setSize(width, height);
@@ -190,6 +196,7 @@ export class PerspectiveScene {
     this.sprites.forEach(s => {
       s.scale.set(s.userData.width*scale, s.userData.height*scale, 1);
     });
+    return this;  // allow chained calls
   }
 
   createLineStyle(properties) {

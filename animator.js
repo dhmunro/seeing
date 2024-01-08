@@ -103,11 +103,13 @@ export class Animator {
     } else {  // wake up from pause
       stepper(null);
     }
+    return this;  // allow chaining
   }
 
   pause = () => {
     this._cancelPending();
     this._paused = true;
+    return this;
   }
 
   // stop(true) intended for aborts, suppresses onFinish call
@@ -123,6 +125,7 @@ export class Animator {
       this.onFinish = undefined;
       if (onFinish && !noOnFinish) onFinish.call(self);
     }
+    return this;
   }
 
   skip = () => {
@@ -134,6 +137,7 @@ export class Animator {
       this._skipping = true;
       this.stepper(null);
     }
+    return this;
   }
 
   get isPaused() {
