@@ -1058,35 +1058,66 @@ window.skyAnimator = skyAnimator;
 
 /* ------------------------------------------------------------------------ */
 
-function amFullscreen() {
-  return (document.fullScreenElement && document.fullScreenElement !== null) ||
-    (document.mozFullScreen || document.webkitIsFullScreen);
-}
-
-function goFullscreen() {
-  if (amFullscreen()) return;
-  const el = document.documentElement;
-  const rfs = el.requestFullScreen || el.webkitRequestFullScreen ||
-        el.mozRequestFullScreen || el.msRequestFullscreen;
-  rfs.call(el);
-}
-
-function stopFullscreen() {
-  if (!amFullscreen()) return;
-  const el = document;
-  const cfs = el.cancelFullScreen || el.webkitCancelFullScreen ||
-        el.mozCancelFullScreen || el.exitFullscreen || el.webkitExitFullscreen;
-  cfs.call(el);
-}
-
-function toggleFullscreen() {
-  if (amFullscreen()) {
-    stopFullscreen();
-    FULLSCREEN_ICON.setAttribute("xlink:href", "#fa-expand");
+// https://github.com/rafgraph/fscreen
+(function () {
+  const FULLSCREEN_ICON = document.querySelector("#fullscreen > use");
+  const classList = FULLSCREEN_ICON.parentElement.classList;
+  
+  const documentElement = document.documentElement;
+  let fsElement, fsRequest, fsExit, fsChange;
+  if ("fullscreenEnabled" in document) {
+    fsElement = "fullscreenElement";
+    fsRequest = documentElement.requestFullscreen;
+    fsExit = document.exitFullscreen;
+    fsChange = "fullscreenchange";
+  } else if ("webkitFullscreenEnabled" in document) {
+    fsElement = "webkitFullscreenElement";
+    fsRequest = documentElement.webkitRequestFullscreen;
+    fsExit = document.webkitExitFullscreen;
+    fsChange = "webkitfullscreenchange";
+  } else if ("mozFullScreenEnabled" in document) {
+    fsElement = "mozFullScreenElement";
+    fsRequest = documentElement.mozRequestFullScreen;
+    fsExit = document.mozCancelFullScreen;
+    fsChange = "mozfullscreenchange";
+  } else if ("msFullscreenEnabled" in document) {
+    fsElement = "msFullscreenElement";
+    fsRequest = documentElement.msRequestFullscreen;
+    fsExit = document.msExitFullscreen;
+    fsChange = "MSFullscreenChange";
   } else {
-    goFullscreen();
+    classList.add("hidden");
+    return;
+  }
+
+  if (document[fsElement]) {
     FULLSCREEN_ICON.setAttribute("xlink:href", "#fa-compress");
   }
-}
+  // addEventListener(fsChange, toggleIcon);
+  // resize needed to handle manual F11 fullscreening entire browser
+  // However, if whole browser is fullscreen, the compress button
+  // cannot work, so hide it.
+  addEventListener("resize", () => {
+    const fsel = document[fsElement];
+    classList.remove("hidden");
+    if (window.matchMedia("(display-mode: fullscreen)").matches || fsel) {
+      if (fsel) {
+        FULLSCREEN_ICON.setAttribute("xlink:href", "#fa-compress");
+      } else {
+        classList.add("hidden");
+      }
+    } else {
+      FULLSCREEN_ICON.setAttribute("xlink:href", "#fa-expand");
+    }
+  });
+
+  document.getElementById("fullscreen").addEventListener("click", () => {
+    if (document[fsElement]) {
+      fsExit.call(document);
+    } else {
+      fsRequest.call(documentElement);
+    }
+  });
+})();
 
 /* ------------------------------------------------------------------------ */

@@ -47,18 +47,8 @@
           position: absolute;
           bottom: 0.5rem;
           right: 0.5rem;
-          display: inline;
-          font: 1.6rem 'Merriweather Sans', Arial, sans-serif;
+          font: bold 1.6rem 'Merriweather Sans', Arial, sans-serif;
           font-variant-numeric: tabular-nums;
-          text-align: center;
-          color: beige;
-          border-radius: 16px;
-          padding: 4px;
-          cursor: pointer;
-          background: #fff4;
-      }
-      #stardate:hover {
-          background: #fff6;
       }
       #topbox {
           margin: 0 auto;
@@ -125,6 +115,52 @@
           -ms-user-select: none; /* IE 10 and IE 11 */
           user-select: none; /* Standard syntax */
       }
+
+      .button {
+          display: inline-block;
+          vertical-align: text-bottom;
+          fill: beige;
+          color: beige;
+          background: #fff4;
+          text-align: center;
+          border-radius: 8px;
+          padding: 4px;
+          cursor: pointer;
+      }
+      .button:hover {
+          background: #fff6;
+      }
+      .button.disabled {
+          opacity: 0.5;
+          cursor: default;
+      }
+      .button.disabled:hover {
+          background: #fff4;
+      }
+      #page-controls {
+          position: absolute;
+          top: 0.5rem;
+          right: 0.5rem;
+          display: grid;
+          grid-template-columns: 1fr;
+          grid-gap: 0.5rem;
+      }
+      #pageup {
+          transform: rotate(-90deg);
+      }
+      #pagedn {
+          transform: rotate(90deg);
+      }
+      #screen-controls {
+          position: absolute;
+          bottom: 0.5rem;
+          left: 0.5rem;
+      }
+      #main-menu {
+          position: absolute;
+          top: 0.5rem;
+          left: 0.5rem;
+      }
     </style>
   </head>
   <body>
@@ -138,21 +174,38 @@
 </div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
-  <div id="stardate" class="unselectable">2024<br>01-02</div>
+  <div id="stardate" class="button unselectable">2024<br>01-02</div>
 </div>
 <div id="botbox">
   <p>Here is everything you can see in the sky with your own eyes on a
-    perfect night, excepting the Moon.  (You can never see the Sun at
-    the same time as the planets and stars, but using clocks people
-    have worked out exactly where the Sun is among the stars since
-    ancient times.)  This wide angle view is 100&deg; from side to
-    side.  Drag the sky to look around.</p>
+    perfect night, except the Moon.  (You can never see the Sun at the
+    same time as the planets and stars, but using clocks people worked
+    out exactly where the Sun is among the stars even in ancient times.)
+    This wide angle view is 100&deg; from side to side.  Drag the sky
+    to look around.</p>
+</div>
+<div id="page-controls">
+  <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"
+       height="2rem" viewBox="0 0 512 512">
+    <use xlink:href="#fa-play" /></svg>
+  <svg id="replay" class="button" xmlns="http://www.w3.org/2000/svg"
+       height="2rem" viewBox="0 0 512 512">
+    <use xlink:href="#fa-arrow-rotate-left" /></svg>
+  <svg id="pagedn" class="button" xmlns="http://www.w3.org/2000/svg"
+       height="2rem" viewBox="0 0 512 512">
+    <use xlink:href="#fa-play" /></svg>
+</div>
+<div id="screen-controls">
+  <svg id="fullscreen" class="button" xmlns="http://www.w3.org/2000/svg"
+       height="2.5rem" viewBox="0 0 448 512">
+    <use xlink:href="#fa-expand" /></svg>
+</div>
+<div id="main-menu">
+  <svg id="bars" class="button" xmlns="http://www.w3.org/2000/svg"
+       height="2.5rem" viewBox="0 0 448 512">
+    <use xlink:href="#fa-bars" /></svg>
 </div>
 </div>
-
-<!-- --------------------------------------------------------------------- -->
-
-    <script type="module" src="./main.js"></script>
 
 <!-- --------------------------------------------------------------------- -->
 
@@ -185,6 +238,17 @@
       <symbol id="fa-circle-xmark" viewBox="0 0 512 512">
         <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
       </symbol>
+      <symbol id="fa-arrow-rotate-left" viewBox="0 0 512 512">
+        <path d="M125.7 160H176c17.7 0 32 14.3 32 32s-14.3 32-32 32H48c-17.7 0-32-14.3-32-32V64c0-17.7 14.3-32 32-32s32 14.3 32 32v51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"/>
+      </symbol>
+      <symbol id="fa-bars" viewBox="0 0 448 512">
+          <path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/>
+      </symbol>
     </svg>
+
+<!-- --------------------------------------------------------------------- -->
+
+    <script type="module" src="./main.js"></script>
+
   </body>
 </html>
