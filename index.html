@@ -26,55 +26,60 @@
       body {
           box-sizing: border-box;
           margin: 0;
-          overflow: hidden;
           background: #444;
           color: beige;
           font-family: 'Merriweather', serif;
-          pointer-events: none;
+          /* Without a specified height, % units in children are meaningless.
+           * Use min-height so body can grow larger - without it, scrolling
+           * may break;
+           */
+          min-height: 100vh;
+          overflow-x: hidden;
       }
       h1, h2 {
           text-align: center;
       }
       #skymap {
-          pointer-events: auto;
           width: 100%;
           height: 100%;
       }
       #stardate {
           position: absolute;
-          bottom: 0.5em;
-          right: 0.5em;
+          bottom: 0.5rem;
+          right: 0.5rem;
           display: inline;
-          font: 2em 'Merriweather Sans', Arial, sans-serif;
+          font: 1.6rem 'Merriweather Sans', Arial, sans-serif;
           font-variant-numeric: tabular-nums;
           text-align: center;
           color: beige;
           border-radius: 16px;
           padding: 4px;
           cursor: pointer;
-          pointer-events: auto;
           background: #fff4;
       }
       #stardate:hover {
           background: #fff6;
       }
       #topbox {
-          overflow: hidden;  /* prevent child top margin from moving topbox */
           margin: 0 auto;
-          max-width: 40em;
-      }
-      #midbox {
-          top: 0;
-          left: 0;
-          width: 100vw;
-          z-index: -1;
+          padding: 0.5rem;
+          max-width: 40rem;
+          z-index: 1;
           pointer-events: none;
       }
+      #midbox {
+          margin: 0;
+          top: 0;
+          left: 0;
+          width: 100%;
+      }
       #botbox {
-          overflow: auto;
           margin: 0 auto;
-          max-width: 40em;
+          padding: 0.5rem;
+          max-width: 40rem;
           font-size: large;
+          z-index: 1;
+          pointer-events: none;
       }
 
       /* Tallest viewport for the skymap to fill it is 16/10 (eg 1920/1200)
@@ -82,9 +87,10 @@
        * instead of overlapping top and bot over mid.
        * Common landscape aspect ratios range from 16/10 up to iPhone 39/18.
        */
-      body {
+      #vgrid {
           display: grid;
-          height: 100vh;
+          width: 100%;
+          height: 100vh;  /* 100% does not include absolute midbox */
           grid-template-rows: 1fr 1fr;
           /* Max possible ecliptic longitude of Venus is under +-10 degrees;
            * horizontal FOV is always +-50 degrees; tan(50)/tan(10) = 6.75.
@@ -96,21 +102,18 @@
       }
       #midbox {
           position: absolute;
-          height: 100vh;
+          height: calc(100% - 4px);  /* prevent vertical scrollbar?? */
       }
       #botbox {
           align-self: end;
       }
       @media (max-aspect-ratio: 16/10) {
-          body {
+          #vgrid {
               display: block;  /* the default */
           }
           #midbox {
               position: relative;
               height: calc(100vw * 18 / 39);
-          }
-          #botbox {
-              position: static;  /* top: value ignored */
           }
       }
 
@@ -128,6 +131,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 
+<div id="vgrid">
 <div id="topbox">
   <h1>Seeing the Solar System</h1>
   <h2>How to map planetary orbits in 3D by naked eye</h2>
@@ -139,10 +143,11 @@
 <div id="botbox">
   <p>Here is everything you can see in the sky with your own eyes on a
     perfect night, excepting the Moon.  (You can never see the Sun at
-    the same time as the planets and stars, but with clocks people
+    the same time as the planets and stars, but using clocks people
     have worked out exactly where the Sun is among the stars since
     ancient times.)  This wide angle view is 100&deg; from side to
     side.  Drag the sky to look around.</p>
+</div>
 </div>
 
 <!-- --------------------------------------------------------------------- -->
