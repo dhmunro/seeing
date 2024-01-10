@@ -35,8 +35,7 @@ const MIN_ASPECT = 16 / 10;  // tall laptop screen
 
 const STARDATE = document.getElementById("stardate");
 
-const scene3d = new PerspectiveScene("skymap", -HFOV, 0, 0.01, 2000);
-const camera = scene3d.camera;
+const scene3d = new PerspectiveScene("skymap", -HFOV, 0, 0.01, 8000);
 
 /* ------------------------------------------------------------------------ */
 
@@ -302,6 +301,43 @@ class SceneUpdater {
     return label;
   }
 
+  addText(text, params) {
+    if (params === undefined) params = {};
+    const txcanvas = new TextureCanvas();
+    const ctx = txcanvas.context;
+    
+    function getProp(params, name, value) {
+      return params.hasOwnProperty(name)? params[name] : value;
+    }
+
+    // style variant weight size[/lineheight] family[,fam2,fam3,...]
+    // style = normal | italic | oblique
+    // variant = small-caps
+    // weight = normal | bold | bolder | lighter | 100-900
+    //          normal=400, bold=700
+    // size = in px or em, optional /lineheight in px or em
+    // family = optional
+    let font = getProp(params, "font", "16px Arial, sans-serif");
+    ctx.font = font;
+    let fontSize = parseFloat(
+      ctx.font.match(/(?<value>\d+\.?\d*)/).groups.value);
+    let {actualBoundingBoxLeft, actualBoundingBoxRight, actualBoundingBoxAscent,
+         actualBoundingBoxDescent} = ctx.measureText(text);
+    let [textWidth, textHeight] = [
+      actualBoundingBoxLeft + actualBoundingBoxRight + 2,
+      actualBoundingBoxAscent + actualBoundingBoxDescent + 2];
+    if (!text) [textWidth, textHeight] = [0, 0];
+    txcanvas.width = textWidth;
+    txcanvas.height = textHeight;
+    ctx.font = font;
+    // rgba(r, g, b, a)  either 0-255 or 0.0 to 1.0, a=0 transparent
+    // or just a color
+    ctx.fillStyle = getProp(params, "color", "#ffffff9f");
+    ctx.fillText(text, actualBoundingBoxLeft+1,
+                 txcanvas.height-textHeight+actualBoundingBoxAscent+1);
+    return txcanvas.addTo(this.scene3d, 0.5, 0.5);
+  }
+
   setTracking(mode) {
     const labels = this.labels;
     for (const [p, sprite] of Object.entries(this.labels)) {
@@ -520,6 +556,40 @@ class SceneUpdater {
     }
   }
 
+  // Variant of lookAt that looks in a direction rather than at an
+  // object at finite distance.
+  lookAlong(x, y, z) {
+    const camera = this.scene3d.camera;
+    if (y === undefined) {
+      if (x.x !== undefined && x.y !== undefined && x.z !== undefined) {
+        x = [x.x, x.y, x.z];
+      }
+      [x, y, z] = x;
+    }
+    let r = Math.sqrt(x**2 + y**2 + z**2);  // r = 0 is illegal direction
+    [x, y, z] = [x/r, y/r, z/r];
+    r = camera.position;
+    const [xc, yc, zc] = [r.x, r.y, r.z];
+    // Make sure that (x, y, z) is not much shorter than (x0, y0, z0).
+    r = Math.sqrt(xc**2 + yc**2 + zc**2);
+    if (r > 1) [x, y, z] = [x*r, y*r, z*r];
+    // Look at an object in the direction of (x, y, z) from where camera is.
+    camera.lookAt(xc + x, yc + y, zc + z);
+  }
+
+  recenterEcliptic() {
+    const camera = this.scene3d.camera;
+    let dir = camera.getWorldDirection(_dummyVector);
+    if (dir.x > 0.001 || dir.z > 0.001) {
+      dir.y = 0;
+      dir.normalize();
+    } else {
+      dir.set(-1, 0, 0);
+    }
+    this.lookAlong(dir);
+    this.scene3d.render();
+  }
+
   pivot(ms) {
     if (!ms || ms < 0) return;
     const scene3d = this.scene3d;
@@ -692,18 +762,6 @@ function gotoStartDate() {
 }
 
 const _dummyVector = new Vector3();
-
-function recenterEcliptic() {
-  camera.up.set(0, 1, 0);
-  let dir = camera.getWorldDirection(_dummyVector);
-  if (dir.x != 0 || dir.z != 0) {
-    dir.y = 0;
-    dir.normalize();
-  } else {
-    dir.set(1, 0, 0);
-  }
-  camera.lookAt(dir.x, 0, dir.z);
-}
 
 /* ------------------------------------------------------------------------ */
 
@@ -980,6 +1038,13 @@ function setupSky() {
   const qpoleMarks = scene3d.segments(poleMarks, dashedLine);
   qpoleMarks.rotation.z = -23.43928 * Math.PI/180.;
 
+  const ecLabel = sceneUpdater.addText("ecliptic", {color: "#113366"});
+  ecLabel.position.set(-7070, -180, 7070);
+  const eqLabel = sceneUpdater.addText("equator", {color: "#113366"});
+  eqLabel.position.set(-7070, 2900, 7070);
+  sceneUpdater.ecLabel = ecLabel;
+  sceneUpdater.eqLabel = eqLabel;
+
   // planets.sun = scene3d.createSprite(textureMaps[1], 0.6, 0xffffff);
   sceneUpdater.addPlanet("sun", textureMaps[1], 0.6, 0xffffff);
 
@@ -1005,6 +1070,7 @@ function setupSky() {
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
 
+  // Camera is still at (0, 0, 0), so lookAt is just direction vector.
   scene3d.camera.lookAt(-1, 0, 0);  // look at brightest part of Milky Way
   sceneUpdater.setTracking("sky");
   skyAnimator.playLoop(7305);
@@ -1032,13 +1098,20 @@ window.xyzNow = xyzNow;
 window.sceneUpdater = sceneUpdater;
 window.skyAnimator = skyAnimator;
 
+window.getCamera = () => {
+  let dir = scene3d.camera.getWorldDirection(_dummyVector);
+  return scene3d.camera, dir;
+};
+
 /* ------------------------------------------------------------------------ */
 
 const PRESS_TIMEOUT = 750;
 
 STARDATE.addEventListener("pointerdown", (event) => {
   if (STARDATE.classList.contains("disabled")) return;
-  if (!skyAnimator.isPaused) skyAnimator.pause();  // pause immediately
+  const wasPaused = skyAnimator.isPaused;
+  if (!wasPaused) skyAnimator.pause();  // pause immediately
+  if (sceneUpdater.mode == "sky") sceneUpdater.recenterEcliptic();
   // Wait to test for for press and hold.
   const gotPointerup = (event) => {
     // Got pointerup before timeout, this is just a click.
@@ -1047,7 +1120,7 @@ STARDATE.addEventListener("pointerdown", (event) => {
     id = null;
     if (id0 === null) return;
     clearTimeout(id0);
-    if (skyAnimator.isPaused) skyAnimator.play();
+    if (wasPaused) skyAnimator.play();
   };
   let id = setTimeout(() => {
     // Got timeout before pointer up, this is press and hold.
