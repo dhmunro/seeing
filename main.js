@@ -1090,8 +1090,13 @@ window.skyAnimator = skyAnimator;
     return;
   }
 
-  if (document[fsElement]) {
-    FULLSCREEN_ICON.setAttribute("xlink:href", "#fa-compress");
+  if (window.matchMedia("(display-mode: fullscreen)").matches ||
+      document[fsElement]) {
+    if (document[fsElement]) {
+      FULLSCREEN_ICON.setAttribute("xlink:href", "#fa-compress");
+    } else {
+      classList.add("hidden");
+    }
   }
   // addEventListener(fsChange, toggleIcon);
   // resize needed to handle manual F11 fullscreening entire browser
