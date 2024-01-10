@@ -29,6 +29,7 @@ import {SkyControls} from './skycontrols.js';
  */
 
 const HFOV = 100;  // horizontal field of view
+// HFOV = 10 is about 1 arc minute resolution
 const MAX_ASPECT = 39 / 18;  // iPhone screen most extreme common case
 const MIN_ASPECT = 16 / 10;  // tall laptop screen
 
@@ -1031,56 +1032,83 @@ window.xyzNow = xyzNow;
 window.sceneUpdater = sceneUpdater;
 window.skyAnimator = skyAnimator;
 
-// Use VisionTester to find that hfov=10 gives roughly 1 arc min resolution
+/* ------------------------------------------------------------------------ */
 
-// class VisionTester {
-//   constructor(scene3d) {
-//     this.scene3d = scene3d;
-//     this.lines = scene3d.segments(
-//       [0, -200*Math.tan(5*Math.PI/180), 200,
-//        0, 200*Math.tan(5*Math.PI/180), 200,
-//        200*Math.tan((1/60)*Math.PI/180), -200*Math.tan(0.5*Math.PI/180), 200,
-//        200*Math.tan((1/60)*Math.PI/180), 200*Math.tan(0.5*Math.PI/180), 200],
-//       {color: 0xffff00, linewidth: 1});
-//     this.lines.visible = false;
-//   }
-// 
-//   test(hfov=HFOV) {
-//     skyAnimator.stop();
-//     scene3d.camera.lookAt(0, 0, 200);
-//     this.lines.visible = true;
-//     scene3d.setSize(undefined, undefined, -hfov);
-//     scene3d.render();
-//   }
-// }
-// 
-// window.vision = new VisionTester(scene3d);
+const PRESS_TIMEOUT = 750;
+
+STARDATE.addEventListener("pointerdown", (event) => {
+  if (STARDATE.classList.contains("disabled")) return;
+  if (!skyAnimator.isPaused) skyAnimator.pause();  // pause immediately
+  // Wait to test for for press and hold.
+  const gotPointerup = (event) => {
+    // Got pointerup before timeout, this is just a click.
+    STARDATE.removeEventListener("pointerup", gotPointerup);
+    const id0 = id;
+    id = null;
+    if (id0 === null) return;
+    clearTimeout(id0);
+    if (skyAnimator.isPaused) skyAnimator.play();
+  };
+  let id = setTimeout(() => {
+    // Got timeout before pointer up, this is press and hold.
+    id = null;
+    STARDATE.removeEventListener("pointerup", gotPointerup);
+    console.log("press and hold action", xyzNow.jd);
+  }, PRESS_TIMEOUT);
+  STARDATE.addEventListener("pointerup", gotPointerup);
+});
 
 /* ------------------------------------------------------------------------ */
 
-// https://github.com/rafgraph/fscreen
+const MAIN_MENU = document.getElementById("main-menu");
+MAIN_MENU.addEventListener("click", () => {
+  if (MAIN_MENU.classList.contains("disabled")) return;
+  console.log("open main menu");
+});
+
+const PAGE_UP = document.getElementById("pageup");
+PAGE_UP.addEventListener("click", () => {
+  if (PAGE_UP.classList.contains("disabled")) return;
+  console.log("page up action");
+});
+
+const PAGE_DOWN = document.getElementById("pagedn");
+PAGE_DOWN.addEventListener("click", () => {
+  if (PAGE_DOWN.classList.contains("disabled")) return;
+  console.log("page down action");
+});
+
+const REPLAY = document.getElementById("replay");
+REPLAY.addEventListener("click", () => {
+  if (REPLAY.classList.contains("disabled")) return;
+  console.log("replay action");
+});
+
+/* ------------------------------------------------------------------------ */
+
+// See https://github.com/rafgraph/fscreen
 (function () {
   const FULLSCREEN_ICON = document.querySelector("#fullscreen > use");
   const classList = FULLSCREEN_ICON.parentElement.classList;
   
   const documentElement = document.documentElement;
   let fsElement, fsRequest, fsExit, fsChange;
-  if ("fullscreenEnabled" in document) {
+  if ("fullscreenEnabled" in document) {  // standard Fullscreen API
     fsElement = "fullscreenElement";
     fsRequest = documentElement.requestFullscreen;
     fsExit = document.exitFullscreen;
     fsChange = "fullscreenchange";
-  } else if ("webkitFullscreenEnabled" in document) {
+  } else if ("webkitFullscreenEnabled" in document) {  // webkit prefix
     fsElement = "webkitFullscreenElement";
     fsRequest = documentElement.webkitRequestFullscreen;
     fsExit = document.webkitExitFullscreen;
     fsChange = "webkitfullscreenchange";
-  } else if ("mozFullScreenEnabled" in document) {
+  } else if ("mozFullScreenEnabled" in document) {  // mozilla prefix
     fsElement = "mozFullScreenElement";
     fsRequest = documentElement.mozRequestFullScreen;
     fsExit = document.mozCancelFullScreen;
     fsChange = "mozfullscreenchange";
-  } else if ("msFullscreenEnabled" in document) {
+  } else if ("msFullscreenEnabled" in document) {  // microsoft prefix
     fsElement = "msFullscreenElement";
     fsRequest = documentElement.msRequestFullscreen;
     fsExit = document.msExitFullscreen;
