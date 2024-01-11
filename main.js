@@ -35,7 +35,7 @@ const MIN_ASPECT = 16 / 10;  // tall laptop screen
 
 const STARDATE = document.getElementById("stardate");
 
-const scene3d = new PerspectiveScene("skymap", -HFOV, 0, 0.01, 8000);
+const scene3d = new PerspectiveScene("skymap", -HFOV, 0, 0.01, 12000);
 
 /* ------------------------------------------------------------------------ */
 
@@ -347,7 +347,9 @@ class SceneUpdater {
     if (mode == "mars" && this.rings.mars.visible) {
       labels.antisun.visible = false;
     }
-    this.scene3d.setBackground((mode == "sky")? 0.6 : 0.3);
+    const skyMode = mode == "sky";
+    this.scene3d.setBackground(skyMode? 0.6 : 0.3);
+    controls.enabled = skyMode;
     this.mode = mode;
   }
 
@@ -594,17 +596,15 @@ class SceneUpdater {
     if (!ms || ms < 0) return;
     const scene3d = this.scene3d;
     const camera = scene3d.camera;
-    let r0 = camera.position;
-    const [x0, y0, z0] = [r0.x, r0.y, r0.z];
-    let angle0 = camera.getWorldDirection(_dummyVector);
-    const r = Math.sqrt(angle0.x**2 + angle0.z**2);
-    const y = angle0.y / r;
-    angle0 = Math.atan2(angle0.x, angle0.z);
-    let angle1 = angle0 + 2*Math.PI;
+    let {x, y, z} = camera.getWorldDirection(_dummyVector);
+    let r = Math.sqrt(x**2 + z**2);
+    const angle0 = Math.atan2(x, z);
+    const angle1 = angle0 + 2*Math.PI;
     const rate = 2*Math.PI / ms;
+    const self = this;
     const anim = new ParameterAnimator(
       angle0, angle1, (angle) => {
-        camera.lookAt(x0 + Math.sin(angle), y0 + y, z0 + Math.cos(angle));
+        self.lookAlong(r*Math.sin(angle), y, r*Math.cos(angle));
         scene3d.render();
       }, ms);
     anim.play();
@@ -724,6 +724,79 @@ function fadeColor(obj, mult0, mult1, ms, onFinish) {
 const xyzNow = new PlanetPositions(dayOfDate(new Date()));
 
 const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
+
+/* ------------------------------------------------------------------------ */
+
+class Pager {
+  constructor(topbox, botbox, pageup, pagedn) {
+    this.topPages = topbox.children;
+    this.botPages = botbox.children;
+    this.iPage = 0;
+    this.pageup = pageup;
+    this.pagedn = pagedn;
+
+    const noop = () => {};
+    const resetScene = (mode) => {
+      const camera = scene3d.camera;
+      camera.position.set(0, 0, 0);
+      camera.lookAt(-1, 0, 0);
+      sceneUpdater.setTracking(mode);
+      xyzNow.update();
+    }
+
+    this.pageEnter = [
+      () => {  // enter page 0
+        resetScene("sky");
+        skyAnimator.playLoop(7305);
+      },
+      () => {  // enter page 1
+        resetScene("sun");
+        skyAnimator.playLoop(7305);
+      }
+    ];
+
+    // Goto will stop and reset skyAnimator before calling exit,
+    // but if other animators need to be stopped pageExit must do so.
+    this.pageExit = [
+      noop,  // exit page 0
+      noop  // exit page 1
+    ];
+  }
+
+  goto(i) {
+    const {topPages, botPages, iPage, pageup, pagedn} = this;
+    const mxPage = botPages.length - 1;
+    if (i === undefined) i = iPage;
+    if (i < 0 || i > mxPage) return;
+    topPages[iPage].classList.add("hidden");
+    botPages[iPage].classList.add("hidden");
+    topPages[i].classList.remove("hidden");
+    botPages[i].classList.remove("hidden");
+    this.iPage = i;
+    if (iPage == mxPage) this.pagedn.classList.remove("disabled");
+    else if (iPage == 0) this.pageup.classList.remove("disabled");
+    if (i == mxPage) this.pagedn.classList.add("disabled");
+    else if (i == 0) this.pageup.classList.add("disabled");
+    const pageExit = this.pageExit[iPage];
+    const pageEnter = this.pageEnter[i];
+    skyAnimator.clearChain().stop();
+    if (pageExit) pageExit();
+    if (pageEnter) pageEnter();
+  }
+
+  next() {
+    this.goto(this.iPage + 1);
+  }
+
+  prev() {
+    this.goto(this.iPage - 1);
+  }
+}
+
+const pager = new Pager(document.getElementById("topbox"),
+                        document.getElementById("botbox"),
+                        document.getElementById("pageup"),
+                        document.getElementById("pagedn"));
 
 /* ------------------------------------------------------------------------ */
 
@@ -998,6 +1071,11 @@ class ParameterAnimator extends Animator {
 
 /* ------------------------------------------------------------------------ */
 
+const controls = new SkyControls(scene3d.camera, scene3d.canvas);
+controls.addEventListener("change", () => {
+  scene3d.render();
+});
+
 const solidLine = scene3d.createLineStyle({color: 0x335577, linewidth: 2});
 const dashedLine = scene3d.createLineStyle({
   color: 0x335577, linewidth: 3,
@@ -1081,12 +1159,6 @@ function setupSky() {
 
 /* ------------------------------------------------------------------------ */
 
-const controls = new SkyControls(scene3d.camera, scene3d.canvas);
-controls.addEventListener("change", () => {
-  scene3d.render();
-});
-controls.enabled = sceneUpdater.mode == "sky";
-
 scene3d.onContextLost(() => {
   if (skyAnimator.isPaused) return;
   skyAnimater.pause();
@@ -1139,22 +1211,22 @@ MAIN_MENU.addEventListener("click", () => {
   console.log("open main menu");
 });
 
-const PAGE_UP = document.getElementById("pageup");
+const PAGE_UP = pager.pageup;
 PAGE_UP.addEventListener("click", () => {
   if (PAGE_UP.classList.contains("disabled")) return;
-  console.log("page up action");
+  pager.prev();
 });
 
-const PAGE_DOWN = document.getElementById("pagedn");
+const PAGE_DOWN = pager.pagedn;
 PAGE_DOWN.addEventListener("click", () => {
   if (PAGE_DOWN.classList.contains("disabled")) return;
-  console.log("page down action");
+  pager.next();
 });
 
 const REPLAY = document.getElementById("replay");
 REPLAY.addEventListener("click", () => {
   if (REPLAY.classList.contains("disabled")) return;
-  console.log("replay action");
+  pager.goto();
 });
 
 /* ------------------------------------------------------------------------ */

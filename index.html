@@ -168,22 +168,31 @@
 <!-- --------------------------------------------------------------------- -->
 
 <div id="vgrid">
-<div id="topbox">
+<div id="topbox"><div>
   <h1>Seeing the Solar System</h1>
   <h2>How to map planetary orbits in 3D by naked eye</h2>
-</div>
+</div><div class="hidden">
+    <h2>First study how the Sun moves</h2>
+</div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
   <div id="stardate" class="button unselectable">2024<br>01-02</div>
 </div>
-<div id="botbox">
+<div id="botbox"><div>
   <p>Here is everything you can see in the sky with your own eyes on a
     perfect night, except the Moon.  (You can never see the Sun at the
     same time as the planets and stars, but using clocks people worked
     out exactly where the Sun is among the stars even in ancient times.)
     This wide angle view is 100&deg; from side to side.  Drag the sky
     to look around.</p>
-</div>
+  </div><div class="hidden">
+    <p>The Sun moves around a great circle called the
+      <em>ecliptic</em> yearly.  Thus the plane of the ecliptic always
+      contains both the Earth and the Sun.</p>
+    <p>The planets wander above and below the ecliptic, and also
+      reverse their direction occasionally - the motion of the Sun is
+      much simpler.</p>
+</div></div>
 <div id="page-controls">
   <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"
        height="2rem" viewBox="0 0 512 512">
