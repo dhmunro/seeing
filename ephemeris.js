@@ -502,7 +502,7 @@ class SolarSystem {
     const [sqrt, sin, cos, abs] = [Math.sqrt, Math.sin, Math.cos, Math.abs];
     const [values, rates, aux] = this.params[planet];
     let [a, e, incl, mlon, plon, nlon] = values.map((x, i) => x + rates[i]*t);
-    let ma = mlon - plon  // mean anomaly
+    let ma = mlon - plon;  // mean anomaly
     let madot = rates[3];  // do not include -rates[4] because ma is measured
                            // from perihelion and want relative to fixed value
     if (aux !== undefined) {  // outer planet correction to ma for Model2
@@ -708,3 +708,101 @@ export const rMass = {  // sun/planet mass ratios
   mercury: 6023600., venus: 408523.71, earth: 328900.5614, mars: 3098708.,
   jupiter: 1047.3486, saturn: 3497.898, uranus: 22902.98, neptune: 19412.24,
   pluto: 135200000. };
+
+// https://en.wikipedia.org/wiki/Axial_tilt, Laskar expression
+// Original Laskar (1986) paper, table 8
+// "Secular terms of classical planetary theories using the results of
+//  general theory", Astronomy and Astrophysics 157(1) Mar 1986, 59-70
+// Erratum: Astronomy and Astrophysics 164(2) Aug(II) 1986, 437
+// Lieske et al, Astron. Astrophys. 58, 1 (1977)
+// https://articles.adsabs.harvard.edu/pdf/1986A%26A...157...59L
+// https://articles.adsabs.harvard.edu/pdf/1986A%26A...164..437L
+// https://articles.adsabs.harvard.edu/pdf/1977A%26A....58....1L
+// This obliquity and precession are good to few arcsec over +-10000 years.
+
+// Note 84381.488 s = 23 deg 26 m 21.488 s = J2000 obliquity
+const _laskar_o = [2.45, 5.79, 27.87, 7.12, -39.05, -249.67, -51.38, 1999.25,
+                   -1.55, -4680.93, 84381.488].map(v => v*Math.PI/(180*3600));
+// Note 10000 jyr / 502909.66 s = 71.58343310 jyr/deg = J2000 precession rate
+const _laskar_p = [-8.66, -47.59, 24.24, 130.95, 174.51, -180.55, -2353.16,
+                   77.32, 11119.71, 502909.66].map(v => v*Math.PI/(180*3600));
+
+export function obliquity(day) {
+  const t = day / 3652500.;
+  return _laskar_o.reduce((s, v) => s*t + v);
+}
+
+export function precession(day) {
+  const t = day / 3652500.;
+  return _laskar_p.reduce((s, v) => s*t + v) * t;
+}
+
+// These are obliquity = epsilon_A and precession = p_A in Lieske notation:
+// obliquity = epsilon_A angle between ecliptic of date and equator of date
+// precession = p_A = Lambda_A - Pi_A
+//   Lambda_A = from equinox of date to ecliptic of epoch in ecliptic of date
+//   Pi_A = from equinox of epoch to ecliptic of date in ecliptic of epoch
+// Given in this strange form because ecliptic of date and ecliptic of
+// epoch are very nearly the same plane, so that Pi_A is very nearly
+// indeterminate.  Here,
+//   nlon = longitude of ascending node = Pi_A
+//   incl = inclination = I --> with nlon, determines ecliptic of date
+// Q0 = equinox of epoch = (1, 0, 0)
+// P0 = ecliptic pole of epoch = (0, 0, 1)
+// N = ascending node of date, indeterminate at t=0 (epoch) except as limit
+//     - this vector lies in both ecliptic of date and of epoch
+//   = (cos(Pi_A), sin(Pi_A), 0)
+// I = (small!) inclination of ecliptic of date relative to ecliptic of epoch
+// P = ecl pole of date = (sin(Pi_A)*sin(I), -cos(Pi_A)*sin(I), cos(I))
+//   = P0 + 2*sin(I/2)*(sin(Pi/A)*cos(I/2), -cos(Pi_A)*cos(I/2), -sin(I/2))
+//   = P0 rotated by small angle I about N
+// RNI = rotate by I around N, then RPp = rotate by -p_A about P
+// P = RNI(P0) = RPp(RNI(P0)),  Q = RPp(RNI(Q0))
+
+export function eclipticOfDate(day) {
+  let t = day / 36525.;  // Julian centuries past J2000.0.
+  const ssModel = (day<-73048.0 || day>18263.0)? ssModel2 : ssModel1;
+  const [values, rates, aux] = ssModel.params.earth;
+  const incl = values[2] + rates[2]*t;
+  const nlon = values[5] + rates[5]*t;
+  return [incl, nlon];
+}
+
+/* See https://en.wikipedia.org/wiki/Solar_time  ("Mean solar time" section)
+ * The mean Sun used for mean solar time actually moves along the
+ * celestial equator at a constant rate.
+ * However, for our purposes here, we are interested in the "mean Sun" which
+ * moves around the ecliptic at a constant rate, coinciding with the true
+ * Sun at perihelion and aphelion.  (The solar time mean Sun coincides with
+ * our mean Sun at the equinoxes.)
+ * Note that both mean Suns have a period equal to the anomalistic year.
+ */
+
+export function meanSunOn(day) {
+  const ssModel = (day<-73048.0 || day>18263.0)? ssModel2 : ssModel1;
+  const [values, rates, aux] = ssModel.params.earth;
+  return Math.PI + values[3] + rates[3]*day/36525.;
+}
+
+export function meanSunNextAt(angle, day) {
+  const ssModel = (day<-73048.0 || day>18263.0)? ssModel2 : ssModel1;
+  const [values, rates, aux] = ssModel.params.earth;
+  const rate = rates[3] / 36525.;
+  const twopi = 2 * Math.PI;
+  let da = (angle - ((values[3] + rate*day) % twopi)) % twopi;
+  if (da < -1.e-6) da += twopi;
+  else if (da < 0) da = 0;
+  return day + da/rate;
+}
+
+export function periodOf(planet, day=0) {
+  const ssModel = (day<-73048.0 || day>18263.0)? ssModel2 : ssModel1;
+  let madot = ssModel.params[planet][1][3];
+  const aux = ssModel.params[planet].aux;
+  if (aux !== undefined) {  // outer planet correction to ma for Model2
+      const ft = aux[3]*t;
+      const [cft, sft, a0t] = [Math.cos(ft), Math.sin(ft), aux[0]*t];
+      madot += 2*a0t + aux[3]*(aux[2]*cft - aux[1]*sft);
+  }
+  return 36525. * 2 * Math.PI / madot;
+}

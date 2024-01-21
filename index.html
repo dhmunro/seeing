@@ -67,9 +67,14 @@
           margin: 0 auto;
           padding: 0.5rem;
           max-width: 40rem;
-          font-size: large;
           z-index: 1;
           pointer-events: none;
+      }
+      #topbox p {
+          font-size: large;
+      }
+      #botbox p {
+          font-size: large;
       }
 
       /* Tallest viewport for the skymap to fill it is 16/10 (eg 1920/1200)
@@ -171,8 +176,19 @@
 <div id="topbox"><div>
   <h1>Seeing the Solar System</h1>
   <h2>How to map planetary orbits in 3D by naked eye</h2>
+  <p style="text-align: center">Follow Johannes Kepler's brilliant
+    analysis of the problem that stumped astronomers for two millenia.</p>
 </div><div class="hidden">
     <h2>First study how the Sun moves</h2>
+    <p>The Sun moves around a great circle called the
+      <em>ecliptic</em> yearly.  Thus the plane of the ecliptic always
+      contains both the Earth and the Sun.</p>
+</div><div class="hidden">
+    <h2>The speed of the Sun varies</h2>
+    <p>Spring and summer are longer in the northern hemisphere than in
+      the southern hemisphere.  That is, the Sun takes longer to move the
+      180 degrees from March equinox to September equinox than to move
+      the 180 degrees back to March equinox.</p>
 </div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
@@ -180,18 +196,19 @@
 </div>
 <div id="botbox"><div>
   <p>Here is everything you can see in the sky with your own eyes on a
-    perfect night, except the Moon.  (You can never see the Sun at the
-    same time as the planets and stars, but using clocks people worked
-    out exactly where the Sun is among the stars even in ancient times.)
-    This wide angle view is 100&deg; from side to side.  Drag the sky
-    to look around.</p>
-  </div><div class="hidden">
-    <p>The Sun moves around a great circle called the
-      <em>ecliptic</em> yearly.  Thus the plane of the ecliptic always
-      contains both the Earth and the Sun.</p>
+    perfect night, except the Moon.  This wide angle view is 100&deg;
+    from side to side.  Click the date to pause.  Drag the sky to look
+    around.</p>
+  <p>(You can never see the Sun at the same time as the planets and
+    stars, but even in ancient times people used clocks to work out
+    exactly where the Sun is among the stars.)</p>
+</div><div class="hidden">
     <p>The planets wander above and below the ecliptic, and also
-      reverse their direction occasionally - the motion of the Sun is
-      much simpler.</p>
+      reverse direction sometimes - the motion of the Sun is much
+      simpler.</p>
+</div><div class="hidden">
+    <p>
+</p>
 </div></div>
 <div id="page-controls">
   <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"

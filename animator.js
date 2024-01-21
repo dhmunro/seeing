@@ -56,12 +56,14 @@ export class Animator {
         self._cancelPending();  // cancel any pending frame requests
         const parts = self.parts;
         let dms = 0;
-        if (ms !== null) {
+        if (document[_hidden]) {
+          msPrev = null;  // act like implicit pause
+        } else if (ms !== null) {
           if (msPrev !== null) {
             dms = ms - msPrev;
-            if (dms <= 0) dms = 1;  // assure finite step after start
           }
           msPrev = ms;
+          if (dms <= 0) dms = 1;  // assure finite step after start
           while (parts[iPart].call(self, dms)) {
             iPart += 1;
             if (iPart >= parts.length) {  // whole animation finished
@@ -154,3 +156,11 @@ export class Animator {
     if (id !== undefined) cancelAnimationFrame(id);
   }
 }
+
+const _hidden = (function() {
+  let key;
+  for (key of ["hidden", "webkitHidden", "mozHidden", "msHidden"]) {
+    if (key in document) break;
+  }
+  return key;
+})();
