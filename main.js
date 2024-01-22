@@ -778,10 +778,11 @@ class Pager {
     this.pagedn = pagedn;
 
     const noop = () => {};
-    let nowMar, mar2nov, year;
+    let nowMar, mar2sep, year;
     let jdOrigin = null;
-    const countDays = (stop) => {
+    const sunCounter = (stop) => {
       if (jdOrigin === null) jdOrigin = xyzNow.jd;
+      SUN_COUNTER.innerHTML = (xyzNow.jd - jdOrigin).toFixed(2);
     };
 
     this.pageEnter = [
@@ -825,6 +826,10 @@ class Pager {
       },
 
       () => {  // page 2: The Sun does not move around at constant speed
+        SUN_COUNTER.innerHTML = "-";
+        MAR_SEP.innerHTML = "";
+        SEP_MAR.innerHTML = "";
+        jdOrigin = null;
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("sun");
@@ -842,23 +847,41 @@ class Pager {
           let jdMar = timePlanetAt("earth", -x, -y, 0, jdNow);
           if (jdMar < jdNow) jdMar += year;
           nowMar = jdMar < jdNov;
-          mar2nov = jdNov - jdMar;
-          if (!nowMar) mar2nov += year;
+          mar2sep = jdNov - jdMar;
+          if (!nowMar) mar2sep += year;
           skyAnimator.msEase(500);
           skyAnimator.playFor((nowMar? jdMar : jdNov) - jdNow);
-        }).chain(3000).chain(() => {
-          skyAnimator.playFor(nowMar? mar2nov : year-mar2nov);
-          nowMar = !nowMar;
-        }).chain(3000).chain(() => {
-          skyAnimator.playFor(nowMar? mar2nov : year-mar2nov);
-          nowMar = !nowMar;
-        }).chain(3000).chain(() => {
-          skyAnimator.playFor(nowMar? mar2nov : year-mar2nov);
-          nowMar = !nowMar;
-        }).chain(3000).chain(() => {
-          skyAnimator.playFor(nowMar? mar2nov : year-mar2nov);
-          nowMar = !nowMar;
-        }).chain(() => {
+        });
+        function countDays() {
+          return skyAnimator.chain(() => {
+            SUN_COUNTER.innerHTML = "0";
+            jdOrigin = null;
+            skyAnimator.playChain();
+          }).chain(1500).chain(() => {
+            skyAnimator.syncSky = sunCounter;
+            skyAnimator.playFor(nowMar? mar2sep : year-mar2sep);
+          }).chain(() => {
+            if (nowMar) MAR_SEP.innerHTML = mar2sep.toFixed(2) + " days";
+            else SEP_MAR.innerHTML = (year-mar2sep).toFixed(2) + " days";
+            nowMar = !nowMar;
+            skyAnimator.playChain();
+          }).chain(1500).chain(() => {
+            SUN_COUNTER.innerHTML = "0";
+            jdOrigin = null;
+            skyAnimator.playChain();
+          }).chain(1500).chain(() => {
+            skyAnimator.syncSky = sunCounter;
+            skyAnimator.playFor(nowMar? mar2sep : year-mar2sep);
+          }).chain(() => {
+            if (nowMar) MAR_SEP.innerHTML = mar2sep.toFixed(2) + " days";
+            else SEP_MAR.innerHTML = (year-mar2sep).toFixed(2) + " days";
+            nowMar = !nowMar;
+            skyAnimator.playChain();
+          }).chain(1500);
+        }
+        countDays();
+        countDays();
+        countDays().chain(() => {
           pager.gotoPage(2);
         });
         scene3d.render();
@@ -916,6 +939,10 @@ const pager = new Pager(document.getElementById("topbox"),
                         document.getElementById("botbox"),
                         document.getElementById("pageup"),
                         document.getElementById("pagedn"));
+
+const SUN_COUNTER = document.getElementById("sun-counter");
+const MAR_SEP = document.getElementById("mar-sep");
+const SEP_MAR = document.getElementById("sep-mar");
 
 /* ------------------------------------------------------------------------ */
 

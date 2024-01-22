@@ -120,6 +120,14 @@
           -ms-user-select: none; /* IE 10 and IE 11 */
           user-select: none; /* Standard syntax */
       }
+      .centered {
+          text-align: center;
+      }
+      .equibox {
+          display: inline-block;
+          text-align: right;
+          width: 7em;
+      }
 
       .button {
           display: inline-block;
@@ -176,7 +184,7 @@
 <div id="topbox"><div>
   <h1>Seeing the Solar System</h1>
   <h2>How to map planetary orbits in 3D by naked eye</h2>
-  <p style="text-align: center">Follow Johannes Kepler's brilliant
+  <p class="centered">Follow Johannes Kepler's brilliant
     analysis of the problem that stumped astronomers for two millenia.</p>
 </div><div class="hidden">
     <h2>First study how the Sun moves</h2>
@@ -186,9 +194,11 @@
 </div><div class="hidden">
     <h2>The speed of the Sun varies</h2>
     <p>Spring and summer are longer in the northern hemisphere than in
-      the southern hemisphere.  That is, the Sun takes longer to move the
-      180 degrees from March equinox to September equinox than to move
-      the 180 degrees back to March equinox.</p>
+      the southern hemisphere.  That is, the Sun takes longer to move
+      the 180 degrees from March equinox to September equinox than to
+      move the 180 degrees back to March equinox.  However, the speed
+      variations are identical every year - the Sun's motion is exactly
+      periodic.</p>
 </div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
@@ -207,8 +217,11 @@
       reverse direction sometimes - the motion of the Sun is much
       simpler.</p>
 </div><div class="hidden">
-    <p>
-</p>
+    <p style="text-indent: 3em;">Day count: <span id="sun-counter">-</span></p>
+    <p class="centered">Interval between equinoxes:
+    <br/>March to September: <span id="mar-sep" class="equibox"></span>
+    <br/>September to March: <span id="sep-mar" class="equibox"></span>
+    </p>
 </div></div>
 <div id="page-controls">
   <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"
