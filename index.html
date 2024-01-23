@@ -71,16 +71,17 @@
           pointer-events: none;
       }
       #topbox p {
-          font-size: large;
+          font-size: 1.125rem;  /* = 18/16 = large */
       }
       #botbox p {
-          font-size: large;
+          font-size: 1.125rem;
       }
 
       /* Tallest viewport for the skymap to fill it is 16/10 (eg 1920/1200)
        * any taller (more portrait) and we stack top, mid, and bot boxes
        * instead of overlapping top and bot over mid.
-       * Common landscape aspect ratios range from 16/10 up to iPhone 39/18.
+       * Common landscape aspect ratios range from 16/10 up to Galaxy S21 20/9
+       * (iPhone 39/18).
        */
       #vgrid {
           display: grid;
@@ -108,7 +109,12 @@
           }
           #midbox {
               position: relative;
-              height: calc(100vw * 18 / 39);
+              height: calc(100vw * 9 / 20);
+          }
+      }
+      @media screen and (max-width: 920px) {
+          :root {
+              font-size: 12px;
           }
       }
 
@@ -207,7 +213,7 @@
       other.  The west-to-east leg (or morning to evening side of the
       Sun) takes much longer than the east-to-west leg.</p>
 </div><div class="hidden">
-    <h2>Visualizing Venus's orbit</h2>
+    <h2>Visualize Venus's orbit</h2>
     <p>Viewed from Earth, Venus certainly does not move around the
       Sun periodically.  But is its orbit periodic with respect to
       the stars?</p>
@@ -223,12 +229,10 @@
 </div>
 <div id="botbox"><div>
   <p>Here is everything you can see in the sky with your own eyes on a
-    perfect night, except the Moon.  This wide angle view is 100&deg;
+    perfect night, except the Moon.  (And including the Sun, even though
+    you can't see where it is at night!)  This wide angle view is 100&deg;
     from side to side.  Click the date to pause.  Drag the sky to look
     around.</p>
-  <p>(You can never see the Sun at the same time as the planets and
-    stars, but even in ancient times people used clocks to work out
-    exactly where the Sun is among the stars.)</p>
 </div><div class="hidden">
     <p>The planets wander above and below the ecliptic, and also
       reverse direction sometimes - the motion of the Sun is much

@@ -31,7 +31,7 @@ import {SkyControls} from './skycontrols.js';
 
 const HFOV = 100;  // horizontal field of view
 // HFOV = 10 is about 1 arc minute resolution
-const MAX_ASPECT = 39 / 18;  // iPhone screen most extreme common case
+const MAX_ASPECT = 20 / 9;  // Galaxy S21 screen most extreme common case
 const MIN_ASPECT = 16 / 10;  // tall laptop screen
 
 const STARDATE = document.getElementById("stardate");
@@ -335,8 +335,11 @@ class SceneUpdater {
   }
 
   setTracking(mode) {
+    for (const [p, sprite] of Object.entries(this.planets)) {
+      sprite.visible = true;
+    }
     const labels = this.labels;
-    for (const [p, sprite] of Object.entries(this.labels)) {
+    for (const [p, sprite] of Object.entries(labels)) {
       sprite.visible = false;
     }
     this.modeLabels[mode].forEach(name => { labels[name].visible = true; });
@@ -406,7 +409,8 @@ class SceneUpdater {
     const ring = this.rings[planet];
     ring.userData.jd0 = jdBest;
     ring.userData.re0 = re0;
-    if (!noAnimate) ring.userData.initializing = true;
+    if (noAnimate) delete ring.userData.initializing;
+    else ring.userData.initializing = true;
     ring.userData.yearError = 0;
     const pref = (planet == "venus")? "earth" : "mars";
     const jdStep = periodOf(pref, xyzNow.jd);
@@ -1415,7 +1419,7 @@ function setupSky() {
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
 
-  pager.gotoPage(5);
+  pager.gotoPage(0);
 }
 
 function adjustEcliptic(jd) {
