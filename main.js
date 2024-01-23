@@ -397,8 +397,8 @@ class SceneUpdater {
     this.rings[planet] = grp;
   }
 
-  initializeRing(planet, xyzPlanets) {
-    skyAnimator.clearChain().stop();
+  initializeRing(planet, xyzPlanets, noAnimate, noPlay) {
+    if (!noPlay) skyAnimator.clearChain().stop();
     // Run forward or backward by up to half a year to find the
     // most open view of the orbit.
     let jdBest = this.findBestOrbitView(planet, xyzPlanets.jd0);
@@ -406,23 +406,26 @@ class SceneUpdater {
     const ring = this.rings[planet];
     ring.userData.jd0 = jdBest;
     ring.userData.re0 = re0;
-    ring.userData.initializing = true;
+    if (!noAnimate) ring.userData.initializing = true;
     ring.userData.yearError = 0;
     const pref = (planet == "venus")? "earth" : "mars";
     const jdStep = periodOf(pref, xyzNow.jd);
-    skyAnimator.chain(500).chain(() => {
+    if (!noAnimate) {
       this.setTracking(planet);
-      ring.visible = true;  // after setTracking so antisun still visible
       xyzPlanets.update(jdBest - jdStep);
-      skyAnimator.jdRate(jdStep / 6);
-      skyAnimator.msEase(800);
-      skyAnimator.playUntil(jdBest);
-    }).chain(() => {
-      this.labels.antisun.visible = false;  // nos remove antisun
-      this.mode = "sky";  // lie about mode to prevent following planet
-      skyAnimator.jdRate(jdStep);
-      skyAnimator.playChain();
-    });
+      this.scene3d.render();
+      skyAnimator.chain(1000).chain(() => {
+        ring.visible = true;  // after setTracking so antisun still visible
+        skyAnimator.jdRate(jdStep / 6);
+        skyAnimator.msEase(800);
+        skyAnimator.playUntil(jdBest);
+      }).chain(() => {
+        this.labels.antisun.visible = false;  // nos remove antisun
+        this.mode = "sky";  // lie about mode to prevent following planet
+        skyAnimator.jdRate(jdStep);
+        skyAnimator.playChain();
+      });
+    }
     let jd = jdBest;
     const isMars = planet == "mars";
     const isVenus = planet == "venus";
@@ -447,26 +450,38 @@ class SceneUpdater {
       n -= 1;
       if (isSun) {
         ((n, sprite, sunSprite) => {
-          skyAnimator.chain(500).chain(() => {
+          if (noAnimate) {
             sprite.visible = true;
-            if (sunSprite !== undefined) sunSprite.visible = true;
-            if (n) {
-              skyAnimator.playFor(jdStep);
-            } else {
-              skyAnimator.jdRate(40);
-              skyAnimator.msEase(0);
-              delete ring.userData.initializing;
+            if (!n) {
               ring.position.set(0, 0, 0);
               this.setTracking(planet);
               xyzPlanets.update(jdBest);
-              this.showRing(planet, 3000);
+              this.showRing(planet, 0);
             }
-          });
+          } else {
+            skyAnimator.chain(500).chain(() => {
+              sprite.visible = true;
+              if (sunSprite !== undefined) sunSprite.visible = true;
+              if (n) {
+                skyAnimator.playFor(jdStep);
+              } else {
+                skyAnimator.jdRate(40);
+                skyAnimator.msEase(0);
+                delete ring.userData.initializing;
+                ring.position.set(0, 0, 0);
+                this.setTracking(planet);
+                xyzPlanets.update(jdBest);
+                this.showRing(planet, 3000);
+              }
+            });
+          }
         })(n, sprite, sunSprite);
         jd += jdStep;
       }
     }
-    skyAnimator.playChain();
+    if (!noPlay) {
+      skyAnimator.playChain();
+    }
   }
 
   _setSpoke(i, re0, rs, rm) {
@@ -674,6 +689,27 @@ class SceneUpdater {
     }
   }
 
+  resetRings() {
+    const rings = this.rings;
+    for (let name in rings) {
+      const grp = rings[name];
+      grp.visible = false;  // initially, group not drawn at all
+      grp.userData.updating = false;
+      for (let s of grp.children) {
+        s.visible = false;
+      }
+      grp.userData.count = 0;  // number currently visible
+      grp.userData.n = 0;  // number currently visible
+    }
+  }
+
+  resetOrbits() {
+    const orbits = this.orbits;
+    for (let name in orbits) {
+      orbits[name].visible = false;
+    }
+  }
+
   // Find a time which is near perpendicular to line of nodes,
   // on the side nearest perihelion of the outer planet.
   findBestOrbitView(planet, jd0) {
@@ -698,7 +734,7 @@ class SceneUpdater {
     return jdBest;
   }
 
-  playToNodes() {
+  playToNodes(noPlay) {
     let isVenus;
     if (this.rings.venus.visible) isVenus = true;
     else if (this.rings.mars.visible) isVenus = false;
@@ -709,19 +745,19 @@ class SceneUpdater {
     let [ , , [x, y, z], , , , , , madot] = orbitParams(planet, jd);
     // z perpendicular to nodal line
     [x, y, z] = [-y, x, 0];  // line of nodes assuming ecliptic is z=0
-    if (isVenus) madot = orbitParams(pref, jd)[8];
-    const year = 2*Math.PI / madot;
+    const year = periodOf(pref, jd);
     let jda = timePlanetAt(pref, x, y, z, jd);
     let jdb = timePlanetAt(pref, -x, -y, -z, jd);
     if (jda < jd) jda += year;
     if (jdb < jd) jdb += year;
     if (jda > jdb) [jda, jdb] = [jdb, jda];
-    skyAnimator.chain(500).chain(() => skyAnimator.playUntil(jda));
+    skyAnimator.chain(1000).chain(() => skyAnimator.playUntil(jda));
     skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(jdb));
-    skyAnimator.chain(() => skyAnimator.msEase(0));
+    if (!noPlay) skyAnimator.chain(() => skyAnimator.msEase(0));
     skyAnimator.jdRate(40);
     skyAnimator.msEase(800);
-    skyAnimator.playChain();
+    if (!noPlay) skyAnimator.playChain();
+    return [jda, jdb, year];
   }
 
   updateDate(jd) {
@@ -755,6 +791,8 @@ const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
 /* ------------------------------------------------------------------------ */
 
 function resetScene(mode) {
+  sceneUpdater.resetOrbits();
+  sceneUpdater.resetRings();
   const camera = scene3d.camera;
   camera.position.set(0, 0, 0);
   camera.lookAt(-1, 0, 0);
@@ -815,17 +853,13 @@ class Pager {
           skyAnimator.msEase(1000);
           skyAnimator.playFor(730.51272);
         }).chain(() => {
-          xyzNow.update(xyzNow.jd - 730.51272);
-          scene3d.render();
-          skyAnimator.playChain();
-        }).chain(() => {
           pager.gotoPage(1);
         });
         scene3d.render();
         skyAnimator.playChain();
       },
 
-      () => {  // page 2: The Sun does not move around at constant speed
+      () => {  // page 2: The speed of the Sun varies
         SUN_COUNTER.innerHTML = "-";
         MAR_SEP.innerHTML = "";
         SEP_MAR.innerHTML = "";
@@ -865,24 +899,56 @@ class Pager {
             else SEP_MAR.innerHTML = (year-mar2sep).toFixed(2) + " days";
             nowMar = !nowMar;
             skyAnimator.playChain();
-          }).chain(1500).chain(() => {
-            SUN_COUNTER.innerHTML = "0";
-            jdOrigin = null;
-            skyAnimator.playChain();
-          }).chain(1500).chain(() => {
-            skyAnimator.syncSky = sunCounter;
-            skyAnimator.playFor(nowMar? mar2sep : year-mar2sep);
-          }).chain(() => {
-            if (nowMar) MAR_SEP.innerHTML = mar2sep.toFixed(2) + " days";
-            else SEP_MAR.innerHTML = (year-mar2sep).toFixed(2) + " days";
-            nowMar = !nowMar;
-            skyAnimator.playChain();
           }).chain(1500);
         }
-        countDays();
-        countDays();
-        countDays().chain(() => {
+        for (let i=0; i<6; i+=1) countDays();
+        skyAnimator.chain(() => {
           pager.gotoPage(2);
+        });
+        scene3d.render();
+        skyAnimator.playChain();
+      },
+
+      () => {  // page 3: Venus zig-zags about the Sun
+        sceneUpdater.recenterEcliptic();
+        const [xc, yc, zc] = sceneUpdater.cameraDirection();
+        resetScene("venus");
+        sceneUpdater.lookAlong(xc, yc, zc);
+        skyAnimator.chain(() => {
+          sceneUpdater.pivotToSun(4000, 1000);
+        }).chain(500).chain(() => {
+          skyAnimator.msEase(1000);
+          // 8 Earth years very nearly 13 Venus years
+          skyAnimator.playFor(8 * 365.25636);
+        }).chain(500).chain(() => {
+          pager.gotoPage(3);
+        });
+        scene3d.render();
+        skyAnimator.playChain();
+      },
+
+      () => {  // page 4: Visualizing Venus's orbit
+        sceneUpdater.recenterEcliptic();
+        const [xc, yc, zc] = sceneUpdater.cameraDirection();
+        resetScene("venus");
+        sceneUpdater.lookAlong(xc, yc, zc);
+        sceneUpdater.initializeRing("venus", xyzNow, false, true);
+        skyAnimator.playChain();
+      },
+
+      () => {  // page 5: Visualizing Venus's orbit
+        sceneUpdater.recenterEcliptic();
+        const [xc, yc, zc] = sceneUpdater.cameraDirection();
+        resetScene("venus");
+        sceneUpdater.lookAlong(xc, yc, zc);
+        sceneUpdater.initializeRing("venus", xyzNow, true, true);
+        const [ta, tb, yr] = sceneUpdater.playToNodes(true);
+        for (let i = 1; i <= 4 ; i += 1) {
+          skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(ta + i*yr));
+          skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(tb + i*yr));
+        }
+        skyAnimator.chain(500).chain(() => {
+          pager.gotoPage(5);
         });
         scene3d.render();
         skyAnimator.playChain();
@@ -894,7 +960,10 @@ class Pager {
     this.pageExit = [
       noop,  // exit page 0
       noop,  // exit page 1
-      noop  // exit page 2
+      noop,  // exit page 2
+      noop,  // exit page 3
+      noop,  // exit page 4
+      noop  // exit page 5
     ];
   }
 
@@ -1346,7 +1415,7 @@ function setupSky() {
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
 
-  pager.gotoPage(2);
+  pager.gotoPage(5);
 }
 
 function adjustEcliptic(jd) {
