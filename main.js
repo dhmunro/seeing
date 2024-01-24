@@ -850,6 +850,9 @@ class Pager {
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("sun");
         sceneUpdater.labels.meansun.visible = false;
+        for (let p of ["mercury", "venus", "mars", "jupiter", "saturn"]) {
+          sceneUpdater.labels[p].visible = true;
+        }
         sceneUpdater.lookAlong(xc, yc, zc);
         skyAnimator.chain(() => {
           sceneUpdater.pivotToMeanSun(4000, 1000);
@@ -940,12 +943,13 @@ class Pager {
         skyAnimator.playChain();
       },
 
-      () => {  // page 5: Visualizing Venus's orbit
+      () => {  // page 5: Find the orbital plane of Venus
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("venus");
         sceneUpdater.lookAlong(xc, yc, zc);
         sceneUpdater.initializeRing("venus", xyzNow, true, true);
+        skyAnimator.chain(5000);
         const [ta, tb, yr] = sceneUpdater.playToNodes(true);
         for (let i = 1; i <= 4 ; i += 1) {
           skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(ta + i*yr));
@@ -956,6 +960,16 @@ class Pager {
         });
         scene3d.render();
         skyAnimator.playChain();
+      },
+
+      () => {  // page 6: Venus is to Earth as Earth is to Mars
+        sceneUpdater.recenterEcliptic();
+        const [xc, yc, zc] = sceneUpdater.cameraDirection();
+        resetScene("venus");
+        sceneUpdater.lookAlong(xc, yc, zc);
+        sceneUpdater.initializeRing("venus", xyzNow, true, true);
+        scene3d.render();
+        controls.enabled = true;
       }
     ];
 
@@ -967,7 +981,8 @@ class Pager {
       noop,  // exit page 2
       noop,  // exit page 3
       noop,  // exit page 4
-      noop  // exit page 5
+      noop,  // exit page 5
+      noop  // exit page 6
     ];
   }
 
@@ -1419,7 +1434,7 @@ function setupSky() {
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
 
-  pager.gotoPage(0);
+  pager.gotoPage(6);
 }
 
 function adjustEcliptic(jd) {
