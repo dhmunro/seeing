@@ -416,6 +416,7 @@ class SceneUpdater {
     const jdStep = periodOf(pref, xyzNow.jd);
     if (!noAnimate) {
       this.setTracking(planet);
+      if (noPlay) sceneUpdater.labels.sunmars.visible = false;
       xyzPlanets.update(jdBest - jdStep);
       this.scene3d.render();
       skyAnimator.chain(1000).chain(() => {
@@ -474,6 +475,7 @@ class SceneUpdater {
                 delete ring.userData.initializing;
                 ring.position.set(0, 0, 0);
                 this.setTracking(planet);
+                if (noPlay) sceneUpdater.labels.sunmars.visible = false;
                 xyzPlanets.update(jdBest);
                 this.showRing(planet, 3000);
               }
@@ -970,6 +972,20 @@ class Pager {
         sceneUpdater.initializeRing("venus", xyzNow, true, true);
         scene3d.render();
         controls.enabled = true;
+      },
+
+      () => {  // page 7: Visualizing Earth's orbit
+        sceneUpdater.recenterEcliptic();
+        const [xc, yc, zc] = sceneUpdater.cameraDirection();
+        resetScene("mars");
+        sceneUpdater.lookAlong(xc, yc, zc);
+        sceneUpdater.initializeRing("mars", xyzNow, false, true);
+        skyAnimator.chain(() => {
+          parameterAnimator.stop();
+          sceneUpdater.pivot(8000, 1000);
+        }).chain(() => {
+          controls.enabled = true;
+        }).playChain();
       }
     ];
 
@@ -982,7 +998,8 @@ class Pager {
       noop,  // exit page 3
       noop,  // exit page 4
       noop,  // exit page 5
-      noop  // exit page 6
+      noop,  // exit page 6
+      noop  // exit page 7
     ];
   }
 
@@ -1259,12 +1276,13 @@ class SkyAnimator extends Animator {
   }
 
   playChain() {
-    if (this._chain.length) this._chain.shift()(this);
+    this.cancelTimeout();  // clear pending timeouts as well
+    if (this._chain.length) setTimeout(() => this._chain.shift()(this), 0);
     return this;
   }
 
   clearChain() {
-    this._chain = [];
+    this._chain.length = 0;  // NOT = []; timeouts hold copies of _chain
     return this;  // anim.clearChain().stop() to abort a chain
   }
 
@@ -1434,7 +1452,7 @@ function setupSky() {
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
 
-  pager.gotoPage(6);
+  pager.gotoPage(0);
 }
 
 function adjustEcliptic(jd) {

@@ -129,6 +129,9 @@
       .centered {
           text-align: center;
       }
+      .justified {
+          text-align: justify;
+      }
       .equibox {
           display: inline-block;
           text-align: right;
@@ -194,55 +197,63 @@
     analysis of the problem that stumped astronomers for two millenia.</p>
 </div><div class="hidden">
     <h2>First study how the Sun moves</h2>
-    <p>The Sun moves around a great circle called the
+    <p class="justified">The Sun moves around a great circle called the
       <em>ecliptic</em> yearly.  Thus the plane of the ecliptic always
       contains both the Earth and the Sun.  The tilt of the ecliptic
-      relative to the equator (or the Earth's spin axis) causes the
-      seasons.</p>
+      relative to the equator (perpendicular to the Earth's spin axis)
+      causes the seasons.</p>
 </div><div class="hidden">
     <h2>The Sun's motion is non-uniform but periodic</h2>
-    <p>Northern hemisphere spring and summer last longer than fall and
-      winter: The Sun takes longer to move the 180 degrees from March
-      equinox to September equinox than to move the 180 degrees back
-      to March equinox.  These speed variations are identical every
-      year.</p>
+    <p class="justified">Northern hemisphere spring and summer last
+      longer than fall and winter: The Sun takes longer to move the
+      180 degrees from March equinox to September equinox than to move
+      the 180 degrees back to March equinox.  These speed variations
+      are identical every year.</p>
 </div><div class="hidden">
     <h2>Venus zig-zags about the Sun</h2>
-    <p>Venus (and Mercury) oscillate from one side of the Sun to the
-      other.  The west-to-east leg (or morning to evening side of the
-      Sun) takes much longer than the east-to-west leg.</p>
+    <p class="justified">Venus (and Mercury) oscillate from one side
+      of the Sun to the other.  The west-to-east leg (or morning to
+      evening side of the Sun) takes much longer than the east-to-west
+      leg.</p>
 </div><div class="hidden">
     <h2>Visualize Venus's orbit</h2>
-    <p>Viewed from Earth, Venus certainly does not move around the
-      Sun periodically.  But is its orbit periodic with respect to
-      the stars?</p>
+    <p class="justified">Viewed from Earth, Venus certainly does not
+      move around the Sun periodically.  But is its orbit periodic
+      with respect to the stars?</p>
 </div><div class="hidden">
     <h2>Find the orbital plane of Venus</h2>
-    <p>You could have made the first yearly snapshot of Venus on any
-      date.  By starting from different dates, you can view the
-      Venus's orbit from any direction in the ecliptic plane.</p>
+    <p class="justified">You could have made the first yearly snapshot
+      of Venus on any date.  By starting from different dates, you can
+      view the Venus's orbit from any direction in the ecliptic
+      plane.</p>
 </div><div class="hidden">
     <h2>Venus is to Earth as Earth is to Mars</h2>
-    <p>You have seen qualitatively how the motion of Venus with
-      respect to the Sun might be a simple planar periodic orbit.  To
-      make this insight quantitative, Kepler used Mars instead of
-      Venus.  Ask yourself what your sky would look like at these same
-      twenty times if you were on Venus.</p>
+    <p class="justified">You have seen qualitatively how the motion of
+      Venus with respect to the Sun might be a simple planar periodic
+      orbit.  To make this insight quantitative, Kepler used Mars
+      instead of Venus.  Ask yourself what your sky would look like at
+      these same twenty times if you were on Venus.</p>
+</div><div class="hidden">
+    <h2>Visualizing Earth's orbit</h2>
+    <p class="justified">To continue the analogy with Venus locations
+      at Earth year intervals, build a ring of Mars locations at Mars
+      year (687 day) intervals.  The Sun is at different places now,
+      so record those as well.</p>
 </div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
   <div id="stardate" class="button unselectable">2024<br>01-02</div>
 </div>
 <div id="botbox"><div>
-  <p>Here is everything you can see in the sky with your own eyes on a
-    perfect night, except the Moon.  (And including the Sun, even though
-    you can't see where it is at night!)  This wide angle view is 100&deg;
-    from side to side.  Click the date to pause.  Drag the sky to look
-    around.</p>
+  <p class="justified">Here is everything you can see in the sky with
+    your own eyes on a perfect night, except the Moon.  (And including
+    the Sun, even though you can't see where it is at night!)  This
+    wide angle view is 100&deg; from side to side.  Click the date to
+    pause.  Drag the sky to look around.</p>
 </div><div class="hidden">
-    <p>The planets wander above and below the ecliptic, and also
-      reverse direction sometimes - the motion of the Sun is much
-      simpler.</p>
+    <p class="justified">The planets wander above and below the
+      ecliptic, and also reverse direction sometimes - the motion of
+      the Sun is much simpler.</p>
 </div><div class="hidden">
     <p style="text-indent: 3em;">Day count: <span id="sun-counter">-</span></p>
     <p class="centered">Interval between equinoxes:
@@ -250,31 +261,38 @@
     <br/>September to March: <span id="sep-mar" class="equibox"></span>
     </p>
 </div><div class="hidden">
-    <p>You are watching Venus move around the Sun from a nearly edge-on
-      vantage point.  Venus moves around the Sun in the same direction as
-      the Sun (apparently) moves around Earth, but faster, passing behind
-      the Sun on its west-to-east leg, then in front of the Sun (much
-      nearer us) on its east-to-west leg.</p>
+    <p class="justified">You are watching Venus move around the Sun
+      from a nearly edge-on vantage point.  Venus moves around the Sun
+      in the same direction as the Sun (apparently) moves around
+      Earth, but faster, passing behind the Sun on its west-to-east
+      leg, then in front of the Sun (much nearer us) on its
+      east-to-west leg.</p>
 </div><div class="hidden">
-    <p>To test this idea, record the positions of Venus spaced exactly
-      one (sidereal) Earth year apart.  At these intervals, your view
-      of Venus's orbit is always from the same point on Earth's orbit,
-      eliminating your changing vantage point.  In twenty years, you
-      begin to see the orbit of Venus take shape one point at a
-      time!</p>
+    <p class="justified">To test this idea, record the positions of
+      Venus spaced exactly one (sidereal) Earth year apart.  At these
+      intervals, your view of Venus's orbit is always from the same
+      point on Earth's orbit, eliminating your changing vantage point.
+      In twenty years, you begin to see the orbit of Venus take shape
+      one point at a time!</p>
 </div><div class="hidden">
-    <p>Something remarkable happens: From two vantage points exactly
-      180&deg; apart, all twenty snapshot points are perfectly
-      colinear, and the Sun is on the line!  You see that Venus's
-      orbit lies in a plane containing the Sun - just like Earth - but
-      inclined by about 3.5&deg; to the ecliptic.</p>
+    <p class="justified">Something remarkable happens: From two
+      vantage points exactly 180&deg; apart, all twenty snapshot
+      points are perfectly colinear, and the Sun is on the line!  You
+      see that Venus's orbit lies in a plane containing the Sun - just
+      like Earth - but inclined by about 3.5&deg; to the ecliptic.</p>
 </div><div class="hidden">
-    <p>The Venus-Earth sight line is just the reverse of the
-      Earth-Venus line, so Earth would appear in the same ring, but
-      reversed.  An imaginary Sun-Earth vector would point into the
-      Earth ring, at the point corresponding to the Sun in this Venus
-      ring.  Finally, the Sun would appear at points around the great
-      circle of Venus's orbital plane. </p>
+    <p class="justified">The Venus-Earth sight line is just the
+      reverse of the Earth-Venus line, so Earth would appear in the
+      same ring, but reversed.  An imaginary Sun-Earth vector would
+      point into the Earth ring, at the point corresponding to the Sun
+      in this Venus ring.  Finally, the Sun would appear at points
+      around the great circle of Venus's orbital plane.</p>
+</div><div class="hidden">
+    <p class="justified">Since you stepped by Mars year intervals, the
+      ten Sun-Mars vectors you have recorded are identical both in
+      direction and length.  Thus, this Mars ring is a displaced copy
+      of the ring of Sun points.  In other words, you are looking at a
+      copy of the Sun's (apparent) orbit relative to the Earth!</p>
 </div></div>
 <div id="page-controls">
   <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"
