@@ -1,6 +1,6 @@
 import {dayOfDate, dateOfDay, positionOf, orbitParams, timePlanetAt,
-        eclipticOfDate, precession, obliquity,
-        meanSunOn, meanSunNextAt, periodOf} from './ephemeris.js';
+        eclipticOfDate, precession, obliquity, meanSunOn, meanSunNextAt,
+        periodOf, OppositionDetector} from './ephemeris.js';
 import {loadTextureFiles, PerspectiveScene, TextureCanvas, setColorMultiplier,
         Vector3, Matrix4} from './wrap3.js';
 import {Animator} from './animator.js';
@@ -457,6 +457,7 @@ class SceneUpdater {
         ((n, sprite, sunSprite) => {
           if (noAnimate) {
             sprite.visible = true;
+            if (sunSprite !== undefined) sunSprite.visible = true;
             if (!n) {
               ring.position.set(0, 0, 0);
               this.setTracking(planet);
@@ -525,20 +526,24 @@ class SceneUpdater {
     return this.rings[planet];
   }
 
-  showSpokes(callback) {
+  showSpokes(ms, noPlay) {
     this.spokes.visible = true;
     const children = this.spokes.children;
     const scene3d = this.scene3d;
     let i = 0, n = children.length;
-    const showNext = () => {
-      children[i].visible = true;
-      scene3d.render();
-      i += 1;
-      if (i < n) setTimeout(() => showNext(), 500);
-      else if (callback) callback(this);
-      else skyAnimator.playChain();
-    };
-    showNext();
+    for (i = 0; i < n ; i += 1) {
+      if (ms) {
+        const spoke = children[i];
+        skyAnimator.chain(ms).chain(() => {
+          spoke.visible = true;
+          scene3d.render();
+          skyAnimator.playChain();
+        });
+      } else {
+        children[i].visible = true;
+      }
+    }
+    if (ms && !noPlay) skyAnimator.playChain();
   }
 
   hideSpokes() {
@@ -546,7 +551,6 @@ class SceneUpdater {
     for (let spoke of this.spokes.children) {
       spoke.visible = false;
     }
-    this.scene3d.render();
   }
 
   setYearError(yerr) {
@@ -766,6 +770,28 @@ class SceneUpdater {
     return [jda, jdb, year];
   }
 
+  playToOpposition(noPlay) {
+    const jdMin = 10;  // want to play for at least 10 days
+    const jdNow = xyzNow.jd;  // assume this is first date on mars-ring
+    const marsYear = periodOf("mars", jdNow+5*687);
+    let i, jd, found, jdOpp;
+    for (i = 0; i < 10; i += 1) {
+      jd = jdNow + i*marsYear;  // time of i-th mars-ring point
+      [found, jdOpp] = oppositionAfter(jd);
+      if (found) break;
+    }
+    if (found) {
+      jdOpp -= i*marsYear;
+    } else {
+      console.log("warning: no opposition found", jdNow);
+      jdOpp = jdNow;
+    }
+    skyAnimator.chain(() => {
+      skyAnimator.playFor(jdOpp - jdNow);
+    });
+    if (!noPlay) skyAnimator.playChain();
+  }
+
   updateDate(jd) {
     STARDATE.innerHTML = date4jd(jd);
   }
@@ -786,6 +812,18 @@ function fadeColor(obj, mult0, mult1, ms, onFinish) {
     }, onFinish).play();
 }
 
+function oppositionAfter(jd) {
+  // Average synodic period of Mars is 780 days and we have 9 intervals
+  // (10 points) around the ring, so takes 87 days to advance from one point
+  // to the next on average - say a maximum of 100 days.
+  const djd = 100;
+  const detector = new OppositionDetector("mars", jd);
+  const [found, oppo] = detector.next(jd + djd);
+  // oppo = [revs, jd, xyz, xyze, x*ye - y*xe, x*xe + y*ye]
+  // if found, oppo[4] = 0 very nearly
+  return [found, oppo[1]];
+ }
+
 // xyzNow.jd0 = start date
 // xyzNow.jd = current date
 // xyzNow.xyz(p, o) = current position of planet p (relative to o)
@@ -799,6 +837,7 @@ const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
 function resetScene(mode) {
   sceneUpdater.resetOrbits();
   sceneUpdater.resetRings();
+  sceneUpdater.hideSpokes();
   const camera = scene3d.camera;
   camera.position.set(0, 0, 0);
   camera.lookAt(-1, 0, 0);
@@ -981,8 +1020,48 @@ class Pager {
         sceneUpdater.lookAlong(xc, yc, zc);
         sceneUpdater.initializeRing("mars", xyzNow, false, true);
         skyAnimator.chain(() => {
-          parameterAnimator.stop();
           sceneUpdater.pivot(8000, 1000);
+        }).chain(() => {
+          controls.enabled = true;
+        }).playChain();
+      },
+
+      () => {  // page 8: Finding the Sun-Mars direction
+        sceneUpdater.recenterEcliptic();
+        const [xc, yc, zc] = sceneUpdater.cameraDirection();
+        resetScene("mars");
+        sceneUpdater.lookAlong(xc, yc, zc);
+        sceneUpdater.initializeRing("mars", xyzNow, true, true);
+        scene3d.render();
+        sceneUpdater.showSpokes(500, true);
+        skyAnimator.chain(1000).chain(() => {
+          sceneUpdater.pivot(8000, 1000);
+        }).chain(2000).chain(() => {
+          sceneUpdater.zoom(true, 5000);
+        }).chain(2000).chain(() => {
+          sceneUpdater.zoom(false, 5000);
+        }).chain(5000).chain(() => {
+          skyAnimator.msEase(1000);
+          skyAnimator.playFor(2 * periodOf("mars", xyzNow.jd));
+        }).chain(() => {
+          controls.enabled = true;
+        }).playChain();
+      },
+
+      () => {  // page 9: Opposition is the best time to start
+        sceneUpdater.recenterEcliptic();
+        const [xc, yc, zc] = sceneUpdater.cameraDirection();
+        resetScene("mars");
+        sceneUpdater.lookAlong(xc, yc, zc);
+        sceneUpdater.initializeRing("mars", xyzNow, true, true);
+        sceneUpdater.showSpokes();
+        scene3d.render();
+        skyAnimator.chain(3000).msEase(1000);
+        sceneUpdater.playToOpposition(true);
+        skyAnimator.chain(2000).chain(() => {
+          sceneUpdater.zoom(true, 5000);
+        }).chain(5000).chain(() => {
+          sceneUpdater.zoom(false, 5000);
         }).chain(() => {
           controls.enabled = true;
         }).playChain();
@@ -999,7 +1078,9 @@ class Pager {
       noop,  // exit page 4
       noop,  // exit page 5
       noop,  // exit page 6
-      noop  // exit page 7
+      noop,  // exit page 7
+      noop,  // exit page 8
+      noop  // exit page 9
     ];
   }
 
@@ -1112,7 +1193,8 @@ class SkyAnimator extends Animator {
     super(dms => {
       let stop = self.step(dms);
       if (stop && self._chain.length) {
-        setTimeout(() => self._chain.shift()(self), 0);
+        const callback = self._chain.shift();
+        setTimeout(() => callback(self), 0);
       }
       return stop;
     });
@@ -1277,11 +1359,15 @@ class SkyAnimator extends Animator {
 
   playChain() {
     this.cancelTimeout();  // clear pending timeouts as well
-    if (this._chain.length) setTimeout(() => this._chain.shift()(this), 0);
+    if (this._chain.length) {
+      const callback = this._chain.shift();
+      setTimeout(() => callback(this), 0);
+    }
     return this;
   }
 
   clearChain() {
+    this.cancelTimeout();  // clear pending timeouts as well
     this._chain.length = 0;  // NOT = []; timeouts hold copies of _chain
     return this;  // anim.clearChain().stop() to abort a chain
   }
@@ -1452,7 +1538,7 @@ function setupSky() {
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
 
-  pager.gotoPage(0);
+  pager.gotoPage(9);
 }
 
 function adjustEcliptic(jd) {
