@@ -27,8 +27,8 @@
           box-sizing: border-box;
           margin: 0;
           background: #444;
-          color: beige;
-          font-family: 'Merriweather', serif;
+          color: #aaa;
+          font-family: 'Merriweather Sans', serif;
           /* Without a specified height, % units in children are meaningless.
            * Use min-height so body can grow larger - without it, scrolling
            * may break;
@@ -56,6 +56,9 @@
           max-width: 40rem;
           z-index: 1;
           pointer-events: none;
+          opacity: 1;
+          transition-property: opacity;
+          transition-duration: 2s;
       }
       #midbox {
           margin: 0;
@@ -69,6 +72,9 @@
           max-width: 40rem;
           z-index: 1;
           pointer-events: none;
+          opacity: 1;
+          transition-property: opacity;
+          transition-duration: 2s;
       }
       #topbox p {
           font-size: 1.125rem;  /* = 18/16 = large */
@@ -77,9 +83,9 @@
           font-size: 1.125rem;
       }
 
-      /* Tallest viewport for the skymap to fill it is 16/10 (eg 1920/1200)
-       * any taller (more portrait) and we stack top, mid, and bot boxes
-       * instead of overlapping top and bot over mid.
+      /* Tallest viewport for the skymap to fill it is 4/3 - any taller
+       * (more portrait) and we stack top, mid, and bot boxes instead
+       * of overlapping top and bot over mid.
        * Common landscape aspect ratios range from 16/10 up to Galaxy S21 20/9
        * (iPhone 39/18).
        */
@@ -91,7 +97,7 @@
           /* Max possible ecliptic longitude of Venus is under +-10 degrees;
            * horizontal FOV is always +-50 degrees; tan(50)/tan(10) = 6.75.
            */
-          row-gap: 17vw;
+          row-gap: 10vw;
       }
       #topbox {
           align-self: start;
@@ -103,7 +109,7 @@
       #botbox {
           align-self: end;
       }
-      @media (max-aspect-ratio: 16/10) {
+      @media (max-aspect-ratio: 4/3) {
           #vgrid {
               display: block;  /* the default */
           }
@@ -141,8 +147,8 @@
       .button {
           display: inline-block;
           vertical-align: text-bottom;
-          fill: beige;
-          color: beige;
+          fill: #aaa;
+          color: #aaa;
           background: #fff4;
           text-align: center;
           border-radius: 8px;
@@ -182,6 +188,19 @@
           position: absolute;
           top: 0.5rem;
           left: 0.5rem;
+          display: grid;
+          grid-template-rows: 1fr;
+          grid-gap: 2rem;
+      }
+
+      @media (max-aspect-ratio: 4/3) {
+          body {
+              color: beige;
+          }
+          .button {
+              fill: beige;
+              color: beige;
+          }
       }
     </style>
   </head>
@@ -203,7 +222,7 @@
       relative to the equator (perpendicular to the Earth's spin axis)
       causes the seasons.</p>
 </div><div class="hidden">
-    <h2>The Sun's motion is non-uniform but periodic</h2>
+    <h2>The Sun's motion is periodic but non-uniform</h2>
     <p class="justified">Northern hemisphere spring and summer last
       longer than fall and winter: The Sun takes longer to move the
       180 degrees from March equinox to September equinox than to move
@@ -237,7 +256,7 @@
     <h2>Visualizing Earth's orbit</h2>
     <p class="justified">To continue the analogy with Venus locations
       at Earth year intervals, build a ring of Mars locations at Mars
-      year (687 day) intervals.  The Sun is at different places now,
+      year intervals (687 days).  The Sun is at different places now,
       so record those as well.</p>
 </div><div class="hidden">
     <h2>Finding the Sun-Mars direction</h2>
@@ -251,6 +270,13 @@
       Sun-Mars great circles is not an accurate way to find the
       Sun-Mars direction - in fact it fails completely when Mars
       crosses the ecliptic.</p>
+</div><div class="hidden">
+    <h2>Begin surveying Earth's orbit!</h2>
+    <p class="justified">Here is the first of Kepler's great insights:
+      You know the absolute directions of every side of the Sun-Mars-Earth
+      triangle at all ten of these times, so you know their shapes and
+      orientations in 3D space!  Furthermore, the Sun-Mars side is the
+      same length in all ten triangles!</p>
 </div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
@@ -319,6 +345,14 @@
       very nearly the same as the Sun-Earth direction.  Choose one of
       your ten snapshots exactly at opposition, and you will know the
       common Sun-Mars direction for all ten very accurately.</p>
+</div><div class="hidden">
+    <p class="justified">Kepler became the first person
+      to <em>know</em> what anything would look like from a vantage
+      point other than Earth.  At first, you can view these ten
+      snapshots from a fixed position relative to the Earth, but you
+      are free to move <em>between</em> times and view each triangle
+      from a fixed position relative to the Sun if you choose!  You
+      have surveyed ten points on Earth's orbit.</p>
 </div></div>
 <div id="page-controls">
   <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"
@@ -337,9 +371,12 @@
     <use xlink:href="#fa-expand" /></svg>
 </div>
 <div id="main-menu">
-  <svg id="bars" class="button" xmlns="http://www.w3.org/2000/svg"
+  <svg id="menu-bars" class="button" xmlns="http://www.w3.org/2000/svg"
        height="2.5rem" viewBox="0 0 448 512">
     <use xlink:href="#fa-bars" /></svg>
+  <svg id="hide-text" class="button" xmlns="http://www.w3.org/2000/svg"
+       height="2.5rem" viewBox="0 0 384 512">
+    <use xlink:href="#fa-xmark" /></svg>
 </div>
 </div>
 
@@ -379,6 +416,9 @@
       </symbol>
       <symbol id="fa-bars" viewBox="0 0 448 512">
           <path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/>
+      </symbol>
+      <symbol id="fa-plus" viewBox="0 0 448 512">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/>
       </symbol>
     </svg>
 

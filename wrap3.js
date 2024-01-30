@@ -158,6 +158,14 @@ export class PerspectiveScene {
     return this;  // allow chained calls
   }
 
+  hfov(fov) {
+    const canvas = this.renderer.domElement;
+    const [width, height] = [canvas.clientWidth, canvas.clientHeight];
+    if (fov === undefined) fov = this.camera.fov;
+    const hh = Math.tan(fov * Math.PI/360.) * width / height;  // half height
+    return Math.atan(hh) * 360./Math.PI;
+  }
+
   setSize(width, height, fov) {
     if (width === undefined || height === undefined) {
       const canvas = this.renderer.domElement;

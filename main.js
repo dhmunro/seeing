@@ -32,7 +32,7 @@ import {SkyControls} from './skycontrols.js';
 const HFOV = 100;  // horizontal field of view
 // HFOV = 10 is about 1 arc minute resolution
 const MAX_ASPECT = 20 / 9;  // Galaxy S21 screen most extreme common case
-const MIN_ASPECT = 16 / 10;  // tall laptop screen
+const MIN_ASPECT = 4 / 3;  // tall laptop screen is 16/10
 
 const STARDATE = document.getElementById("stardate");
 
@@ -236,6 +236,18 @@ class SceneUpdater {
     return sprite;
   }
 
+  circleSprite(radius, color) {
+    const txcanvas = new TextureCanvas();
+    const ctx = txcanvas.context;
+    txcanvas.width = 2*radius;
+    txcanvas.height = 2*radius;
+    ctx.beginPath();
+    ctx.arc(radius, radius, radius, 0, 2*Math.PI, false);
+    ctx.fillStyle = color;
+    ctx.fill();
+    return txcanvas.addTo(this.scene3d, 0.5, 0.5);
+  }
+
   addLabel(text, params, tick=0, gap=-0.5) {
     if (params === undefined) params = {};
     const txcanvas = new TextureCanvas();
@@ -400,6 +412,47 @@ class SceneUpdater {
     this.rings[planet] = grp;
   }
 
+  addTriangles(count) {
+    const grp = this.scene3d.group();
+    grp.visible = false;  // initially, group not drawn at all
+    grp.userData.updating = false;
+    this.triangles = grp;
+    const style = scene3d.createLineStyle({color: 0x555577, linewidth: 2});
+    const sun = sceneUpdater.circleSprite(6, "#ffffff");
+    const earth = sceneUpdater.circleSprite(3, "#ccccff");
+    const mars = sceneUpdater.circleSprite(3, "#ffcccc");
+    for (let i = 0; i < count; i += 1) {
+      let subgrp = this.scene3d.group(grp);
+      scene3d.polyline([[0,0,0], [0,0,0], [0,0,0], [0,0,0]], style, subgrp);
+      scene3d.createSprite(sun, undefined, undefined, subgrp);
+      scene3d.createSprite(earth, undefined, undefined, subgrp);
+      scene3d.createSprite(mars, undefined, undefined, subgrp);
+    }
+  }
+
+  syncTriangles(jd, offset=0) {
+    const scene3d = this.scene3d;
+    const triangles = this.triangles.children;
+    if (offset.length === undefined) {
+      offset = new Array(triangles.length).fill(offset);
+    }
+    const myear = periodOf("mars", jd);
+    let rs, re, rm, re0;
+    for (let i = 0; i < triangles.length; i += 1) {
+      rs = [0, 0, 0];
+      re = glPlanetPosition("earth", jd);
+      rm = glPlanetPosition("mars", jd);
+      if (i == 0) re0 = re;
+      let parts = triangles[i].children;
+      scene3d.movePoints(parts[0], [rs, re, rm, rs]);
+      parts[1].position.set(...rs);
+      parts[2].position.set(...re);
+      parts[3].position.set(...rm);
+      triangles[i].position.set(...re.map((v, j) => offset[i]*(re0[j] - v)));
+      jd += myear;
+    }
+  }
+
   initializeRing(planet, xyzPlanets, noAnimate, noPlay) {
     if (!noPlay) skyAnimator.clearChain().stop();
     // Run forward or backward by up to half a year to find the
@@ -559,9 +612,10 @@ class SceneUpdater {
     xyzNow.update(xyzNow.jd);
   }
 
-  zoom(bigger, ms, callback) {
-    const [hfov0, hfov1] = bigger? [HFOV, 10] : [10, HFOV];
+  zoom(hfov1, ms, callback) {
+    // HFOV is default 100 degrees, 10 degrees is human eye resolution
     const scene3d = this.scene3d;
+    const hfov0 = scene3d.hfov();
     const zstep = (lhfov) => {
       scene3d.setSize(undefined, undefined, -Math.exp(lhfov));
       scene3d.render();
@@ -571,9 +625,8 @@ class SceneUpdater {
       if (callback) callback(this);
       else skyAnimator.playChain();
     } else {
-      const rate = (hfov1 - hfov0) / ms;
       parameterAnimator.initialize(
-        Math.log(hfov0), Math.log(hfov1), ms, zstep).play()
+        Math.log(hfov0), Math.log(hfov1), ms, zstep, callback).play();
     }
   }
 
@@ -676,7 +729,8 @@ class SceneUpdater {
   }
 
   showOrbit(planet, mult, msFade) {
-    const v = this.orbits[(planet == "venus")? "venus" : "sun"];
+    if (planet == "mars") planet == "sun";
+    const v = this.orbits[planet];
     v.visible = true;
     if (msFade) {
       fadeColor(v, 0.05, mult, msFade);
@@ -686,7 +740,8 @@ class SceneUpdater {
   }
 
   hideOrbit(planet, mult, msFade) {
-    const v = this.orbits[(planet == "venus")? "venus" : "sun"];
+    if (planet == "mars") planet == "sun";
+    const v = this.orbits[planet];
     if (msFade && msFade > 0) {
       fadeColor(v, mult, 0.05, msFade, () => {
         v.visible = false;
@@ -770,7 +825,7 @@ class SceneUpdater {
     return [jda, jdb, year];
   }
 
-  playToOpposition(noPlay) {
+  findOpposition() {
     const jdMin = 10;  // want to play for at least 10 days
     const jdNow = xyzNow.jd;  // assume this is first date on mars-ring
     const marsYear = periodOf("mars", jdNow+5*687);
@@ -786,10 +841,7 @@ class SceneUpdater {
       console.log("warning: no opposition found", jdNow);
       jdOpp = jdNow;
     }
-    skyAnimator.chain(() => {
-      skyAnimator.playFor(jdOpp - jdNow);
-    });
-    if (!noPlay) skyAnimator.playChain();
+    return [jdOpp, i];
   }
 
   updateDate(jd) {
@@ -835,9 +887,15 @@ const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
 /* ------------------------------------------------------------------------ */
 
 function resetScene(mode) {
+  sceneUpdater.egrp.visible = true;
+  sceneUpdater.eqgrp.visible = true;
+  sceneUpdater.ecLabel.visible = true;
+  sceneUpdater.eqLabel.visible = true;
+  scene3d.setSize(undefined, undefined, -HFOV);
   sceneUpdater.resetOrbits();
   sceneUpdater.resetRings();
   sceneUpdater.hideSpokes();
+  sceneUpdater.triangles.visible = false;
   const camera = scene3d.camera;
   camera.position.set(0, 0, 0);
   camera.lookAt(-1, 0, 0);
@@ -874,12 +932,13 @@ class Pager {
         skyAnimator.chain(4000).chain(() => {
           sceneUpdater.pivot(8000, 1000);
         }).chain(2000).chain(() => {
+          skyAnimator.msEase(1000);
           skyAnimator.playFor(730.51272);
         }).chain(2500).chain(() => {
           xyzNow.update();
           scene3d.render();
           skyAnimator.playChain();
-        }).chain(() => {
+        }).chain(4000).chain(() => {
           pager.gotoPage(0);
         });
         scene3d.render();
@@ -899,15 +958,13 @@ class Pager {
           sceneUpdater.pivotToMeanSun(4000, 1000);
         }).chain(() => {
           skyAnimator.msEase(1000);
-          skyAnimator.playFor(730.51272);
-        }).chain(() => {
-          pager.gotoPage(1);
+          skyAnimator.playFor(2*730.51272);
         });
         scene3d.render();
         skyAnimator.playChain();
       },
 
-      () => {  // page 2: The speed of the Sun varies
+      () => {  // page 2: The Sun's motion is periodic but non-uniform
         SUN_COUNTER.innerHTML = "-";
         MAR_SEP.innerHTML = "";
         SEP_MAR.innerHTML = "";
@@ -950,9 +1007,6 @@ class Pager {
           }).chain(1500);
         }
         for (let i=0; i<6; i+=1) countDays();
-        skyAnimator.chain(() => {
-          pager.gotoPage(2);
-        });
         scene3d.render();
         skyAnimator.playChain();
       },
@@ -968,8 +1022,6 @@ class Pager {
           skyAnimator.msEase(1000);
           // 8 Earth years very nearly 13 Venus years
           skyAnimator.playFor(8 * 365.25636);
-        }).chain(500).chain(() => {
-          pager.gotoPage(3);
         });
         scene3d.render();
         skyAnimator.playChain();
@@ -980,6 +1032,7 @@ class Pager {
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("venus");
         sceneUpdater.lookAlong(xc, yc, zc);
+        skyAnimator.chain(2000);
         sceneUpdater.initializeRing("venus", xyzNow, false, true);
         skyAnimator.playChain();
       },
@@ -996,9 +1049,6 @@ class Pager {
           skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(ta + i*yr));
           skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(tb + i*yr));
         }
-        skyAnimator.chain(500).chain(() => {
-          pager.gotoPage(5);
-        });
         scene3d.render();
         skyAnimator.playChain();
       },
@@ -1018,8 +1068,9 @@ class Pager {
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("mars");
         sceneUpdater.lookAlong(xc, yc, zc);
+        skyAnimator.chain(2000);
         sceneUpdater.initializeRing("mars", xyzNow, false, true);
-        skyAnimator.chain(() => {
+        skyAnimator.chain(2000).chain(() => {
           sceneUpdater.pivot(8000, 1000);
         }).chain(() => {
           controls.enabled = true;
@@ -1037,9 +1088,9 @@ class Pager {
         skyAnimator.chain(1000).chain(() => {
           sceneUpdater.pivot(8000, 1000);
         }).chain(2000).chain(() => {
-          sceneUpdater.zoom(true, 5000);
+          sceneUpdater.zoom(10, 5000);
         }).chain(2000).chain(() => {
-          sceneUpdater.zoom(false, 5000);
+          sceneUpdater.zoom(HFOV, 5000);
         }).chain(5000).chain(() => {
           skyAnimator.msEase(1000);
           skyAnimator.playFor(2 * periodOf("mars", xyzNow.jd));
@@ -1056,14 +1107,106 @@ class Pager {
         sceneUpdater.initializeRing("mars", xyzNow, true, true);
         sceneUpdater.showSpokes();
         scene3d.render();
-        skyAnimator.chain(3000).msEase(1000);
-        sceneUpdater.playToOpposition(true);
-        skyAnimator.chain(2000).chain(() => {
-          sceneUpdater.zoom(true, 5000);
+        const jdNow = xyzNow.jd;
+        const [jdOpp, iOpp] = sceneUpdater.findOpposition();
+        skyAnimator.chain(3000).msEase(1000).chain(() => {
+          skyAnimator.playFor(jdOpp - jdNow);
+        }).chain(2000).chain(() => {
+          sceneUpdater.zoom(10, 5000);
         }).chain(5000).chain(() => {
-          sceneUpdater.zoom(false, 5000);
+          sceneUpdater.zoom(HFOV, 5000);
         }).chain(() => {
           controls.enabled = true;
+        }).playChain();
+      },
+
+      () => {  // page 10: Begin surveying Earth's orbit!
+        sceneUpdater.recenterEcliptic();
+        let [xc, yc, zc] = sceneUpdater.cameraDirection();
+        resetScene("mars");
+        sceneUpdater.lookAlong(xc, yc, zc);
+        sceneUpdater.initializeRing("mars", xyzNow, true, true);
+        sceneUpdater.showSpokes();
+        sceneUpdater.egrp.visible = false;
+        sceneUpdater.eqgrp.visible = false;
+        sceneUpdater.ecLabel.visible = false;
+        sceneUpdater.eqLabel.visible = false;
+        scene3d.render();
+        const jdNow = xyzNow.jd;
+        const [jdOpp, iOpp] = sceneUpdater.findOpposition();
+        xyzNow.update(jdOpp);
+        sceneUpdater.labels.sunmars.visible = false;
+        sceneUpdater.labels.antisun.visible = false;
+        scene3d.render();
+        const camera = scene3d.camera;
+        const myear = periodOf("mars", jdOpp);
+        const re0 = glPlanetPosition("earth", jdOpp);
+        let rsm = glPlanetPosition("mars", jdOpp + iOpp*myear).map(
+          (v, i) => v + re0[i]);
+        let rs = glPlanetPosition("earth", jdOpp + iOpp*myear).map(
+          (v, i) => re0[i] - v);
+        let rm = glPlanetPosition("mars", jdOpp + iOpp*myear).map(
+          (v, i) => v + rs[i]);
+        [xc, yc, zc] = sceneUpdater.cameraDirection();
+        let rc = Math.sqrt(xc**2 + zc**2);
+        let [xcn, zcn] = [xc/rc, zc/rc];
+        const vec1 = [-4*xcn, 0.4, -4*zcn];
+        const rvec1 = Math.sqrt(vec1[0]**2 + vec1[1]**2 + vec1[2]**2);
+        // const [c, s] = [Math.cos(1.4), Math.sin(1.4)];
+        // const vec2 = [-2*(xcn*c + zcn*s), 8, -2*(zcn*c - xcn*s)];
+        const vec2 = [-Math.sign(xcn)*2.8, 8, 0];
+        skyAnimator.chain(5000).chain(() => {
+          sceneUpdater.hideSpokes();
+          sceneUpdater.hideRing("mars");  // makes all planets visible (sigh)
+          for (let p of ["sun", "mercury", "earth", "venus", "mars",
+                         "jupiter", "saturn"]) {
+            sceneUpdater.planets[p].visible = false;
+          }
+          sceneUpdater.showOrbit("sun", 0.25);
+          sceneUpdater.syncTriangles(jdOpp, 1);
+          sceneUpdater.triangles.visible = true;
+          scene3d.render();
+          skyAnimator.playChain();
+        }).chain(2000).chain(() => {
+          const lhfov0 = Math.log(HFOV);
+          const lhfov1 = Math.log(45);
+          parameterAnimator.initialize(0, 3, [6000, 1000], (frac) => {
+            let v, target;
+            if (frac <= 1) {
+              const lhfov = (1-frac)*lhfov0 + frac*lhfov1;
+              scene3d.setSize(undefined, undefined, -Math.exp(lhfov));
+              v = vec1.map((v, i) => re0[i] + frac*v);
+              target = rsm.map((v, i) => (1-frac)*v + frac*re0[i]);
+            } else {
+              frac = (frac - 1)/2;
+              v = vec1.map((v, i) => re0[i] + (1-frac)*v + frac*vec2[i]);
+              target = re0.map((v, i) => (1-0.5*frac)*v + 0.5*frac*rsm[i]);
+            }
+            camera.position.set(...v);
+            camera.lookAt(...target);
+            scene3d.render();
+          }).play();
+        }).chain(2000).chain(() => {
+          sceneUpdater.hideOrbit("sun", 0.25, 1000);
+        }).chain(() => {
+          const v0 = re0.map((v, i) => 0.5*v + 0.5*rsm[i]);
+          const ntri = sceneUpdater.triangles.children.length;
+          const offs = new Array(ntri);
+          parameterAnimator.initialize(1, 0, [8000, 1000], (frac) => {
+            for (let i = 0; i < ntri; i += 1) {
+              let f = (ntri-1)*frac - (ntri-1 - i);  // i=0 does not move
+              if (f < 0) f = 0;
+              if (f > 1) f = 1;
+              offs[i] = f;
+            }
+            sceneUpdater.syncTriangles(jdOpp, offs);
+            // initially looking at v0, finally at 0
+            const target = v0.map(v => frac*v);
+            camera.lookAt(...target);
+            scene3d.render();
+          }).play();
+        }).chain(() => {
+          sceneUpdater.showOrbit("earth", 0.25, 1000);
         }).playChain();
       }
     ];
@@ -1080,7 +1223,8 @@ class Pager {
       noop,  // exit page 6
       noop,  // exit page 7
       noop,  // exit page 8
-      noop  // exit page 9
+      noop,  // exit page 9
+      noop  // exit page 10
     ];
   }
 
@@ -1088,6 +1232,7 @@ class Pager {
     const {topPages, botPages, iPage, pageup, pagedn} = this;
     const mxPage = botPages.length - 1;
     if (i === undefined) i = iPage;
+    if (i < 0) i += mxPage + 1;
     if (i < 0 || i > mxPage) return;
     topPages[iPage].classList.add("hidden");
     botPages[iPage].classList.add("hidden");
@@ -1121,8 +1266,10 @@ class Pager {
   }
 }
 
-const pager = new Pager(document.getElementById("topbox"),
-                        document.getElementById("botbox"),
+const TOP_BOX = document.getElementById("topbox");
+const BOT_BOX = document.getElementById("botbox");
+
+const pager = new Pager(TOP_BOX, BOT_BOX,
                         document.getElementById("pageup"),
                         document.getElementById("pagedn"));
 
@@ -1537,8 +1684,9 @@ function setupSky() {
 
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
+  sceneUpdater.addTriangles(10);
 
-  pager.gotoPage(9);
+  pager.gotoPage(0);
 }
 
 function adjustEcliptic(jd) {
@@ -1637,10 +1785,29 @@ function togglePause() {
 
 /* ------------------------------------------------------------------------ */
 
-const MAIN_MENU = document.getElementById("main-menu");
+const MAIN_MENU = document.getElementById("menu-bars");
 MAIN_MENU.addEventListener("click", () => {
   if (MAIN_MENU.classList.contains("disabled")) return;
   console.log("open main menu");
+});
+
+function toggleText(off) {
+  if (off == undefined) off = getComputedStyle(TOP_BOX).opacity;
+  off = (off == 0)? "1" : "0";
+  TOP_BOX.style.opacity = off;
+  BOT_BOX.style.opacity = off;
+}
+
+const HIDE_TEXT = document.getElementById("hide-text");
+const HIDE_ICON = document.querySelector("#hide-text > use");
+HIDE_TEXT.addEventListener("click", () => {
+  if (HIDE_TEXT.classList.contains("disabled")) return;
+  let opacity = getComputedStyle(TOP_BOX).opacity;
+  opacity = (opacity == "0")? "1" : "0";
+  TOP_BOX.style.opacity = opacity;
+  BOT_BOX.style.opacity = opacity;
+  if (opacity == "0") HIDE_ICON.setAttribute("xlink:href", "#fa-plus");
+  else HIDE_ICON.setAttribute("xlink:href", "#fa-xmark");
 });
 
 const PAGE_UP = pager.pageup;
@@ -1687,6 +1854,12 @@ addEventListener("keydown", (event) => {
   case "ArrowRight":
   case "Right":
     pager.step(1);
+    break;
+  case "Home":
+    pager.gotoPage(0);
+    break;
+  case "End":
+    pager.gotoPage(-1);
     break;
   }
 });
