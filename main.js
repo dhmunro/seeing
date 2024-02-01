@@ -193,18 +193,24 @@ class SceneUpdater {
       let jd = xyzPlanets.jd;
       if (p == "venus") {
         const jdStep = periodOf("earth", jd) + yearError;
-        for (let sprite of rings[p].children) {
+        for (let sprite of grp.children) {
           sprite.position.set(...glPlanetPosition(p, jd));
           jd += jdStep;
         }
       } else if (isMars) {
         const re = xyzPlanets.xyz("earth");
         const jdStep = periodOf("mars", jd) + yearError;
-        const ring = rings[p];
-        const children = ring.children;
+        const heliocentric = grp.userData.heliocentric;
+        const children = grp.children;
         for (let j = 0; j < children.length; j += 2) {
-          let rs = glPlanetPosition("earth", jd).map((v, i) => re[i] - v);
-          let rm = glPlanetPosition("mars", jd).map((v, i) => v + rs[i]);
+          let rs;
+          let rm = glPlanetPosition("mars", jd);
+          if (heliocentric) {
+            rs = [0, 0, 0];
+          } else {
+            rs = glPlanetPosition("earth", jd).map((v, i) => re[i] - v);
+            rm = rm.map((v, i) => v + rs[i]);
+          }
           children[j].position.set(...rs);
           children[j+1].position.set(...rm);
           this._setSpoke(j/2, re, rs, rm);
@@ -887,6 +893,7 @@ const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
 /* ------------------------------------------------------------------------ */
 
 function resetScene(mode) {
+  toggleText("1");
   sceneUpdater.egrp.visible = true;
   sceneUpdater.eqgrp.visible = true;
   sceneUpdater.ecLabel.visible = true;
@@ -1083,6 +1090,7 @@ class Pager {
         resetScene("mars");
         sceneUpdater.lookAlong(xc, yc, zc);
         sceneUpdater.initializeRing("mars", xyzNow, true, true);
+        sceneUpdater.labels.antisun.visible = false;
         scene3d.render();
         sceneUpdater.showSpokes(500, true);
         skyAnimator.chain(1000).chain(() => {
@@ -1121,74 +1129,57 @@ class Pager {
       },
 
       () => {  // page 10: Begin surveying Earth's orbit!
-        sceneUpdater.recenterEcliptic();
-        let [xc, yc, zc] = sceneUpdater.cameraDirection();
-        resetScene("mars");
-        sceneUpdater.lookAlong(xc, yc, zc);
-        sceneUpdater.initializeRing("mars", xyzNow, true, true);
-        sceneUpdater.showSpokes();
-        sceneUpdater.egrp.visible = false;
-        sceneUpdater.eqgrp.visible = false;
-        sceneUpdater.ecLabel.visible = false;
-        sceneUpdater.eqLabel.visible = false;
-        scene3d.render();
-        const jdNow = xyzNow.jd;
-        const [jdOpp, iOpp] = sceneUpdater.findOpposition();
-        xyzNow.update(jdOpp);
-        sceneUpdater.labels.sunmars.visible = false;
-        sceneUpdater.labels.antisun.visible = false;
-        scene3d.render();
+        let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
         const camera = scene3d.camera;
-        const myear = periodOf("mars", jdOpp);
-        const re0 = glPlanetPosition("earth", jdOpp);
-        let rsm = glPlanetPosition("mars", jdOpp + iOpp*myear).map(
-          (v, i) => v + re0[i]);
-        let rs = glPlanetPosition("earth", jdOpp + iOpp*myear).map(
-          (v, i) => re0[i] - v);
-        let rm = glPlanetPosition("mars", jdOpp + iOpp*myear).map(
-          (v, i) => v + rs[i]);
-        [xc, yc, zc] = sceneUpdater.cameraDirection();
-        let rc = Math.sqrt(xc**2 + zc**2);
-        let [xcn, zcn] = [xc/rc, zc/rc];
-        const vec1 = [-4*xcn, 0.4, -4*zcn];
-        const rvec1 = Math.sqrt(vec1[0]**2 + vec1[1]**2 + vec1[2]**2);
-        // const [c, s] = [Math.cos(1.4), Math.sin(1.4)];
-        // const vec2 = [-2*(xcn*c + zcn*s), 8, -2*(zcn*c - xcn*s)];
-        const vec2 = [-Math.sign(xcn)*2.8, 8, 0];
-        skyAnimator.chain(5000).chain(() => {
-          sceneUpdater.hideSpokes();
-          sceneUpdater.hideRing("mars");  // makes all planets visible (sigh)
-          for (let p of ["sun", "mercury", "earth", "venus", "mars",
-                         "jupiter", "saturn"]) {
-            sceneUpdater.planets[p].visible = false;
-          }
-          sceneUpdater.showOrbit("sun", 0.25);
-          sceneUpdater.syncTriangles(jdOpp, 1);
-          sceneUpdater.triangles.visible = true;
+        skyAnimator.chain(6000).chain(() => {
+          helioSetup(jdOpp);
           scene3d.render();
           skyAnimator.playChain();
+          toggleText("0");
         }).chain(2000).chain(() => {
           const lhfov0 = Math.log(HFOV);
-          const lhfov1 = Math.log(45);
+          const lhfov1 = Math.log(scene3d.hfov(helioFov));
           parameterAnimator.initialize(0, 3, [6000, 1000], (frac) => {
             let v, target;
             if (frac <= 1) {
               const lhfov = (1-frac)*lhfov0 + frac*lhfov1;
               scene3d.setSize(undefined, undefined, -Math.exp(lhfov));
+              scene3d.horizFov = 0;  // resize keeps vertical FOV fixed
               v = vec1.map((v, i) => re0[i] + frac*v);
               target = rsm.map((v, i) => (1-frac)*v + frac*re0[i]);
             } else {
               frac = (frac - 1)/2;
               v = vec1.map((v, i) => re0[i] + (1-frac)*v + frac*vec2[i]);
               target = re0.map((v, i) => (1-0.5*frac)*v + 0.5*frac*rsm[i]);
+              camera.up.set(frac, 1-frac, 0);
             }
             camera.position.set(...v);
             camera.lookAt(...target);
             scene3d.render();
           }).play();
-        }).chain(2000).chain(() => {
+        }).chain(3000).chain(() => {
+          toggleText("1");
+          skyAnimator.playChain();
+        }).playChain();
+      },
+
+      () => {  // page 11: Adopt the heliocentric view
+        let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
+        const camera = scene3d.camera;
+        helioSetup(jdOpp);
+        const v = vec1.map((v, i) => re0[i] + vec2[i]);
+        const target = re0.map((v, i) => 0.5*v + 0.5*rsm[i]);
+        camera.up.set(1, 0, 0);
+        camera.position.set(...v);
+        camera.lookAt(...target);
+        scene3d.setSize(undefined, undefined, helioFov);
+        scene3d.render();
+        skyAnimator.chain(6000).chain(() => {
+          toggleText("0");
+          skyAnimator.playChain();
+        }).chain(3000).chain(() => {
           sceneUpdater.hideOrbit("sun", 0.25, 1000);
-        }).chain(() => {
+        }).chain(1000).chain(() => {
           const v0 = re0.map((v, i) => 0.5*v + 0.5*rsm[i]);
           const ntri = sceneUpdater.triangles.children.length;
           const offs = new Array(ntri);
@@ -1207,6 +1198,31 @@ class Pager {
           }).play();
         }).chain(() => {
           sceneUpdater.showOrbit("earth", 0.25, 1000);
+        }).chain(3000).chain(() => {
+          toggleText("1");
+          skyAnimator.playChain();
+        }).playChain();
+      },
+
+      () => {  // page 12: Survey more points on Mars's orbit
+        let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
+        const camera = scene3d.camera;
+        helioSetup(jdOpp);
+        sceneUpdater.hideOrbit("sun", 0.25);
+        sceneUpdater.showOrbit("earth", 0.25);
+        sceneUpdater.syncTriangles(jdOpp, 0);
+        const v = vec1.map((v, i) => re0[i] + vec2[i]);
+        camera.up.set(1, 0, 0);
+        camera.position.set(...v);
+        camera.lookAt(0, 0, 0);
+        scene3d.setSize(undefined, undefined, helioFov);
+        scene3d.render();
+        skyAnimator.chain(6000).chain(() => {
+          toggleText("0");
+          skyAnimator.playChain();
+        }).chain(3000).chain(() => {
+          toggleText("1");
+          skyAnimator.playChain();
         }).playChain();
       }
     ];
@@ -1224,8 +1240,61 @@ class Pager {
       noop,  // exit page 7
       noop,  // exit page 8
       noop,  // exit page 9
-      noop  // exit page 10
+      noop,  // exit page 10
+      noop,  // exit page 11
+      noop  // exit page 12
     ];
+
+    const helioFov = 30;
+
+    function helioInit() {
+      sceneUpdater.recenterEcliptic();
+      let [xc, yc, zc] = sceneUpdater.cameraDirection();
+      resetScene("mars");
+      sceneUpdater.lookAlong(xc, yc, zc);
+      sceneUpdater.initializeRing("mars", xyzNow, true, true);
+      sceneUpdater.showSpokes();
+      sceneUpdater.egrp.visible = false;
+      sceneUpdater.eqgrp.visible = false;
+      sceneUpdater.ecLabel.visible = false;
+      sceneUpdater.eqLabel.visible = false;
+      scene3d.render();
+      const jdNow = xyzNow.jd;
+      const [jdOpp, iOpp] = sceneUpdater.findOpposition();
+      xyzNow.update(jdOpp);
+      sceneUpdater.labels.sunmars.visible = false;
+      sceneUpdater.labels.antisun.visible = false;
+      scene3d.render();
+      const myear = periodOf("mars", jdOpp);
+      const re0 = glPlanetPosition("earth", jdOpp);
+      let rsm = glPlanetPosition("mars", jdOpp + iOpp*myear).map(
+        (v, i) => v + re0[i]);
+      let rs = glPlanetPosition("earth", jdOpp + iOpp*myear).map(
+        (v, i) => re0[i] - v);
+      let rm = glPlanetPosition("mars", jdOpp + iOpp*myear).map(
+        (v, i) => v + rs[i]);
+      [xc, yc, zc] = sceneUpdater.cameraDirection();
+      let rc = Math.sqrt(xc**2 + zc**2);
+      let [xcn, zcn] = [xc/rc, zc/rc];
+      const vec1 = [-4*xcn, 0.4, -4*zcn];
+      const rvec1 = Math.sqrt(vec1[0]**2 + vec1[1]**2 + vec1[2]**2);
+      // const [c, s] = [Math.cos(1.4), Math.sin(1.4)];
+      // const vec2 = [-2*(xcn*c + zcn*s), 8, -2*(zcn*c - xcn*s)];
+      const vec2 = [0, 5.2, 0];
+      return [jdOpp, vec1, vec2, re0, rsm];
+    }
+
+    function helioSetup(jdOpp) {
+      sceneUpdater.hideSpokes();
+      sceneUpdater.hideRing("mars");  // makes all planets visible (sigh)
+      for (let p of ["sun", "mercury", "earth", "venus", "mars",
+                     "jupiter", "saturn"]) {
+        sceneUpdater.planets[p].visible = false;
+      }
+      sceneUpdater.showOrbit("sun", 0.25);
+      sceneUpdater.syncTriangles(jdOpp, 1);
+      sceneUpdater.triangles.visible = true;
+    }
   }
 
   gotoPage(i) {
@@ -1791,23 +1860,24 @@ MAIN_MENU.addEventListener("click", () => {
   console.log("open main menu");
 });
 
-function toggleText(off) {
-  if (off == undefined) off = getComputedStyle(TOP_BOX).opacity;
-  off = (off == 0)? "1" : "0";
-  TOP_BOX.style.opacity = off;
-  BOT_BOX.style.opacity = off;
+function toggleText(opacity) {
+  const opacNow = getComputedStyle(TOP_BOX).opacity;
+  if (opacity == undefined) {
+    opacity = (opacNow == "0")? "1" : "0";
+  } else if (opacNow == opacity) {
+    return;
+  }
+  TOP_BOX.style.opacity = opacity;
+  BOT_BOX.style.opacity = opacity;
+  if (opacity == "0") HIDE_ICON.setAttribute("xlink:href", "#fa-plus");
+  else HIDE_ICON.setAttribute("xlink:href", "#fa-xmark");
 }
 
 const HIDE_TEXT = document.getElementById("hide-text");
 const HIDE_ICON = document.querySelector("#hide-text > use");
 HIDE_TEXT.addEventListener("click", () => {
   if (HIDE_TEXT.classList.contains("disabled")) return;
-  let opacity = getComputedStyle(TOP_BOX).opacity;
-  opacity = (opacity == "0")? "1" : "0";
-  TOP_BOX.style.opacity = opacity;
-  BOT_BOX.style.opacity = opacity;
-  if (opacity == "0") HIDE_ICON.setAttribute("xlink:href", "#fa-plus");
-  else HIDE_ICON.setAttribute("xlink:href", "#fa-xmark");
+  toggleText();
 });
 
 const PAGE_UP = pager.pageup;
