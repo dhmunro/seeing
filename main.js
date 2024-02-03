@@ -249,7 +249,12 @@ class SceneUpdater {
     txcanvas.height = 2*radius;
     ctx.beginPath();
     ctx.arc(radius, radius, radius, 0, 2*Math.PI, false);
-    ctx.fillStyle = color;
+    const gradient = ctx.createRadialGradient(radius, radius, 0.75*radius,
+                                              radius, radius, radius);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(0.7, standardColor(color, 0.75));
+    gradient.addColorStop(1, standardColor(color, 0.25));
+    ctx.fillStyle = gradient;
     ctx.fill();
     return txcanvas.addTo(this.scene3d, 0.5, 0.5);
   }
@@ -421,12 +426,11 @@ class SceneUpdater {
   addTriangles(count) {
     const grp = this.scene3d.group();
     grp.visible = false;  // initially, group not drawn at all
-    grp.userData.updating = false;
     this.triangles = grp;
     const style = scene3d.createLineStyle({color: 0x555577, linewidth: 2});
-    const sun = sceneUpdater.circleSprite(6, "#ffffff");
-    const earth = sceneUpdater.circleSprite(3, "#ccccff");
-    const mars = sceneUpdater.circleSprite(3, "#ffcccc");
+    const sun = sceneUpdater.circleSprite(7, "#ffffff");
+    const earth = sceneUpdater.circleSprite(3.5, "#ccccff");
+    const mars = sceneUpdater.circleSprite(3.5, "#ffcccc");
     for (let i = 0; i < count; i += 1) {
       let subgrp = this.scene3d.group(grp);
       scene3d.polyline([[0,0,0], [0,0,0], [0,0,0], [0,0,0]], style, subgrp);
@@ -434,9 +438,12 @@ class SceneUpdater {
       scene3d.createSprite(earth, undefined, undefined, subgrp);
       scene3d.createSprite(mars, undefined, undefined, subgrp);
     }
+    this.triangle = scene3d.polyline([[0,0,0], [0,0,0], [0,0,0], [0,0,0]],
+                                     style);
+    this.triangle.visible = false;
   }
 
-  syncTriangles(jd, offset=0) {
+  syncTriangles(jd, offset=0, moveLabel=false) {
     const scene3d = this.scene3d;
     const triangles = this.triangles.children;
     if (offset.length === undefined) {
@@ -454,8 +461,38 @@ class SceneUpdater {
       parts[1].position.set(...rs);
       parts[2].position.set(...re);
       parts[3].position.set(...rm);
+      if (moveLabel && (i == 0)) {
+        sceneUpdater.labels.earth.position.set(...re);
+        sceneUpdater.labels.mars.position.set(...rm);
+      }
       triangles[i].position.set(...re.map((v, j) => offset[i]*(re0[j] - v)));
       jd += myear;
+    }
+  }
+
+  fadeTriangles(ms, on, noDraw) {
+    const scene3d = this.scene3d;
+    const triangles = this.triangles;
+    on = on? true : false;
+    let setVisibility = (visible) => {
+      for (let subgrp of triangles.children) {
+        setColorMultiplier(subgrp.children[0], 1);
+        subgrp.children[0].visible = visible;
+      }
+    };
+    if (!ms) {
+      setVisibility(on);
+      if (!noDraw) scene3d.render();
+    } else {
+      if (on) setVisibility(on);
+      parameterAnimator.initialize(1, 0, ms, (mult) => {
+        if (on) mult = 1 - mult;
+        for (let subgrp of triangles.children) {
+          setColorMultiplier(subgrp.children[0], mult);
+        }
+        if (mult == 0 && !on) setVisibility(on);
+        scene3d.render();
+      }).play();
     }
   }
 
@@ -855,6 +892,22 @@ class SceneUpdater {
   }
 }
 
+// https://stackoverflow.com/a/47355187
+function standardColor(str, mult) {
+  _color_context.fillStyle = str;
+  let color = _color_context.fillStyle;  // "#rrggbb" or "rgba(r, g, b, a/255)"
+  if (mult !== undefined && color.length == 7) {  // assume #rrggbb
+    color = parseInt(color.slice(1), 16);
+    let [r, g, b] = [color >> 16, color >> 8, color].map(v => v & 0xff)
+        .map(v => v*mult).map(v => (v < 0)? 0 : v)
+        .map(v => (v > 255)? 255 : parseInt(v));
+    color = "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+  }
+  return color;
+}
+
+const _color_context = document.createElement('canvas').getContext('2d');
+
 function pointsOnCircle(n, r=1) {
   return Array.from(new Array(n+1)).map((phi, i) => {
     phi = 2*Math.PI/n * i;
@@ -894,6 +947,8 @@ const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
 
 function resetScene(mode) {
   toggleText("1");
+  sceneUpdater.triangle.visible = false;
+  sceneUpdater.fadeTriangles(0, true, true);
   sceneUpdater.egrp.visible = true;
   sceneUpdater.eqgrp.visible = true;
   sceneUpdater.ecLabel.visible = true;
@@ -1217,13 +1272,69 @@ class Pager {
         camera.lookAt(0, 0, 0);
         scene3d.setSize(undefined, undefined, helioFov);
         scene3d.render();
+        rsm = glPlanetPosition("mars", jdOpp);
+        year = periodOf("earth", jdOpp);
+        const myear = periodOf("mars", jdOpp);
         skyAnimator.chain(6000).chain(() => {
           toggleText("0");
           skyAnimator.playChain();
+        }).chain(() => {
+          sceneUpdater.fadeTriangles(2000, false);
+        }).chain(() => {
+          const mars0 = sceneUpdater.triangles.children[0].children[3];
+          parameterAnimator.initialize(0, year, 5000, (djd) => {
+            sceneUpdater.syncTriangles(jdOpp+djd, 0, true);
+            mars0.position.set(...rsm);
+            scene3d.render();
+            sceneUpdater.updateDate(jdOpp+djd);
+          }).play();
+        })
+        let triangle = sceneUpdater.triangle;
+        let rm = glPlanetPosition("mars", jdOpp + year);
+        const n = sceneUpdater.triangles.children.length;
+        let re = new Array(n).fill(0).map(
+          (v, i) => glPlanetPosition("earth", jdOpp + year + i*myear));
+        // lengths of re all approximately 1
+        re = re.map(v => [rm[0]*v[2] - rm[2]*v[0], v]).sort(
+          (a, b) => a[0] - b[0]).map(v => v[1]);
+        for (let [i0, i1] of [[0, n-1], [1, n-2], [2, n-1], [0, n-3]]) {
+          skyAnimator.chain(2000).chain(() => {
+            scene3d.movePoints(triangle, [rm, re[i0], re[i1], rm]);
+            triangle.visible = true;
+            scene3d.render();
+            skyAnimator.playChain();
+          });
+        }
+        skyAnimator.chain(2000).chain(() => {
+          triangle.visible = false;
+          sceneUpdater.fadeTriangles(2000, true);
         }).chain(3000).chain(() => {
           toggleText("1");
           skyAnimator.playChain();
         }).playChain();
+      },
+
+      () => {  // page 12: Survey more points on Mars's orbit
+        let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
+        const camera = scene3d.camera;
+        helioSetup(jdOpp);
+        sceneUpdater.hideOrbit("sun", 0.25);
+        sceneUpdater.showOrbit("earth", 0.25);
+        sceneUpdater.syncTriangles(jdOpp, 0);
+        const v = vec1.map((v, i) => re0[i] + vec2[i]);
+        camera.up.set(1, 0, 0);
+        camera.position.set(...v);
+        camera.lookAt(0, 0, 0);
+        scene3d.setSize(undefined, undefined, helioFov);
+        scene3d.render();
+        rsm = glPlanetPosition("mars", jdOpp);
+        year = periodOf("earth", jdOpp);
+        const myear = periodOf("mars", jdOpp);
+        sceneUpdater.syncTriangles(jdOpp+year, 0, true);
+        const mars0 = sceneUpdater.triangles.children[0].children[3];
+        mars0.position.set(...rsm);
+        scene3d.render();
+        sceneUpdater.updateDate(jdOpp+year);
       }
     ];
 
@@ -1242,10 +1353,11 @@ class Pager {
       noop,  // exit page 9
       noop,  // exit page 10
       noop,  // exit page 11
-      noop  // exit page 12
+      noop,  // exit page 12
+      noop  // exit page 13
     ];
 
-    const helioFov = 30;
+    const helioFov = 34;
 
     function helioInit() {
       sceneUpdater.recenterEcliptic();
@@ -1258,7 +1370,6 @@ class Pager {
       sceneUpdater.eqgrp.visible = false;
       sceneUpdater.ecLabel.visible = false;
       sceneUpdater.eqLabel.visible = false;
-      scene3d.render();
       const jdNow = xyzNow.jd;
       const [jdOpp, iOpp] = sceneUpdater.findOpposition();
       xyzNow.update(jdOpp);
@@ -1374,11 +1485,6 @@ function setStartDate(event) {
   const jd = match? jd4date(event.target.value) : xyzNow.jd0;
   xyzNow.update(jd, jd);
   DATE_BOX.value = date4jd(xyzNow.jd0);
-  scene3d.render();
-}
-
-function gotoStartDate() {
-  xyzNow.update();
   scene3d.render();
 }
 
@@ -1755,7 +1861,7 @@ function setupSky() {
   sceneUpdater.addRing("mars", 10);
   sceneUpdater.addTriangles(10);
 
-  pager.gotoPage(0);
+  pager.gotoPage(-1);
 }
 
 function adjustEcliptic(jd) {
@@ -1811,11 +1917,16 @@ STARDATE.addEventListener("pointerdown", (event) => {
     clearTimeout(id0);
     if (!didPause) togglePause();  // maybePause did nothing, so toggle now
   };
+  SET_DATE.style.display = "grid";
   let id = setTimeout(() => {
     // Got timeout before pointer up, this is press and hold.
     id = null;
     STARDATE.removeEventListener("pointerup", gotPointerup);
-    console.log("press and hold action", xyzNow.jd);
+    SET_DATE.style.transform = "translate(0, 0)";
+    const date = dateOfDay(xyzNow.jd0);
+    YYYY.value = date.getFullYear();
+    MMDD.value = ("0" + (1+date.getMonth())).slice(-2) + "-" +
+      ("0" + date.getDate()).slice(-2);
   }, PRESS_TIMEOUT);
   STARDATE.addEventListener("pointerup", gotPointerup);
 });
@@ -1898,7 +2009,95 @@ REPLAY.addEventListener("click", () => {
   pager.gotoPage();
 });
 
+const SET_DATE = document.getElementById("set-date");
+const sdTransform = getComputedStyle(SET_DATE).transform;
+const YYYY = document.getElementById("base-year");
+const MMDD = document.getElementById("base-date");
+SET_DATE.style.display = "none";
+let sdState = 0;
+SET_DATE.ontransitionend = () => {
+  if (sdState) {
+    sdState = 0;
+    SET_DATE.style.display = "none";
+    return;
+  }
+  sdState = 1;
+  YYYY.focus();
+  const value = YYYY.value;
+  YYYY.value = "";  // hack to put cursor at end of initial text
+  YYYY.value = value;
+};
+function setFocusTo(el) {
+  el.focus();
+  const value = el.value;
+  el.value = "";  // hack to put cursor at end of initial text
+  el.value = value;
+}
+function setBaseDate() {
+  let date = dateOfDay(xyzNow.jd0);
+  let bad = false;
+  let value = YYYY.value;
+  let y = Number(value);
+  bad = isNaN(y) || !Number.isInteger(y) || (y.toString() != value);
+  if (bad) {
+    y = date.getFullYear();
+    YYYY.focus();
+    sdState = 1;
+  } else if (y < -3000) {
+    y = -3000;
+  } else if (y > 3000) {
+    y = 3000;
+  }
+  YYYY.value = y.toString();
+  let md = MMDD.value.split("-");
+  let [m, d] = (md.length == 2)? md.map(v => Number(v)) : [0, 0];
+  if (isNaN(m) || !Number.isInteger(m) || isNaN(d) || !Number.isInteger(d) ||
+      m < 1 || m > 12 || d < 1 || d > 31) {
+    m = 1 + date.getMonth();
+    d = date.getDate();
+    if (!bad) {
+      MMDD.focus();
+      sdState = 2;
+    }
+    bad = true;
+  }
+  MMDD.value = ("0" + m).slice(-2) + "-" + ("0" + d).slice(-2);
+  if (bad) return true;
+  let jd = jd4date(YYYY.value + "-" + MMDD.value);
+  xyzNow.update(jd, jd);
+  YYYY.blur();
+  MMDD.blur();
+  SET_DATE.style.transform = sdTransform;
+  return false;  // base date changed, dialog box taken down
+}
+window.setBaseDate = setBaseDate;
+
 addEventListener("keydown", (event) => {
+  if (event.target == YYYY || event.target == MMDD) {
+    if (sdState == 0) return;
+    if (event.key == "Enter") {
+      if (event.target == YYYY) {
+        if (sdState == 1) {
+          sdState = 2;
+          setFocusTo(MMDD);
+        } else {
+          setBaseDate();
+        }
+      } else {  // event.target == MMDD
+        setBaseDate();
+      }
+      event.preventDefault();
+    } else if (event.key == "Tab") {
+      let active = document.activeElement;
+      if (active == YYYY) {
+        setFocusTo(MMDD);
+      } else {
+        setFocusTo(YYYY);
+      }
+      event.preventDefault();
+    }
+    return;
+  }
   switch (event.key) {
   case " ":
   case "Spacebar":

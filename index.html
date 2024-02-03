@@ -193,6 +193,28 @@
           grid-gap: 2rem;
       }
 
+      #set-date {
+          position: absolute;
+          bottom: 0.5rem;
+          right: 0.5rem;
+          border-radius: 8px;
+          padding: 0.5rem;
+          background: #444;
+          color: #bbb;
+          display: grid;
+          grid-template-columns: 1fr;
+          grid-gap: 0.5rem;
+          font-size: 1.125rem;  /* match topbox */
+          font-variant-numeric: tabular-nums;
+          text-align: center;
+          transition: transform 0.5s ease-in-out;
+          transform: translate(calc(100% + 0.5rem), 0);
+      }
+      #set-date input {
+          font: bold 1.6rem 'Merriweather Sans', Arial, sans-serif;
+          font-variant-numeric: tabular-nums;
+      }
+
       @media (max-aspect-ratio: 4/3) {
           body {
               color: beige;
@@ -253,13 +275,13 @@
       instead of Venus.  Ask yourself what your sky would look like at
       these same twenty times if you were on Venus.</p>
 </div><div class="hidden">
-    <h2>Visualizing Earth's orbit</h2>
+    <h2>Visualize Earth's orbit</h2>
     <p class="justified">To continue the analogy with Venus locations
       at Earth year intervals, build a ring of Mars locations at Mars
       year intervals (687 days).  The Sun is at different places now,
       so record those as well.</p>
 </div><div class="hidden">
-    <h2>Finding the Sun-Mars direction</h2>
+    <h2>Find the Sun-Mars direction</h2>
     <p class="justified">At each step, Earth, Sun, and Mars determine a
       plane, which cuts the sky in the great circle passing through the
       Sun and Mars.  Since the Sun-Mars vector is the same at each step,
@@ -278,16 +300,21 @@
       space!  Furthermore, the Sun-Mars side is the same vector in all
       ten triangles.</p>
 </div><div class="hidden">
-    <h2>Adopting the heliocentric view</h2>
+    <h2>Adopt the heliocentric view</h2>
     <p class="justified">Initially, you viewed all ten snapshots of
       the sky from the Earth or from a fixed position relative to the
       Earth.</p>
 </div><div class="hidden">
-    <h2>Surveying more points on Mars's orbit</h2>
+    <h2>Survey a second point on Mars's orbit</h2>
     <p class="justified">Comparing observations spaced by Mars years,
-      you have surveyed points on Earth's orbit.  Kepler's second
-      great insight was that by stepping Earth years you can survey
-      new points on Mars's orbit.</p>
+      you have surveyed points on Earth's orbit.  The second part of
+      Kepler's great insight was that by stepping Earth years you can
+      survey new points on Mars's orbit.</p>
+</div><div class="hidden">
+    <h2>Find more points on Mars's orbit</h2>
+    <p class="justified">You can continue stepping forward or back
+      by Earth years to find more points on Mars's orbit.  (Or Mars
+      years for more points on Earth's orbit.)</p>
 </div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
@@ -373,6 +400,12 @@
       advances around its orbit by some fixed amount.  You can choose
       any two of your ten Earth points to triangulate this new
       position of Mars!</p>
+</div><div class="hidden">
+    <p class="justified">Notice that the points you know on Earth's
+      orbit are spaced by two Earth years minus one Mars year, or
+      43.53 days.  Therefore, you can also directly step by this or
+      any similar combination to find new points on Mars's orbit by
+      triangulation.</p>
 </div></div>
 <div id="page-controls">
   <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"
@@ -397,6 +430,13 @@
   <svg id="hide-text" class="button" xmlns="http://www.w3.org/2000/svg"
        height="2.5rem" viewBox="0 0 384 512">
     <use xlink:href="#fa-xmark" /></svg>
+</div>
+<div id="set-date">
+  <input id="base-year" name="base-year" type="text"
+         minlength="4" maxlength="5" size="5"/>
+  <input id="base-date" name="base-date" type="text"
+         minlength="5" maxlength="5" size="5"/>
+  <div class="button" onclick="setBaseDate()">Set Base Date</div>
 </div>
 </div>
 
