@@ -1824,7 +1824,7 @@ function setupSky() {
   const eqgrp = scene3d.group(egrp);
   const equator = scene3d.polyline(ecliptic, dashedLine, eqgrp);
   const qpoleMarks = scene3d.segments(poleMarks, dashedLine, eqgrp);
-  eqgrp.rotation.z = -23.43928 * Math.PI/180.;
+  eqgrp.rotation.z = -obliquity(xyzNow.jd0);
   sceneUpdater.egrp = egrp;
   sceneUpdater.eqgrp = eqgrp;
 
@@ -1861,7 +1861,7 @@ function setupSky() {
   sceneUpdater.addRing("mars", 10);
   sceneUpdater.addTriangles(10);
 
-  pager.gotoPage(-1);
+  pager.gotoPage(0);
 }
 
 function adjustEcliptic(jd) {
@@ -1952,7 +1952,7 @@ function maybePause() {
 function togglePause() {
   if (parameterAnimator.isPlaying) {
     if (parameterAnimator.isPaused) parameterAnimator.play()
-    else parameterAnimeator.pause();
+    else parameterAnimator.pause();
   } else if (skyAnimator.isPlaying) {
     if (!skyAnimator.isPaused) skyAnimator.pause();
     else skyAnimator.play();
@@ -2062,9 +2062,15 @@ function setBaseDate() {
     bad = true;
   }
   MMDD.value = ("0" + m).slice(-2) + "-" + ("0" + d).slice(-2);
+  if (sdState == 1) {
+    setFocusTo(MMDD);
+    sdState = 2;
+    return true;
+  }
   if (bad) return true;
   let jd = jd4date(YYYY.value + "-" + MMDD.value);
   xyzNow.update(jd, jd);
+  pager.gotoPage(0);
   YYYY.blur();
   MMDD.blur();
   SET_DATE.style.transform = sdTransform;
@@ -2076,16 +2082,7 @@ addEventListener("keydown", (event) => {
   if (event.target == YYYY || event.target == MMDD) {
     if (sdState == 0) return;
     if (event.key == "Enter") {
-      if (event.target == YYYY) {
-        if (sdState == 1) {
-          sdState = 2;
-          setFocusTo(MMDD);
-        } else {
-          setBaseDate();
-        }
-      } else {  // event.target == MMDD
-        setBaseDate();
-      }
+      setBaseDate();
       event.preventDefault();
     } else if (event.key == "Tab") {
       let active = document.activeElement;
