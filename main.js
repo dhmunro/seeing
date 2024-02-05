@@ -1314,7 +1314,15 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 12: Survey more points on Mars's orbit
+      () => {  // page 12: Find more points on Mars's orbit
+        // Call original point 0, then second point is E (one Earth year later).
+        // Let X = 2E - M (two Earth years minus one Mars year = 43.53 days)
+        // Choose ten points on Mars orbit as:
+        //   -3X  -X  0  X  3X  E-4X  E-2X  E  E+X  E+3X      (M => 0)
+        //      2X  X  X  2X   U    2X    2X  X   2X    U  are spacings
+        // U = E-7X = M-E-6X = 7M-13E
+        // M = 686.97985, E = 365.25636  ==>
+        // X = 43.53287, 2X = 87.06574, U = 60.52627
         let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
         const camera = scene3d.camera;
         helioSetup(jdOpp);
@@ -1341,20 +1349,26 @@ class Pager {
     // gotoPage will resetAnimators() before calling exit,
     // but pageExit can often be a noop.
     this.pageExit = [
-      noop,  // exit page 0
-      noop,  // exit page 1
-      noop,  // exit page 2
-      noop,  // exit page 3
-      noop,  // exit page 4
-      noop,  // exit page 5
-      noop,  // exit page 6
-      noop,  // exit page 7
-      noop,  // exit page 8
-      noop,  // exit page 9
-      noop,  // exit page 10
-      noop,  // exit page 11
-      noop,  // exit page 12
-      noop  // exit page 13
+      noop,  // exit page 0 Seeing the Solar System
+      noop,  // exit page 1 First study how the Sun moves
+      noop,  // exit page 2 Sun's motion is non-uniform but periodic
+      noop,  // exit page 3 Venus zig-zags about the Sun
+      noop,  // exit page 4 Visualize Venus's orbit
+      noop,  // exit page 5 Find the orbital plane of Venus
+      noop,  // exit page 6 Venus is to Earth as Earth is to Mars
+      noop,  // exit page 7 Visualize Earth's orbit
+      noop,  // exit page 8 How to find the Sun-Mars direction
+      noop,  // exit page 9 Opposition is the best reference time
+      noop,  // exit page 10 Begin surveying Earth's orbit!
+      noop,  // exit page 11 Adopt the heliocentric view
+      noop,  // exit page 12 Survey a second point on Mars's orbit
+      noop,  // exit page 13 Survey more points on Mars's orbit
+      noop,  // exit page 14 Self-consistency and the Mars year
+      noop,  // exit page 15 Orbits are nearly eccentric circles
+      noop,  // exit page 16 Kepler's First Law
+      noop,  // exit page 17 Earth moves faster when closer to Sun
+      noop,  // exit page 18 Kepler's Second Law
+      noop  // exit page 19 Use Kepler's Laws to fit other planets
     ];
 
     const helioFov = 34;
@@ -1972,6 +1986,7 @@ MAIN_MENU.addEventListener("click", () => {
 });
 
 function toggleText(opacity) {
+  if (getComputedStyle(HIDE_TEXT).display == "none") return;
   const opacNow = getComputedStyle(TOP_BOX).opacity;
   if (opacity == undefined) {
     opacity = (opacNow == "0")? "1" : "0";
@@ -2187,6 +2202,11 @@ addEventListener("keydown", (event) => {
       }
     } else {
       FULLSCREEN_ICON.setAttribute("xlink:href", "#fa-expand");
+    }
+    if (getComputedStyle(HIDE_TEXT).display == "none") {
+      TOP_BOX.style.opacity = "1";
+      BOT_BOX.style.opacity = "1";
+      HIDE_ICON.setAttribute("xlink:href", "#fa-xmark");  // even though hidden
     }
   });
 
