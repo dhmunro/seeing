@@ -349,12 +349,12 @@ export class TextureCanvas {
     this.canvas.height = h;
   }
 
-  addTo(perspectiveScene, xcenter, ycenter) {
-    const sprite = perspectiveScene.createSprite(this.canvas, 1);
+  addTo(perspectiveScene, xcenter, ycenter, parent) {
+    const sprite = perspectiveScene.createSprite(this.canvas, 1, undefined,
+                                                 parent);
     if (xcenter !== undefined) {
       sprite.center.set(xcenter, ycenter);
     }
-    perspectiveScene.add(sprite);
     return sprite;
   }
 }

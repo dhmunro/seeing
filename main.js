@@ -242,7 +242,7 @@ class SceneUpdater {
     return sprite;
   }
 
-  circleSprite(radius, color) {
+  circleSprite(radius, color, parent) {
     const txcanvas = new TextureCanvas();
     const ctx = txcanvas.context;
     txcanvas.width = 2*radius;
@@ -256,7 +256,7 @@ class SceneUpdater {
     gradient.addColorStop(1, standardColor(color, 0.25));
     ctx.fillStyle = gradient;
     ctx.fill();
-    return txcanvas.addTo(this.scene3d, 0.5, 0.5);
+    return txcanvas.addTo(this.scene3d, 0.5, 0.5, parent);
   }
 
   addLabel(text, params, tick=0, gap=-0.5) {
@@ -427,23 +427,30 @@ class SceneUpdater {
     const grp = this.scene3d.group();
     grp.visible = false;  // initially, group not drawn at all
     this.triangles = grp;
-    const style = scene3d.createLineStyle({color: 0x555577, linewidth: 2});
-    const sun = sceneUpdater.circleSprite(7, "#ffffff");
-    const earth = sceneUpdater.circleSprite(3.5, "#ccccff");
-    const mars = sceneUpdater.circleSprite(3.5, "#ffcccc");
+    const style = scene3d.createLineStyle({color: 0x444466, linewidth: 2});
+    let sun, earth, mars;
     for (let i = 0; i < count; i += 1) {
       let subgrp = this.scene3d.group(grp);
       scene3d.polyline([[0,0,0], [0,0,0], [0,0,0], [0,0,0]], style, subgrp);
-      scene3d.createSprite(sun, undefined, undefined, subgrp);
-      scene3d.createSprite(earth, undefined, undefined, subgrp);
-      scene3d.createSprite(mars, undefined, undefined, subgrp);
+      if (i) {
+        scene3d.createSprite(sun, undefined, undefined, subgrp);
+        scene3d.createSprite(earth, undefined, undefined, subgrp);
+        scene3d.createSprite(mars, undefined, undefined, subgrp);
+      } else {
+        sun = sceneUpdater.circleSprite(6, "#ffffff", subgrp);
+        earth = sceneUpdater.circleSprite(3.5, "#ccccff", subgrp);
+        mars = sceneUpdater.circleSprite(3.5, "#ffcccc", subgrp);
+        mars.material.depthTest = false;
+        earth.material.depthTest = false;
+        sun.material.depthTest = false;
+      }
     }
     this.triangle = scene3d.polyline([[0,0,0], [0,0,0], [0,0,0], [0,0,0]],
                                      style);
     this.triangle.visible = false;
   }
 
-  syncTriangles(jd, offset=0, moveLabel=false) {
+  syncTriangles(jd, offset=0, moveLabel=false, keepMars=0) {
     const scene3d = this.scene3d;
     const triangles = this.triangles.children;
     if (offset.length === undefined) {
@@ -460,7 +467,7 @@ class SceneUpdater {
       scene3d.movePoints(parts[0], [rs, re, rm, rs]);
       parts[1].position.set(...rs);
       parts[2].position.set(...re);
-      parts[3].position.set(...rm);
+      if (i >= keepMars) parts[3].position.set(...rm);
       if (moveLabel && (i == 0)) {
         sceneUpdater.labels.earth.position.set(...re);
         sceneUpdater.labels.mars.position.set(...rm);
@@ -493,6 +500,104 @@ class SceneUpdater {
         if (mult == 0 && !on) setVisibility(on);
         scene3d.render();
       }).play();
+    }
+  }
+
+  addOrbitPoints(nEarth, nMars) {
+    let top = this.scene3d.group();
+    top.visible = false;  // initially, group not drawn at all
+    this.orbitPoints = {};
+    this.orbitPoints.top = top;
+    let s = sceneUpdater.circleSprite(6, "#ffffff", top);
+    s.position.set(0, 0, 0);
+    s.material.depthTest = false;
+    // s.renderOrder = 999;
+    let i;
+    let g = this.scene3d.group(top);
+    g.visible = false;
+    this.orbitPoints.earthSpokes = g;
+    let style = scene3d.createLineStyle({color: 0x444466, linewidth: 2});
+    for (i = 0; i < nEarth; i += 1) {
+      scene3d.polyline([[0,0,0], [0,0,0]], style, g);
+    }
+    g = this.scene3d.group(top);
+    g.visible = false;
+    this.orbitPoints.marsSpokes = g;
+    style = scene3d.createLineStyle({color: 0x553333, linewidth: 2});
+    for (i = 0; i < nMars; i += 1) {
+      scene3d.polyline([[0,0,0], [0,0,0]], style, g);
+    }
+    g = this.scene3d.group(top);
+    this.orbitPoints.earth = g;
+    for (let i = 0; i < nEarth; i += 1) {
+      if (i) {
+        scene3d.createSprite(s, undefined, undefined, g);
+      } else {
+        s = sceneUpdater.circleSprite(3.5, "#ccccff", g);
+        s.material.depthTest = false;
+      }
+    }
+    g = this.scene3d.group(top);
+    this.orbitPoints.mars = g;
+    for (let i = 0; i < nMars; i += 1) {
+      if (i) {
+        scene3d.createSprite(s, undefined, undefined, g);
+      } else {
+        s = sceneUpdater.circleSprite(3.5, "#ffcccc", g);
+        s.material.depthTest = false;
+      }
+    }
+  }
+
+  drawEarthSpokes(jd, myr) {
+    const spokes = this.orbitPoints.earthSpokes.children;
+    const rs = [0, 0, 0];
+    for (let i=0; i < spokes.length; i += 1) {
+      scene3d.movePoints(spokes[i], [rs, glPlanetPosition("earth", jd+i*myr)]);
+    }
+    this.orbitPoints.earthSpokes.visible = true;
+  }
+
+  drawEarthPoints(jd, myr) {
+    const earth = this.orbitPoints.earth.children;
+    for (let i=0; i < earth.length; i += 1) {
+      earth[i].position.set(...glPlanetPosition("earth", jd+i*myr));
+    }
+  }
+
+  resetMarsPoints() {
+    this.orbitPoints.marsSpokes.visible = false;
+    const spokes = this.orbitPoints.marsSpokes.children;
+    const mars = this.orbitPoints.mars.children;
+    for (let i = 0; i < mars.length; i += 1) {
+      spokes[i].visible = false;
+      mars[i].visible = false;
+    }
+  }
+
+  drawMarsPoint(i, jd, moveLabel) {
+    const mars = this.orbitPoints.mars.children;
+    const rm = glPlanetPosition("mars", jd);
+    mars[i].visible = true;
+    mars[i].position.set(...rm);
+    if (moveLabel) {
+      const re = glPlanetPosition("earth", jd);
+      sceneUpdater.labels.earth.position.set(...re);
+      sceneUpdater.labels.mars.position.set(...rm);
+    }
+  }
+
+  drawMarsSpokes() {
+    const mars = this.orbitPoints.mars.children;
+    const spokes = this.orbitPoints.marsSpokes.children;
+    this.orbitPoints.marsSpokes.visible = true;
+    const rs = [0, 0, 0];
+    let rm;
+    for (let i=0; i < mars.length; i += 1) {
+      if (!mars[i].visible) continue;
+      rm = mars[i].position;
+      scene3d.movePoints(spokes[i], [rs, [rm.x, rm.y, rm.z]]);
+      spokes[i].visible = true;
     }
   }
 
@@ -958,6 +1063,7 @@ function resetScene(mode) {
   sceneUpdater.resetRings();
   sceneUpdater.hideSpokes();
   sceneUpdater.triangles.visible = false;
+  sceneUpdater.orbitPoints.top.visible = false;
   const camera = scene3d.camera;
   camera.position.set(0, 0, 0);
   camera.lookAt(-1, 0, 0);
@@ -980,7 +1086,6 @@ class Pager {
     this.pageup = pageup;
     this.pagedn = pagedn;
 
-    const noop = () => {};
     let nowMar, mar2sep, year;
     let jdOrigin = null;
     const sunCounter = (stop) => {
@@ -1026,7 +1131,7 @@ class Pager {
         skyAnimator.playChain();
       },
 
-      () => {  // page 2: The Sun's motion is periodic but non-uniform
+      () => {  // page 2: The Sun's motion is non-uniform but periodic
         SUN_COUNTER.innerHTML = "-";
         MAR_SEP.innerHTML = "";
         SEP_MAR.innerHTML = "";
@@ -1089,7 +1194,7 @@ class Pager {
         skyAnimator.playChain();
       },
 
-      () => {  // page 4: Visualizing Venus's orbit
+      () => {  // page 4: Visualize Venus's orbit
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("venus");
@@ -1125,26 +1230,31 @@ class Pager {
         controls.enabled = true;
       },
 
-      () => {  // page 7: Visualizing Earth's orbit
+      () => {  // page 7: Visualize Earth's orbit
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("mars");
         sceneUpdater.lookAlong(xc, yc, zc);
         skyAnimator.chain(2000);
         sceneUpdater.initializeRing("mars", xyzNow, false, true);
-        skyAnimator.chain(2000).chain(() => {
+        skyAnimator.chain(() => {
+          sceneUpdater.planets.sun.visible = false;
+          scene3d.render();
+          skyAnimator.playChain();
+        }).chain(2000).chain(() => {
           sceneUpdater.pivot(8000, 1000);
         }).chain(() => {
           controls.enabled = true;
         }).playChain();
       },
 
-      () => {  // page 8: Finding the Sun-Mars direction
+      () => {  // page 8: How to find the Sun-Mars direction
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("mars");
         sceneUpdater.lookAlong(xc, yc, zc);
         sceneUpdater.initializeRing("mars", xyzNow, true, true);
+        sceneUpdater.planets.sun.visible = false;
         sceneUpdater.labels.antisun.visible = false;
         scene3d.render();
         sceneUpdater.showSpokes(500, true);
@@ -1259,7 +1369,7 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 12: Survey more points on Mars's orbit
+      () => {  // page 12: Survey a second point on Mars's orbit
         let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
         const camera = scene3d.camera;
         helioSetup(jdOpp);
@@ -1272,7 +1382,6 @@ class Pager {
         camera.lookAt(0, 0, 0);
         scene3d.setSize(undefined, undefined, helioFov);
         scene3d.render();
-        rsm = glPlanetPosition("mars", jdOpp);
         year = periodOf("earth", jdOpp);
         const myear = periodOf("mars", jdOpp);
         skyAnimator.chain(6000).chain(() => {
@@ -1281,10 +1390,8 @@ class Pager {
         }).chain(() => {
           sceneUpdater.fadeTriangles(2000, false);
         }).chain(() => {
-          const mars0 = sceneUpdater.triangles.children[0].children[3];
           parameterAnimator.initialize(0, year, 5000, (djd) => {
-            sceneUpdater.syncTriangles(jdOpp+djd, 0, true);
-            mars0.position.set(...rsm);
+            sceneUpdater.syncTriangles(jdOpp+djd, 0, true, 1);
             scene3d.render();
             sceneUpdater.updateDate(jdOpp+djd);
           }).play();
@@ -1314,7 +1421,7 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 12: Find more points on Mars's orbit
+      () => {  // page 13: Survey more points on Mars's orbit
         // Call original point 0, then second point is E (one Earth year later).
         // Let X = 2E - M (two Earth years minus one Mars year = 43.53 days)
         // Choose ten points on Mars orbit as:
@@ -1328,26 +1435,90 @@ class Pager {
         helioSetup(jdOpp);
         sceneUpdater.hideOrbit("sun", 0.25);
         sceneUpdater.showOrbit("earth", 0.25);
-        sceneUpdater.syncTriangles(jdOpp, 0);
         const v = vec1.map((v, i) => re0[i] + vec2[i]);
         camera.up.set(1, 0, 0);
         camera.position.set(...v);
         camera.lookAt(0, 0, 0);
         scene3d.setSize(undefined, undefined, helioFov);
-        scene3d.render();
-        rsm = glPlanetPosition("mars", jdOpp);
+
         year = periodOf("earth", jdOpp);
         const myear = periodOf("mars", jdOpp);
-        sceneUpdater.syncTriangles(jdOpp+year, 0, true);
-        const mars0 = sceneUpdater.triangles.children[0].children[3];
-        mars0.position.set(...rsm);
+        sceneUpdater.triangles.visible = false;
+        sceneUpdater.orbitPoints.top.visible = true;
+        sceneUpdater.drawEarthSpokes(jdOpp, myear);
+        sceneUpdater.drawEarthPoints(jdOpp, myear);
+        sceneUpdater.resetMarsPoints();
+        sceneUpdater.drawMarsPoint(0, jdOpp, true);
+        sceneUpdater.drawMarsPoint(1, jdOpp+year);
+        sceneUpdater.drawMarsSpokes();
         scene3d.render();
-        sceneUpdater.updateDate(jdOpp+year);
+        sceneUpdater.updateDate(jdOpp);
+
+        const xstep = 2*year - myear;
+        const djds = [
+          0, -xstep, -2*xstep, -3*xstep,
+          0, xstep, 2*xstep, 3*xstep,
+          year, year-xstep, year-2*xstep, year-3*xstep, year-4*xstep,
+          year, year+xstep, year+2*xstep, year+3*xstep];
+
+        function takeStep(i, j, pause, dt) {
+          if (pause) skyAnimator.chain(pause);
+          skyAnimator.chain(() => {
+            const jd0 = jdOpp+djds[j], jd1 = jdOpp+djds[j+1];
+            parameterAnimator.initialize(jd0, jd1, dt, (jd) => {
+              sceneUpdater.drawMarsPoint(i, jd, true);
+              sceneUpdater.drawEarthPoints(jd, myear);
+              scene3d.render();
+              sceneUpdater.updateDate(jd);
+            }).play();
+          });
+        }
+        function startStep(i, j, pause) {
+          if (pause) skyAnimator.chain(pause);
+          const jd = jdOpp + djds[j];
+          skyAnimator.chain(() => {
+            sceneUpdater.drawMarsPoint(i, jd, true);
+            sceneUpdater.drawEarthPoints(jd, myear);
+            scene3d.render();
+            sceneUpdater.updateDate(jd);
+            skyAnimator.playChain();
+          });
+        }
+
+        skyAnimator.chain(3000).chain(() => {
+          toggleText("0");
+          skyAnimator.playChain();
+        });
+        takeStep(2, 0, 1500, 800);
+        takeStep(3, 1, 800, 800);
+        takeStep(4, 2, 800, 800);
+        startStep(5, 4, 1500);
+        takeStep(5, 4, 1500, 800);
+        takeStep(6, 5, 800, 800);
+        takeStep(7, 6, 800, 800);
+        startStep(8, 8, 1500);
+        takeStep(8, 8, 1500, 800);
+        takeStep(9, 9, 800, 800);
+        takeStep(10, 10, 800, 800);
+        takeStep(11, 11, 800, 800);
+        startStep(12, 13, 1500);
+        takeStep(12, 13, 1500, 800);
+        takeStep(13, 14, 800, 800);
+        takeStep(14, 15, 800, 800);
+        startStep(0, 0, 1500);
+        skyAnimator.chain(1000).chain(() => {
+          sceneUpdater.drawMarsSpokes();
+          sceneUpdater.showOrbit("mars", 0.25, 1500);
+        }).chain(2000).chain(() => {
+          toggleText("1");
+          skyAnimator.playChain();
+        }).playChain();
       }
     ];
 
     // gotoPage will resetAnimators() before calling exit,
     // but pageExit can often be a noop.
+    const noop = () => {};
     this.pageExit = [
       noop,  // exit page 0 Seeing the Solar System
       noop,  // exit page 1 First study how the Sun moves
@@ -1874,6 +2045,7 @@ function setupSky() {
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
   sceneUpdater.addTriangles(10);
+  sceneUpdater.addOrbitPoints(10, 15);
 
   pager.gotoPage(0);
 }
@@ -1936,7 +2108,7 @@ STARDATE.addEventListener("pointerdown", (event) => {
     // Got timeout before pointer up, this is press and hold.
     id = null;
     STARDATE.removeEventListener("pointerup", gotPointerup);
-    SET_DATE.style.transform = "translate(0, 0)";
+    SET_DATE.style.transform = "scale(1)";
     const date = dateOfDay(xyzNow.jd0);
     YYYY.value = date.getFullYear();
     MMDD.value = ("0" + (1+date.getMonth())).slice(-2) + "-" +
@@ -2025,15 +2197,14 @@ REPLAY.addEventListener("click", () => {
 });
 
 const SET_DATE = document.getElementById("set-date");
-const sdTransform = getComputedStyle(SET_DATE).transform;
 const YYYY = document.getElementById("base-year");
 const MMDD = document.getElementById("base-date");
-SET_DATE.style.display = "none";
+// SET_DATE.style.display = "none";
 let sdState = 0;
 SET_DATE.ontransitionend = () => {
   if (sdState) {
     sdState = 0;
-    SET_DATE.style.display = "none";
+    // SET_DATE.style.display = "none";
     return;
   }
   sdState = 1;
@@ -2048,7 +2219,7 @@ function setFocusTo(el) {
   el.value = "";  // hack to put cursor at end of initial text
   el.value = value;
 }
-function setBaseDate() {
+function setBaseDate(buttonClick) {
   let date = dateOfDay(xyzNow.jd0);
   let bad = false;
   let value = YYYY.value;
@@ -2077,7 +2248,7 @@ function setBaseDate() {
     bad = true;
   }
   MMDD.value = ("0" + m).slice(-2) + "-" + ("0" + d).slice(-2);
-  if (sdState == 1) {
+  if (sdState == 1 && !buttonClick) {
     setFocusTo(MMDD);
     sdState = 2;
     return true;
@@ -2085,10 +2256,10 @@ function setBaseDate() {
   if (bad) return true;
   let jd = jd4date(YYYY.value + "-" + MMDD.value);
   xyzNow.update(jd, jd);
-  pager.gotoPage(0);
+  pager.gotoPage();
   YYYY.blur();
   MMDD.blur();
-  SET_DATE.style.transform = sdTransform;
+  SET_DATE.style.transform = "scale(0)";
   return false;  // base date changed, dialog box taken down
 }
 window.setBaseDate = setBaseDate;

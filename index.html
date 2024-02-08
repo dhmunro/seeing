@@ -58,7 +58,7 @@
           pointer-events: none;
           opacity: 1;
           transition-property: opacity;
-          transition-duration: 2s;
+          transition-duration: 0.5s;
       }
       #midbox {
           margin: 0;
@@ -74,7 +74,7 @@
           pointer-events: none;
           opacity: 1;
           transition-property: opacity;
-          transition-duration: 2s;
+          transition-duration: 0.5s;
       }
       #topbox p {
           font-size: 1.125rem;  /* = 18/16 = large */
@@ -192,6 +192,12 @@
           grid-template-rows: 1fr;
           grid-gap: 2rem;
       }
+      #menu-body {
+          display: none;
+          position: absolute;
+          top: 0.5rem;
+          left: 0.5rem;
+      }
 
       #set-date {
           position: absolute;
@@ -207,8 +213,9 @@
           font-size: 1.125rem;  /* match topbox */
           font-variant-numeric: tabular-nums;
           text-align: center;
-          transition: transform 0.5s ease-in-out;
-          transform: translate(calc(100% + 0.5rem), 0);
+          transition: transform 0.3s ease-in-out;
+          transform: scale(0);
+          transform-origin: bottom right;
       }
       #set-date input {
           font: bold 1.6rem 'Merriweather Sans', Arial, sans-serif;
@@ -305,8 +312,8 @@
 </div><div class="hidden">
     <h2>Adopt the heliocentric view</h2>
     <p class="justified">Initially, you viewed all ten snapshots of
-      the sky from the Earth or from a fixed position relative to the
-      Earth.</p>
+      the sky from the Earth, then from a fixed position relative to
+      the Earth.</p>
 </div><div class="hidden">
     <h2>Survey a second point on Mars's orbit</h2>
     <p class="justified">Comparing observations spaced by Mars years,
@@ -439,7 +446,15 @@
          minlength="4" maxlength="5" size="5"/>
   <input id="base-date" name="base-date" type="text"
          minlength="5" maxlength="5" size="5"/>
-  <div class="button" onclick="setBaseDate()">Set Base Date</div>
+  <div class="button" onclick="setBaseDate(1)">Set Base Date</div>
+</div>
+<div id="menu-body">
+  <!--
+Controls
+Keyboard shortcuts
+Contents
+Notes
+    -->
 </div>
 </div>
 
