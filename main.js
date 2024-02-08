@@ -1440,7 +1440,6 @@ class Pager {
         camera.position.set(...v);
         camera.lookAt(0, 0, 0);
         scene3d.setSize(undefined, undefined, helioFov);
-
         year = periodOf("earth", jdOpp);
         const myear = periodOf("mars", jdOpp);
         sceneUpdater.triangles.visible = false;
@@ -1453,7 +1452,6 @@ class Pager {
         sceneUpdater.drawMarsSpokes();
         scene3d.render();
         sceneUpdater.updateDate(jdOpp);
-
         const xstep = 2*year - myear;
         const djds = [
           0, -xstep, -2*xstep, -3*xstep,
@@ -1471,12 +1469,19 @@ class Pager {
               scene3d.render();
               sceneUpdater.updateDate(jd);
             }).play();
+          }).chain(() => {
+            const djd1 = djds[j+1];
+            const nsteps = Math.round(((j >= 8)? djd1-year : djd1)/xstep);
+            goodMarsTriangle(i, nsteps);
+            scene3d.render();
+            skyAnimator.playChain();
           });
         }
         function startStep(i, j, pause) {
           if (pause) skyAnimator.chain(pause);
           const jd = jdOpp + djds[j];
           skyAnimator.chain(() => {
+            sceneUpdater.triangle.visible = false;
             sceneUpdater.drawMarsPoint(i, jd, true);
             sceneUpdater.drawEarthPoints(jd, myear);
             scene3d.render();
@@ -1507,6 +1512,7 @@ class Pager {
         takeStep(14, 15, 800, 800);
         startStep(0, 0, 1500);
         skyAnimator.chain(1000).chain(() => {
+          sceneUpdater.triangle.visible = false;
           sceneUpdater.drawMarsSpokes();
           sceneUpdater.showOrbit("mars", 0.25, 1500);
         }).chain(2000).chain(() => {
@@ -1542,7 +1548,7 @@ class Pager {
       noop  // exit page 19 Use Kepler's Laws to fit other planets
     ];
 
-    const helioFov = 34;
+    const helioFov = 36;  // fit Mars orbit for -3000-01-01
 
     function helioInit() {
       sceneUpdater.recenterEcliptic();
@@ -1590,6 +1596,37 @@ class Pager {
       sceneUpdater.showOrbit("sun", 0.25);
       sceneUpdater.syncTriangles(jdOpp, 1);
       sceneUpdater.triangles.visible = true;
+    }
+
+    function getLoc(obj) {
+      const p = obj.position;
+      return [p.x, p.y, p.z];
+    }
+
+    function cosAngle([ax, ay, az], [bx, by, bz]) {
+      const rr = Math.sqrt((ax**2 + ay**2 + az**2)*(bx**2 + by**2 + bz**2));
+      return (ax*bx + ay*by + az*bz) / rr;
+    }
+
+    const cosLimit = -Math.cos(Math.PI/12.);  // 15 degrees
+
+    function goodMarsTriangle(i, nsteps) {
+      const orbitPoints = sceneUpdater.orbitPoints;
+      const rs = [0, 0, 0];
+      const rm = getLoc(orbitPoints.mars.children[i]);
+      let re = orbitPoints.earth.children.map(c => getLoc(c));;
+      if (nsteps >= 0) {
+        re = re.slice(nsteps);
+      } else {
+        re = re.slice(0, nsteps);
+      }
+      // reject points where Mars within 15 degrees of Sun.
+      re = re.filter((re) => cosAngle(re, rm) >= cosLimit);
+      re = re.map(v => [rm[0]*v[2] - rm[2]*v[0], v]).sort(
+        (a, b) => a[0] - b[0]).map(v => v[1]);
+      const triangle = sceneUpdater.triangle;
+      scene3d.movePoints(triangle, [rm, re[0], re[re.length-1], rm]);
+      triangle.visible = true;
     }
   }
 
@@ -2256,6 +2293,7 @@ function setBaseDate(buttonClick) {
   if (bad) return true;
   let jd = jd4date(YYYY.value + "-" + MMDD.value);
   xyzNow.update(jd, jd);
+  sceneUpdater.updateOrbits(xyzNow, jd);
   pager.gotoPage();
   YYYY.blur();
   MMDD.blur();
