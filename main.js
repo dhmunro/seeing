@@ -601,6 +601,12 @@ class SceneUpdater {
     }
   }
 
+  hideOrbitSpokes(em=3) {
+    const orbitPoints = this.orbitPoints;
+    if (em & 1) orbitPoints.earthSpokes.visible = false;
+    if (em & 2) orbitPoints.marsSpokes.visible = false;
+  }
+
   initializeRing(planet, xyzPlanets, noAnimate, noPlay) {
     if (!noPlay) skyAnimator.clearChain().stop();
     // Run forward or backward by up to half a year to find the
@@ -1516,6 +1522,10 @@ class Pager {
           sceneUpdater.triangle.visible = false;
           sceneUpdater.drawMarsSpokes();
           sceneUpdater.showOrbit("mars", 0.25, 1500);
+        }).chain(3000).chain(() => {
+          sceneUpdater.hideOrbitSpokes();
+          scene3d.render();
+          skyAnimator.playChain();
         }).chain(2000).chain(() => {
           toggleText("1");
           skyAnimator.playChain();
@@ -1541,12 +1551,13 @@ class Pager {
       noop,  // exit page 11 Adopt the heliocentric view
       noop,  // exit page 12 Survey a second point on Mars's orbit
       noop,  // exit page 13 Survey more points on Mars's orbit
-      noop,  // exit page 14 Self-consistency and the Mars year
+      noop,  // exit page 14 View orbits from other directions
       noop,  // exit page 15 Orbits are nearly eccentric circles
       noop,  // exit page 16 Kepler's First Law
       noop,  // exit page 17 Earth moves faster when closer to Sun
       noop,  // exit page 18 Kepler's Second Law
-      noop  // exit page 19 Use Kepler's Laws to fit other planets
+      noop,  // exit page 19 Self-consistency and the Mars year
+      noop  // exit page 20 Use Kepler's Laws to fit other planets
     ];
 
     const helioFov = 36;  // fit Mars orbit for -3000-01-01
