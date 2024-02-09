@@ -1462,6 +1462,7 @@ class Pager {
         function takeStep(i, j, pause, dt) {
           if (pause) skyAnimator.chain(pause);
           skyAnimator.chain(() => {
+            sceneUpdater.triangle.visible = false;
             const jd0 = jdOpp+djds[j], jd1 = jdOpp+djds[j+1];
             parameterAnimator.initialize(jd0, jd1, dt, (jd) => {
               sceneUpdater.drawMarsPoint(i, jd, true);
@@ -1494,23 +1495,23 @@ class Pager {
           toggleText("0");
           skyAnimator.playChain();
         });
-        takeStep(2, 0, 1500, 800);
-        takeStep(3, 1, 800, 800);
-        takeStep(4, 2, 800, 800);
-        startStep(5, 4, 1500);
-        takeStep(5, 4, 1500, 800);
-        takeStep(6, 5, 800, 800);
-        takeStep(7, 6, 800, 800);
-        startStep(8, 8, 1500);
-        takeStep(8, 8, 1500, 800);
-        takeStep(9, 9, 800, 800);
-        takeStep(10, 10, 800, 800);
-        takeStep(11, 11, 800, 800);
-        startStep(12, 13, 1500);
-        takeStep(12, 13, 1500, 800);
-        takeStep(13, 14, 800, 800);
-        takeStep(14, 15, 800, 800);
-        startStep(0, 0, 1500);
+        takeStep(2, 0, 2000, 800);
+        takeStep(3, 1, 2000, 800);
+        takeStep(4, 2, 2000, 800);
+        startStep(5, 4, 2000);
+        takeStep(5, 4, 2000, 800);
+        takeStep(6, 5, 2000, 800);
+        takeStep(7, 6, 2000, 800);
+        startStep(8, 8, 2000);
+        takeStep(8, 8, 2000, 800);
+        takeStep(9, 9, 2000, 800);
+        takeStep(10, 10, 2000, 800);
+        takeStep(11, 11, 2000, 800);
+        startStep(12, 13, 2000);
+        takeStep(12, 13, 2000, 800);
+        takeStep(13, 14, 2000, 800);
+        takeStep(14, 15, 2000, 800);
+        startStep(0, 0, 2000);
         skyAnimator.chain(1000).chain(() => {
           sceneUpdater.triangle.visible = false;
           sceneUpdater.drawMarsSpokes();
