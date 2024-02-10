@@ -1278,7 +1278,7 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 9: Opposition is the best time to start
+      () => {  // page 9: Opposition is the best reference time
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("mars");
@@ -1376,17 +1376,8 @@ class Pager {
       },
 
       () => {  // page 12: Survey a second point on Mars's orbit
-        let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
-        const camera = scene3d.camera;
-        helioSetup(jdOpp);
-        sceneUpdater.hideOrbit("sun", 0.25);
-        sceneUpdater.showOrbit("earth", 0.25);
+        let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup();
         sceneUpdater.syncTriangles(jdOpp, 0);
-        const v = vec1.map((v, i) => re0[i] + vec2[i]);
-        camera.up.set(1, 0, 0);
-        camera.position.set(...v);
-        camera.lookAt(0, 0, 0);
-        scene3d.setSize(undefined, undefined, helioFov);
         scene3d.render();
         year = periodOf("earth", jdOpp);
         const myear = periodOf("mars", jdOpp);
@@ -1430,22 +1421,12 @@ class Pager {
       () => {  // page 13: Survey more points on Mars's orbit
         // Call original point 0, then second point is E (one Earth year later).
         // Let X = 2E - M (two Earth years minus one Mars year = 43.53 days)
-        // Choose ten points on Mars orbit as:
-        //   -3X  -X  0  X  3X  E-4X  E-2X  E  E+X  E+3X      (M => 0)
-        //      2X  X  X  2X   U    2X    2X  X   2X    U  are spacings
+        // Choose 15 points on Mars orbit as:
+        //   -3X -2X -X 0 X 2X 3X E-4X E-3X E-2X E-X E E+X E+2X E+3X   (M => 0)
+        //      X   X  X X X  X  U    X    X    X   X X   X    X    U  spacings
         // U = E-7X = M-E-6X = 7M-13E
-        // M = 686.97985, E = 365.25636  ==>
-        // X = 43.53287, 2X = 87.06574, U = 60.52627
-        let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
-        const camera = scene3d.camera;
-        helioSetup(jdOpp);
-        sceneUpdater.hideOrbit("sun", 0.25);
-        sceneUpdater.showOrbit("earth", 0.25);
-        const v = vec1.map((v, i) => re0[i] + vec2[i]);
-        camera.up.set(1, 0, 0);
-        camera.position.set(...v);
-        camera.lookAt(0, 0, 0);
-        scene3d.setSize(undefined, undefined, helioFov);
+        // M = 686.97985, E = 365.25636   ==>   X = 43.53287, U = 60.52627
+        let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup();
         year = periodOf("earth", jdOpp);
         const myear = periodOf("mars", jdOpp);
         sceneUpdater.triangles.visible = false;
@@ -1497,7 +1478,7 @@ class Pager {
           });
         }
 
-        skyAnimator.chain(3000).chain(() => {
+        skyAnimator.chain(5000).chain(() => {
           toggleText("0");
           skyAnimator.playChain();
         });
@@ -1530,6 +1511,52 @@ class Pager {
           toggleText("1");
           skyAnimator.playChain();
         }).playChain();
+      },
+
+      () => {  // page 14: Fly around orbits of EArth and Mars
+        let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup();
+        year = periodOf("earth", jdOpp);
+        const myear = periodOf("mars", jdOpp);
+        sceneUpdater.triangles.visible = false;
+        sceneUpdater.orbitPoints.top.visible = true;
+        sceneUpdater.drawEarthPoints(jdOpp, myear);
+        sceneUpdater.resetMarsPoints();
+        sceneUpdater.showOrbit("mars", 0.25);
+        const xstep = 2*year - myear;
+        const djds = [0, year, -xstep, -2*xstep, -3*xstep,
+                      xstep, 2*xstep, 3*xstep,
+                      year-xstep, year-2*xstep, year-3*xstep, year-4*xstep,
+                      year+xstep, year+2*xstep, year+3*xstep];
+        for (let i=0 ; i < 15; i += 1) {
+          sceneUpdater.drawMarsPoint(i, jdOpp+djds[i]);
+        }
+        scene3d.render();
+        sceneUpdater.updateDate(jdOpp);
+        // ecliptic (x, y, z) is webGL (z, x, y)
+        let [ , , [ez, ex, ey]] = orbitParams("earth", jdOpp + 3652.5);
+        let [ , , [mz, mx, my]] = orbitParams("mars", jdOpp + 3652.5);
+        // axis_e.cross.axis_m is ascending node of Mars
+        let [nx, ny, nz] = [ey*mz-ez*my, ez*mx-ex*mz, ex*my-ey*mx];
+        let dot = ex*mx + ey*my + ez*mz;
+        [mx, my, mz] = [mx-dot*ex, my-dot*ey, mz-dot*ez];
+        let mr = Math.sqrt(mx**2 + my**2 + mz**2);
+        [mx, my, mz] = [mx/mr, my/mr, mz/mr];  // southern mars solstice
+
+        skyAnimator.chain(5000).chain(() => {
+          viewPoint([-0.25, -0.1, 0.5], 6000);
+        }).chain(() => {
+          viewPoint([0, 0, 1], 2000);
+        }).chain(() => {
+          viewPoint([nx, ny, nz], 2000);
+        }).chain(3000).chain(() => {
+          viewPoint([-mx, -my, -mz], 2500);
+        }).chain(() => {
+          viewPoint([-nx, -ny, -nz], 2500);
+        }).chain(3000).chain(() => {
+          viewPoint([0, 0, 1], 3000);
+        }).chain(() => {
+          viewPoint([0, 1, 0], 5000);
+        }).playChain();
       }
     ];
 
@@ -1551,7 +1578,7 @@ class Pager {
       noop,  // exit page 11 Adopt the heliocentric view
       noop,  // exit page 12 Survey a second point on Mars's orbit
       noop,  // exit page 13 Survey more points on Mars's orbit
-      noop,  // exit page 14 View orbits from other directions
+      noop,  // exit page 14 Fly around orbits of Earth and Mars
       noop,  // exit page 15 Orbits are nearly eccentric circles
       noop,  // exit page 16 Kepler's First Law
       noop,  // exit page 17 Earth moves faster when closer to Sun
@@ -1610,6 +1637,20 @@ class Pager {
       sceneUpdater.triangles.visible = true;
     }
 
+    function topViewSetup() {
+      let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
+      const camera = scene3d.camera;
+      helioSetup(jdOpp);
+      sceneUpdater.hideOrbit("sun", 0.25);
+      sceneUpdater.showOrbit("earth", 0.25);
+      const v = vec1.map((v, i) => re0[i] + vec2[i]);
+      camera.up.set(1, 0, 0);
+      camera.position.set(...v);
+      camera.lookAt(0, 0, 0);
+      scene3d.setSize(undefined, undefined, helioFov);
+      return [jdOpp, vec1, vec2, re0, rsm]
+    }
+
     function getLoc(obj) {
       const p = obj.position;
       return [p.x, p.y, p.z];
@@ -1639,6 +1680,38 @@ class Pager {
       const triangle = sceneUpdater.triangle;
       scene3d.movePoints(triangle, [rm, re[0], re[re.length-1], rm]);
       triangle.visible = true;
+    }
+
+    function viewPoint([x1, y1, z1], msMove) {
+      const camera = scene3d.camera;
+      let {x: x0, y: y0, z: z0} = camera.position;
+      let r0 = Math.sqrt(x0**2 + y0**2 + z0**2);
+      let r1 = Math.sqrt(x1**2 + y1**2 + z1**2);
+      [x0, y0, z0, x1, y1, z1] = [x0/r0, y0/r0, z0/r0, x1/r1, y1/r1, z1/r1];
+      // rotate e0 to e1 in their plane
+      // (e1.dot.e0)e0 is projection of e1 onto e0
+      // e1 - (e1.dot.e0)e0 is perpendicular to e0 in (e1,e0) plane
+      let dot = x1*x0 + y1*y0 + z1*z0;
+      let [x, y, z] = [x1 - dot*x0, y1 - dot*y0, z1 - dot*z0];
+      let r = Math.sqrt(x**2 + y**2 + z**2);
+      [x, y, z] = [x/r, y/r, z/r];
+      let ang = Math.acos(dot);
+      [x0, y0, z0, x, y, z] = [x0*r0, y0*r0, z0*r0, x*r0, y*r0, z*r0];
+      parameterAnimator.initialize(0, ang, msMove, (a) => {
+        const [c, s] = [Math.cos(a), Math.sin(a)];
+        cameraTo(x0*c + x*s, y0*c + y*s, z0*c + z*s);
+        scene3d.render();
+      }).play();
+    }
+
+    function cameraTo(x, y, z) {
+      const camera = scene3d.camera;
+      camera.position.set(x, y, z);
+      let r = Math.sqrt(x**2 + y**2 + z**2);
+      let s = y / r;
+      let c = Math.sqrt(1 - s*s);
+      camera.up.set(s*s, c*c, 0);  // arbitrary, smooth derivative
+      camera.lookAt(0, 0, 0);
     }
   }
 
