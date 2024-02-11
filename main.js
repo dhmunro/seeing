@@ -1100,9 +1100,9 @@ class Pager {
     };
 
     this.pageEnter = [
-      () => {  // page 0: Seeing the Solar System
+      (noDelay) => {  // page 0: Seeing the Solar System
         resetScene("sky");
-        skyAnimator.chain(4000).chain(() => {
+        skyAnimator.chain(noDelay? 0 : 4000).chain(() => {
           sceneUpdater.pivot(8000, 1000);
         }).chain(2000).chain(() => {
           skyAnimator.msEase(1000);
@@ -1118,7 +1118,7 @@ class Pager {
         skyAnimator.playChain();
       },
 
-      () => {  // page 1: First study how the Sun moves
+      (noDelay) => {  // page 1: First study how the Sun moves
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("sun");
@@ -1137,7 +1137,7 @@ class Pager {
         skyAnimator.playChain();
       },
 
-      () => {  // page 2: The Sun's motion is non-uniform but periodic
+      (noDelay) => {  // page 2: The Sun's motion is non-uniform but periodic
         SUN_COUNTER.innerHTML = "-";
         MAR_SEP.innerHTML = "";
         SEP_MAR.innerHTML = "";
@@ -1184,7 +1184,7 @@ class Pager {
         skyAnimator.playChain();
       },
 
-      () => {  // page 3: Venus zig-zags about the Sun
+      (noDelay) => {  // page 3: Venus zig-zags about the Sun
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("venus");
@@ -1200,23 +1200,23 @@ class Pager {
         skyAnimator.playChain();
       },
 
-      () => {  // page 4: Visualize Venus's orbit
+      (noDelay) => {  // page 4: Visualize Venus's orbit
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("venus");
         sceneUpdater.lookAlong(xc, yc, zc);
-        skyAnimator.chain(2000);
+        skyAnimator.chain(noDelay? 0 : 2000);
         sceneUpdater.initializeRing("venus", xyzNow, false, true);
         skyAnimator.playChain();
       },
 
-      () => {  // page 5: Find the orbital plane of Venus
+      (noDelay) => {  // page 5: Find the orbital plane of Venus
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("venus");
         sceneUpdater.lookAlong(xc, yc, zc);
         sceneUpdater.initializeRing("venus", xyzNow, true, true);
-        skyAnimator.chain(5000);
+        skyAnimator.chain(noDelay? 0 : 5000);
         const [ta, tb, yr] = sceneUpdater.playToNodes(true);
         for (let i = 1; i <= 4 ; i += 1) {
           skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(ta + i*yr));
@@ -1226,7 +1226,7 @@ class Pager {
         skyAnimator.playChain();
       },
 
-      () => {  // page 6: Venus is to Earth as Earth is to Mars
+      (noDelay) => {  // page 6: Venus is to Earth as Earth is to Mars
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("venus");
@@ -1236,12 +1236,12 @@ class Pager {
         controls.enabled = true;
       },
 
-      () => {  // page 7: Visualize Earth's orbit
+      (noDelay) => {  // page 7: Visualize Earth's orbit
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("mars");
         sceneUpdater.lookAlong(xc, yc, zc);
-        skyAnimator.chain(2000);
+        skyAnimator.chain(noDelay? 0 : 2000);
         sceneUpdater.initializeRing("mars", xyzNow, false, true);
         skyAnimator.chain(() => {
           sceneUpdater.planets.sun.visible = false;
@@ -1254,7 +1254,7 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 8: How to find the Sun-Mars direction
+      (noDelay) => {  // page 8: How to find the Sun-Mars direction
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("mars");
@@ -1264,7 +1264,7 @@ class Pager {
         sceneUpdater.labels.antisun.visible = false;
         scene3d.render();
         sceneUpdater.showSpokes(500, true);
-        skyAnimator.chain(1000).chain(() => {
+        skyAnimator.chain(noDelay? 0 : 1000).chain(() => {
           sceneUpdater.pivot(8000, 1000);
         }).chain(2000).chain(() => {
           sceneUpdater.zoom(10, 5000);
@@ -1278,7 +1278,7 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 9: Opposition is the best reference time
+      (noDelay) => {  // page 9: Opposition is the best reference time
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("mars");
@@ -1288,7 +1288,7 @@ class Pager {
         scene3d.render();
         const jdNow = xyzNow.jd;
         const [jdOpp, iOpp] = sceneUpdater.findOpposition();
-        skyAnimator.chain(3000).msEase(1000).chain(() => {
+        skyAnimator.chain(noDelay? 0 : 3000).msEase(1000).chain(() => {
           skyAnimator.playFor(jdOpp - jdNow);
         }).chain(2000).chain(() => {
           sceneUpdater.zoom(10, 5000);
@@ -1299,10 +1299,10 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 10: Begin surveying Earth's orbit!
+      (noDelay) => {  // page 10: Begin surveying Earth's orbit!
         let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
         const camera = scene3d.camera;
-        skyAnimator.chain(6000).chain(() => {
+        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
           helioSetup(jdOpp);
           scene3d.render();
           skyAnimator.playChain();
@@ -1334,7 +1334,7 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 11: Adopt the heliocentric view
+      (noDelay) => {  // page 11: Adopt the heliocentric view
         let [jdOpp, vec1, vec2, re0, rsm] = helioInit();
         const camera = scene3d.camera;
         helioSetup(jdOpp);
@@ -1345,7 +1345,7 @@ class Pager {
         camera.lookAt(...target);
         scene3d.setSize(undefined, undefined, helioFov);
         scene3d.render();
-        skyAnimator.chain(6000).chain(() => {
+        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
           toggleText("0");
           skyAnimator.playChain();
         }).chain(3000).chain(() => {
@@ -1375,13 +1375,13 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 12: Survey a second point on Mars's orbit
+      (noDelay) => {  // page 12: Survey a second point on Mars's orbit
         let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup();
         sceneUpdater.syncTriangles(jdOpp, 0);
         scene3d.render();
         year = periodOf("earth", jdOpp);
         const myear = periodOf("mars", jdOpp);
-        skyAnimator.chain(6000).chain(() => {
+        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
           toggleText("0");
           skyAnimator.playChain();
         }).chain(() => {
@@ -1418,7 +1418,7 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 13: Survey more points on Mars's orbit
+      (noDelay) => {  // page 13: Survey more points on Mars's orbit
         // Call original point 0, then second point is E (one Earth year later).
         // Let X = 2E - M (two Earth years minus one Mars year = 43.53 days)
         // Choose 15 points on Mars orbit as:
@@ -1478,7 +1478,7 @@ class Pager {
           });
         }
 
-        skyAnimator.chain(5000).chain(() => {
+        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
           toggleText("0");
           skyAnimator.playChain();
         });
@@ -1513,7 +1513,7 @@ class Pager {
         }).playChain();
       },
 
-      () => {  // page 14: Fly around orbits of EArth and Mars
+      (noDelay) => {  // page 14: Fly around orbits of Earth and Mars
         let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup();
         year = periodOf("earth", jdOpp);
         const myear = periodOf("mars", jdOpp);
@@ -1542,20 +1542,25 @@ class Pager {
         let mr = Math.sqrt(mx**2 + my**2 + mz**2);
         [mx, my, mz] = [mx/mr, my/mr, mz/mr];  // southern mars solstice
 
-        skyAnimator.chain(5000).chain(() => {
-          viewPoint([-0.25, -0.1, 0.5], 6000);
+        const {x: p0x, y: p0y, z: p0z} = scene3d.camera.position;
+        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
+          viewDirection([-0.25, -0.1, 0.5], 6000);
         }).chain(() => {
-          viewPoint([0, 0, 1], 2000);
+          viewDirection([0, 0, 1], 2000);
         }).chain(() => {
-          viewPoint([nx, ny, nz], 2000);
+          viewZoom(1.25, 2000);
+        }).chain(() => {
+          viewDirection([nx, ny, nz], 2000);
         }).chain(3000).chain(() => {
-          viewPoint([-mx, -my, -mz], 2500);
+          viewDirection([-mx, -my, -mz], 2500);
         }).chain(() => {
-          viewPoint([-nx, -ny, -nz], 2500);
+          viewDirection([-nx, -ny, -nz], 2500);
         }).chain(3000).chain(() => {
-          viewPoint([0, 0, 1], 3000);
+          viewDirection([0, 0, 1], 3000);
         }).chain(() => {
-          viewPoint([0, 1, 0], 5000);
+          viewZoom(0.8, 3000);
+        }).chain(() => {
+          viewDirection([p0x, p0y, p0z], 5000);
         }).playChain();
       }
     ];
@@ -1682,7 +1687,7 @@ class Pager {
       triangle.visible = true;
     }
 
-    function viewPoint([x1, y1, z1], msMove) {
+    function viewDirection([x1, y1, z1], msMove) {
       const camera = scene3d.camera;
       let {x: x0, y: y0, z: z0} = camera.position;
       let r0 = Math.sqrt(x0**2 + y0**2 + z0**2);
@@ -1713,9 +1718,18 @@ class Pager {
       camera.up.set(s*s, c*c, 0);  // arbitrary, smooth derivative
       camera.lookAt(0, 0, 0);
     }
+
+    function viewZoom(factor, msMove) {
+      const camera = scene3d.camera;
+      let {x: x0, y: y0, z: z0} = camera.position;
+      parameterAnimator.initialize(1, factor, msMove, (fac) => {
+        camera.position.set(x0/fac, y0/fac, z0/fac);
+        scene3d.render();
+      }).play();
+    }
   }
 
-  gotoPage(i) {
+  gotoPage(i, noDelay) {
     const {topPages, botPages, iPage, pageup, pagedn} = this;
     const mxPage = botPages.length - 1;
     if (i === undefined) i = iPage;
@@ -1734,7 +1748,11 @@ class Pager {
     const pageEnter = this.pageEnter[i];
     resetAnimators();
     if (pageExit) pageExit();
-    if (pageEnter) pageEnter();
+    if (pageEnter) pageEnter(noDelay);
+  }
+
+  replay() {
+    this.gotoPage(undefined, true);
   }
 
   next() {
@@ -2315,7 +2333,7 @@ PAGE_DOWN.addEventListener("click", () => {
 const REPLAY = document.getElementById("replay");
 REPLAY.addEventListener("click", () => {
   if (REPLAY.classList.contains("disabled")) return;
-  pager.gotoPage();
+  pager.replay();
 });
 
 const SET_DATE = document.getElementById("set-date");
@@ -2420,7 +2438,7 @@ addEventListener("keydown", (event) => {
     pager.next();
     break;
   case "Backspace":
-    pager.gotoPage();
+    pager.replay();
     break;
   case "ArrowLeft":
   case "Left":
