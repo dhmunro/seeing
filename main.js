@@ -427,7 +427,8 @@ class SceneUpdater {
     const grp = this.scene3d.group();
     grp.visible = false;  // initially, group not drawn at all
     this.triangles = grp;
-    const style = scene3d.createLineStyle({color: 0x444466, linewidth: 2});
+    // 0x444466   0x6c6c89 is three.js 0.25 of ccccff
+    let style = scene3d.createLineStyle({color: 0x6c6c89, linewidth: 2});
     let sun, earth, mars;
     for (let i = 0; i < count; i += 1) {
       let subgrp = this.scene3d.group(grp);
@@ -445,6 +446,7 @@ class SceneUpdater {
         sun.material.depthTest = false;
       }
     }
+    style = scene3d.createLineStyle({color: 0x896c6c, linewidth: 2.5});
     this.triangle = scene3d.polyline([[0,0,0], [0,0,0], [0,0,0], [0,0,0]],
                                      style);
     this.triangle.visible = false;
@@ -551,14 +553,16 @@ class SceneUpdater {
     let g = this.scene3d.group(top);
     g.visible = false;
     this.orbitPoints.earthSpokes = g;
-    let style = scene3d.createLineStyle({color: 0x444466, linewidth: 2});
+    // 0x444466    0x6c6c89 = three.js 0.25 of 0cccccff
+    let style = scene3d.createLineStyle({color: 0x6c6c89, linewidth: 2});
     for (i = 0; i < nEarth; i += 1) {
       scene3d.polyline([[0,0,0], [0,0,0]], style, g);
     }
     g = this.scene3d.group(top);
     g.visible = false;
     this.orbitPoints.marsSpokes = g;
-    style = scene3d.createLineStyle({color: 0x553333, linewidth: 2});
+    // 0x553333    0x896c6c = three.js 0.25 of 0ffccccc
+    style = scene3d.createLineStyle({color: 0x896c6c, linewidth: 2});
     for (i = 0; i < nMars; i += 1) {
       scene3d.polyline([[0,0,0], [0,0,0]], style, g);
     }
@@ -588,25 +592,40 @@ class SceneUpdater {
     const spokes = this.orbitPoints.earthSpokes.children;
     const rs = [0, 0, 0];
     for (let i=0; i < spokes.length; i += 1) {
+      if (!spokes[i].visible) continue;
       scene3d.movePoints(spokes[i], [rs, glPlanetPosition("earth", jd+i*myr)]);
     }
     this.orbitPoints.earthSpokes.visible = true;
   }
 
-  drawEarthPoints(jd, myr) {
+  drawEarthPoints(jd, myr, iOnly) {
     const earth = this.orbitPoints.earth.children;
-    for (let i=0; i < earth.length; i += 1) {
+    const spokes = this.orbitPoints.earthSpokes.children;
+    for (let i = 0; i < earth.length; i += 1) {
+      if (iOnly !== undefined && i != iOnly) {
+        let visible = (i == iOnly);
+        earth[i].visible = visible;
+        spokes[i].visible = visible;
+        if (!visible) continue;
+      }
       earth[i].position.set(...glPlanetPosition("earth", jd+i*myr));
     }
   }
 
   resetMarsPoints() {
     this.orbitPoints.marsSpokes.visible = false;
-    const spokes = this.orbitPoints.marsSpokes.children;
+    let spokes = this.orbitPoints.marsSpokes.children;
     const mars = this.orbitPoints.mars.children;
-    for (let i = 0; i < mars.length; i += 1) {
+    let i;
+    for (i = 0; i < mars.length; i += 1) {
       spokes[i].visible = false;
       mars[i].visible = false;
+    }
+    spokes = this.orbitPoints.earthSpokes.children;
+    const earth = this.orbitPoints.earth.children;
+    for (i = 0; i < earth.length; i += 1) {
+      spokes[i].visible = true;
+      earth[i].visible = true;
     }
   }
 
@@ -1079,7 +1098,7 @@ function oppositionAfter(jd) {
   // oppo = [revs, jd, xyz, xyze, x*ye - y*xe, x*xe + y*ye]
   // if found, oppo[4] = 0 very nearly
   return [found, oppo[1]];
- }
+}
 
 // xyzNow.jd0 = start date
 // xyzNow.jd = current date
@@ -1106,6 +1125,7 @@ function resetScene(mode, noDelay) {
   sceneUpdater.triangles.visible = false;
   sceneUpdater.orbitPoints.top.visible = false;
   sceneUpdater.centers.top.visible = false;
+  sceneUpdater.resetMarsPoints();
   sceneUpdater.hideOrbitSpokes();
   const camera = scene3d.camera;
   camera.position.set(0, 0, 0);
@@ -1338,6 +1358,7 @@ class Pager {
 
       (noDelay) => {  // page 10: Begin surveying Earth's orbit!
         let [jdOpp, vec1, vec2, re0, rsm] = helioInit(noDelay);
+        scene3d.render();
         const camera = scene3d.camera;
         skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
           helioSetup(jdOpp);
@@ -1470,7 +1491,6 @@ class Pager {
         sceneUpdater.orbitPoints.top.visible = true;
         sceneUpdater.drawEarthSpokes(jdOpp, myear);
         sceneUpdater.drawEarthPoints(jdOpp, myear);
-        sceneUpdater.resetMarsPoints();
         sceneUpdater.drawMarsPoint(0, jdOpp, true);
         sceneUpdater.drawMarsPoint(1, jdOpp+year);
         sceneUpdater.drawMarsSpokes();
@@ -1604,6 +1624,9 @@ class Pager {
 
         const twopi = 2*Math.PI;
         skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+          textToggled = toggleText("0");
+          skyAnimator.playChain();
+        }).chain(1000).chain(() => {
           viewZoom(2.5, 3000);
         }).chain(4000).chain(() => {
           viewZoom(0.4, 3000);
@@ -1617,6 +1640,9 @@ class Pager {
             setMarsR(ang);
             scene3d.render();
           }).play();
+        }).chain(() => {
+          if (textToggled) toggleText("1");
+          skyAnimator.playChain();
         }).playChain();
       },
 
@@ -1663,6 +1689,124 @@ class Pager {
       },
 
       (noDelay) => {  // page 17: Earth moves faster when closer to Sun
+        let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup(noDelay);
+        sceneUpdater.triangles.visible = false;
+        sceneUpdater.showOrbit("mars", 0.25);
+        let [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
+             ang0e, ang0m] = getOrbits(jdOpp, re0, false);
+        let [,,,,,,, mae, madote] = orbitParams("earth", jdOpp + 3652.5);
+        mae -= madote*(jdOpp + 3652.5);
+        function meanEarth(jd) {
+          const ma = mae + madote*jd;
+          const [c, s] = [Math.cos(ma), Math.sin(ma)];
+          const glr = xe.map((v, i) => v*c + ye[i]*s);
+          return [glr[2], glr[0], glr[1]];  // ecliptic coords, not gl
+        }
+        let [,,,,,,, mam, madotm] = orbitParams("mars", jdOpp + 3652.5);
+        mam -= madotm*(jdOpp + 3652.5);
+        function meanMars(jd) {
+          const ma = mam + madotm*jd;
+          const [c, s] = [Math.cos(ma), Math.sin(ma)];
+          const glr = xm.map((v, i) => v*c + ym[i]*s);
+          return [glr[2], glr[0], glr[1]];  // ecliptic coords, not gl
+        }
+        year = periodOf("earth", jdOpp);
+        const myear = periodOf("mars", jdOpp);
+        sceneUpdater.orbitPoints.top.visible = true;
+        sceneUpdater.hideOrbitSpokes();
+        sceneUpdater.drawMarsPoint(0, jdOpp, true);
+        sceneUpdater.drawEarthPoints(jdOpp, myear, 0);
+        sceneUpdater.drawEarthSpokes(jdOpp, myear);
+        sceneUpdater.drawMarsSpokes();
+        scene3d.render();
+        sceneUpdater.updateDate(jdOpp);
+        // Compute djd = time required for planet to reach current
+        //               position of the mean planet
+        //   For Earth, djd>0 in March and djd<0 in September;
+        //   djd=0 at the apsides (perihelion and aphelion
+        // We want to exaggerate this time by a certain factor (eFactor
+        // for Earth, mFactor for Mars), so we subtract (factor-1)*djd
+        // from the actual current time.  Thus factor=1 means no change,
+        // factor=0 puts the planet at the mean planet, factor=2 doubles
+        // the time to reach mean planet, and so on.  Note that the mean
+        // planet position does not change, just the amplitude of the
+        // oscillations around it.
+        const eFactor = 15, mFactor = 4;
+        let djd = timePlanetAt("earth", ...meanEarth(jdOpp), jdOpp) - jdOpp;
+        const jd0e = jdOpp - (eFactor-1)*djd;
+        djd = timePlanetAt("mars", ...meanMars(jdOpp), jdOpp) - jdOpp;
+        const jd0m = jdOpp - (mFactor-1)*djd;
+        const pos = sceneUpdater.orbitPoints.earth.children[0].position;
+        skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+          textToggled = toggleText("0");
+          skyAnimator.playChain();
+        }).chain(1000).chain(() => {
+          parameterAnimator.initialize(jdOpp, jd0e+4*year, 12000, (jd) => {
+            sceneUpdater.drawMarsPoint(0, jd, true);
+            sceneUpdater.drawEarthPoints(jd, myear, 0);
+            sceneUpdater.drawEarthSpokes(jd, myear);
+            sceneUpdater.drawMarsSpokes();
+            scene3d.render();
+            sceneUpdater.updateDate(jd);
+          }).play();
+        }).chain(() => {
+          sceneUpdater.hideOrbitSpokes();
+          sceneUpdater.orbitPoints.mars.children[0].visible = false;
+          sceneUpdater.labels.mars.visible = false;
+          sceneUpdater.drawEarthPoints(jd0e, myear, 0);
+          sceneUpdater.drawEarthSpokes(jd0e, myear);
+          sceneUpdater.labels.earth.position.copy(pos);
+          scene3d.render();
+          skyAnimator.playChain();
+        }).chain(2000).chain(() => {
+          sceneUpdater.labels.earth.position.copy(pos);
+          parameterAnimator.initialize(jdOpp, jdOpp+4*year, 10000, (jd) => {
+            djd = timePlanetAt("earth", ...meanEarth(jd), jd) - jd;
+            jd -= (eFactor-1)*djd;  // enhance actual-mean time difference
+            sceneUpdater.drawEarthPoints(jd, myear, 0);
+            sceneUpdater.drawEarthSpokes(jd, myear);
+            sceneUpdater.labels.earth.position.copy(pos);
+            scene3d.render();
+            sceneUpdater.updateDate(jd);
+          }).play();
+        }).chain(() => {
+          sceneUpdater.drawMarsPoint(0, jd0m, true);
+          sceneUpdater.labels.mars.visible = true;
+          sceneUpdater.drawMarsSpokes();
+          sceneUpdater.drawEarthPoints(jd0m, myear, 0);
+          sceneUpdater.drawEarthSpokes(jd0m, myear);
+          scene3d.render();
+          sceneUpdater.updateDate(jd0m);
+          skyAnimator.playChain();
+        }).chain(2000).chain(() => {
+          sceneUpdater.hideOrbitSpokes();
+          sceneUpdater.orbitPoints.earth.children[0].visible = false;
+          sceneUpdater.labels.earth.visible = false;
+          sceneUpdater.drawMarsSpokes();
+          scene3d.render();
+          skyAnimator.playChain();
+        }).chain(2000).chain(() => {
+          parameterAnimator.initialize(jdOpp, jdOpp+4*myear, 10000, (jd) => {
+            djd = timePlanetAt("mars", ...meanMars(jd), jd) - jd;
+            jd -= (mFactor-1)*djd;  // enhance actual-mean time difference
+            sceneUpdater.drawMarsPoint(0, jd, true);
+            sceneUpdater.drawMarsSpokes();
+            scene3d.render();
+            sceneUpdater.updateDate(jd);
+          }).play();
+        }).chain(2000).chain(() => {
+          sceneUpdater.orbitPoints.earth.children[0].visible = true;
+          sceneUpdater.labels.earth.visible = true;
+          sceneUpdater.drawEarthPoints(jd0m, myear, 0);
+          sceneUpdater.drawEarthSpokes(jd0m, myear);
+          sceneUpdater.labels.earth.position.copy(pos);
+          scene3d.render();
+          sceneUpdater.updateDate(jd0m);
+          skyAnimator.playChain();
+        }).chain(() => {
+          if (textToggled) toggleText("1");
+          skyAnimator.playChain();
+        }).playChain();
       },
 
       (noDelay) => {  // page 18: Kepler's Second Law
@@ -1700,6 +1844,13 @@ class Pager {
 
     const helioFov = 36;  // fit Mars orbit for -3000-01-01
 
+    // Note: findOpposition will always get an opposition near perigee here.
+    // The reason is that findBestOrbitView will always select a Sun-Mars
+    // direction looking near the perigee of Mars's orbit, so that the
+    // nearest opposition will also be near there.
+    // This is actually an advantage in planning some of the fly around
+    // animations, since you don't have to worry about coordinate singularities
+    // for every possible position of the jdOpp point.
     function helioInit(noDelay) {
       sceneUpdater.recenterEcliptic();
       let [xc, yc, zc] = sceneUpdater.cameraDirection();
@@ -1716,7 +1867,6 @@ class Pager {
       xyzNow.update(jdOpp);
       sceneUpdater.labels.sunmars.visible = false;
       sceneUpdater.labels.antisun.visible = false;
-      scene3d.render();
       const myear = periodOf("mars", jdOpp);
       const re0 = glPlanetPosition("earth", jdOpp);
       let rsm = glPlanetPosition("mars", jdOpp + iOpp*myear).map(
@@ -1765,7 +1915,6 @@ class Pager {
         sceneUpdater.triangles.visible = false;
         sceneUpdater.orbitPoints.top.visible = true;
         sceneUpdater.drawEarthPoints(jdOpp, myear);
-        sceneUpdater.resetMarsPoints();
         sceneUpdater.showOrbit("mars", 0.25);
         const xstep = 2*year - myear;
         const djds = [0, year, -xstep, -2*xstep, -3*xstep,
