@@ -1810,9 +1810,15 @@ class Pager {
       },
 
       (noDelay) => {  // page 18: Kepler's Second Law
+        let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup(noDelay, true);
+        let [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
+             ang0e, ang0m] = getOrbits(jdOpp, re0, false);
       },
 
       (noDelay) => {  // page 19: Use Kepler's Laws to find other orbits
+        let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup(noDelay, true);
+        let [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
+             ang0e, ang0m] = getOrbits(jdOpp, re0, false);
       }
     ];
 
