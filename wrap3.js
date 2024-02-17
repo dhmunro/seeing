@@ -11,7 +11,8 @@
 
 import {DefaultLoadingManager, TextureLoader, CubeTextureLoader,
         WebGLRenderer, PerspectiveCamera, Scene, Color, Sprite,
-        SpriteMaterial, CanvasTexture, Object3D, Group} from "three";
+        SpriteMaterial, CanvasTexture, Object3D, Group, BufferGeometry,
+        BufferAttribute, Mesh, MeshBasicMaterial, DoubleSide} from "three";
 import {Vector2, Vector3, Matrix3, Matrix4} from "three";
 export {Vector2, Vector3, Matrix3, Matrix4};
 import WebGL from 'three/addons/capabilities/WebGL.js';
@@ -314,9 +315,39 @@ export class PerspectiveScene {
     return lines;
   }
 
-  movePoints(lines, points) {
+  mesh(points, indices, color, parent) {
+    // points is list of (x, y, z), possibly nested
+    // indices is list of indices into points (/3), in groups of three
+    //   each specifying one triangle
+    if (parent === undefined) parent = this.scene;
+    const geom = new BufferGeometry();
+    if (indices !== null) {
+      if (indices instanceof Array) indices = indices.flat();
+      geom.setIndex(indices);
+    }
+    if (points instanceof Array) points = points.flat();
+    geom.setAttribute("position",
+                      new BufferAttribute(new Float32Array(points), 3));
+    let props = {color: color, side: DoubleSide};
+    if (color instanceof Array) {
+      [props.color, props.opacity] = color;
+      props.transparent = true;
+    }
+    const mat = new MeshBasicMaterial(props);
+    const msh = new Mesh(geom, mat);
+    parent.add(msh);
+    return msh;
+  }
+
+  movePoints(obj, points) {
     if (isNaN(points[0])) points = points.flat();
-    lines.geometry.setPositions(points);
+    obj.geometry.setPositions(points);
+  }
+
+  meshMovePoints(obj, points) {
+    if (points instanceof Array) points = points.flat();
+    obj.geometry.setAttribute(
+      "position", new BufferAttribute(new Float32Array(points), 3));
   }
 
   group(parent) {

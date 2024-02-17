@@ -540,7 +540,7 @@ class SceneUpdater {
     scene3d.movePoints(radius, [[0, 0, 0],  [rx-x, ry-y, rz-z]]);
   }
 
-  addOrbitPoints(nEarth, nMars) {
+  addOrbitPoints(nEarth, nMars, nSweep) {
     let top = this.scene3d.group();
     top.visible = false;  // initially, group not drawn at all
     this.orbitPoints = {};
@@ -551,6 +551,20 @@ class SceneUpdater {
     // s.renderOrder = 999;
     let i;
     let g = this.scene3d.group(top);
+    g.visible = false;
+    this.orbitPoints.sectors = g;
+    g.userData.nSweep = nSweep;
+    let indices = [];
+    let points = [[0, 0, 0]];
+    for (i = 1; i < nSweep; i += 1) {
+      indices.push([0, i, i+1]);
+      points.push([Math.sin((i-1)/nSweep), 0, Math.cos((i-1)/nSweep)]);
+    }
+    points.push([Math.sin(1), 0, Math.cos(1)]);
+    scene3d.mesh(points, indices, [0x6c6c89, 0.4], g);
+    scene3d.mesh(points, indices, [0x6c6c89, 0.5], g);
+    /* mesh.material.color.set(0x896c6c) */
+    g = this.scene3d.group(top);
     g.visible = false;
     this.orbitPoints.earthSpokes = g;
     // 0x444466    0x6c6c89 = three.js 0.25 of 0cccccff
@@ -659,6 +673,56 @@ class SceneUpdater {
     const orbitPoints = this.orbitPoints;
     if (em & 1) orbitPoints.earthSpokes.visible = false;
     if (em & 2) orbitPoints.marsSpokes.visible = false;
+  }
+
+  sweepSector(i, planet, jd0, jd1, ii, noSector) {
+    const sectors = this.orbitPoints.sectors;
+    const spokes = this.orbitPoints[planet+"Spokes"];
+    const spoke = spokes.children[ii];
+    spoke.visible = true;
+    if (!ii) {
+      sectors.visible = true;
+      for (let s of sectors.children) {
+        s.visible = false;
+      }
+      spokes.visible = true;
+      for (let k = 1; k < spokes.children.length; k += 1) {
+        spokes.children[k].visible = false;
+      }
+      scene3d.movePoints(spoke, [[0, 0, 0], glPlanetPosition(planet, jd0)]);
+      sceneUpdater.updateDate(jd0);
+      scene3d.render();
+      return;
+    }
+    let sector = sectors.children[1];
+    if (i == 0) {
+      let visible = true;
+      sectors.visible = true;
+      for (let s of sectors.children) {
+        s.material.color.set((planet=="mars")? 0x896c6c : 0x6c6c89);
+        s.visible = visible;
+        if (visible) sector = s;
+        visible = !visible;
+      }
+    } else if (i == 1) {
+      sector.visible = true;
+    }
+    const nSweep = sectors.userData.nSweep;
+    function updatePoints(jd) {
+      const n = nSweep - 1;
+      const djd = (jd - jd0)/n;
+      let points = [[0, 0, 0], glPlanetPosition(planet, jd0)];
+      for (let k = 1; k <= n; k += 1) {
+        points.push(glPlanetPosition(planet, jd0+k*djd));
+      }
+      if (!noSector) scene3d.meshMovePoints(sector, points);
+      scene3d.movePoints(spoke, [[0, 0, 0], points[n+1]]);
+      sceneUpdater.updateDate(jd0+n*djd);
+    }
+    parameterAnimator.initialize(jd0, jd1, 1000, (jd) => {
+      updatePoints(jd);
+      scene3d.render();
+    }).play();
   }
 
   initializeRing(planet, xyzPlanets, noAnimate, noPlay) {
@@ -1124,6 +1188,7 @@ function resetScene(mode, noDelay) {
   sceneUpdater.hideSpokes();
   sceneUpdater.triangles.visible = false;
   sceneUpdater.orbitPoints.top.visible = false;
+  sceneUpdater.orbitPoints.sectors.visible = false;
   sceneUpdater.centers.top.visible = false;
   sceneUpdater.resetMarsPoints();
   sceneUpdater.hideOrbitSpokes();
@@ -1158,6 +1223,7 @@ class Pager {
 
     this.pageEnter = [
       (noDelay) => {  // page 0: Seeing the Solar System
+        scene3d.camera.up.set(0, 1, 0);
         resetScene("sky", noDelay);
         skyAnimator.chain(noDelay? 0 : 4000).chain(() => {
           sceneUpdater.pivot(8000, 1000);
@@ -1813,9 +1879,55 @@ class Pager {
         let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup(noDelay, true);
         let [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
              ang0e, ang0m] = getOrbits(jdOpp, re0, false);
+        // Cannot figure out how to prevent transparent parts of
+        // label sprites from either blocking sectors (sectors not
+        // normal to camera, but sprites are), or being completely
+        // blocked by sectors (as if sectors were opaque).  Have
+        // tried depthTest, depthWrite, and renderOrder in various
+        // combinations.
+        sceneUpdater.labels.sun.visible = false;
+        sceneUpdater.labels.earth.visible = false;
+        sceneUpdater.labels.mars.visible = false;
+        year = periodOf("earth", jdOpp);
+        const myear = periodOf("mars", jdOpp);
+        const jdStep = 2*year - myear;
+        const jd0e = jdOpp + 9*myear-17*year;
+        const jd0m = jdOpp - 3*jdStep;
+        const jd1m = jdOpp + year - 4*jdStep;
+        sceneUpdater.sweepSector(0, "earth", jd0e, 0, 0);
+        skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+          textToggled = toggleText("0");
+          skyAnimator.playChain();
+        });
+        let i;
+        for (i = 1; i < 10 ; i += 1) {
+          const jd = jd0e + i*jdStep;
+          const j = i;
+          skyAnimator.chain(1000).chain(() => {
+            sceneUpdater.sweepSector(j-1, "earth", jd-jdStep, jd, j);
+          });
+        }
+        skyAnimator.chain(2000).chain(() => {
+          sceneUpdater.hideOrbitSpokes(1);
+          sceneUpdater.orbitPoints.sectors.visible = false;
+          sceneUpdater.sweepSector(0, "mars", jd0m, 0, 0);
+          skyAnimator.playChain();
+        });
+        for (i = 1; i < 15 ; i += 1) {
+          const jdf = (i<7)? jd0m + i*jdStep : jd1m + (i-7)*jdStep;
+          const jdb = (i!=7)? jdf - jdStep : jd0m + 6*jdStep;
+          const j = i;
+          skyAnimator.chain(1000).chain(() => {
+            sceneUpdater.sweepSector(j-1, "mars", jdb, jdf, j, j==7);
+          });
+        }
+        skyAnimator.chain(2000).chain(() => {
+          if (textToggled) toggleText("1");
+          skyAnimator.playChain();
+        }).playChain();
       },
 
-      (noDelay) => {  // page 19: Use Kepler's Laws to find other orbits
+      (noDelay) => {  // page 19: Use Kepler's Laws to survey other orbits
         let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup(noDelay, true);
         let [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
              ang0e, ang0m] = getOrbits(jdOpp, re0, false);
@@ -1845,7 +1957,7 @@ class Pager {
       noop,  // exit page 16 Kepler's First Law
       noop,  // exit page 17 Earth moves faster when closer to Sun
       noop,  // exit page 18 Kepler's Second Law
-      noop  // exit page 19 Use Kepler's Laws to find other orbits
+      noop  // exit page 19 Use Kepler's Laws to survey other orbits
     ];
 
     const helioFov = 36;  // fit Mars orbit for -3000-01-01
@@ -2069,6 +2181,8 @@ class Pager {
   }
 
   prev() {
+    let iPage = this.iPage;
+    if (iPage == 0) return;
     this.gotoPage(this.iPage - 1);
   }
 
@@ -2494,7 +2608,7 @@ function setupSky() {
   sceneUpdater.addRing("venus", 20);
   sceneUpdater.addRing("mars", 10);
   sceneUpdater.addTriangles(10);
-  sceneUpdater.addOrbitPoints(10, 15);
+  sceneUpdater.addOrbitPoints(10, 15, 12);
   sceneUpdater.addCenters();
 
   pager.gotoPage(0);

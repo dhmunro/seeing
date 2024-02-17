@@ -38,7 +38,7 @@
           box-sizing: border-box;
           margin: 0;
           background: black;
-          color: #b0b09a;
+          color: #a0a098;  /* #b0b09a */
           font-family: 'Merriweather Sans', serif;
           /* Without a specified height, % units in children are meaningless.
            * Use min-height so body can grow larger - without it, scrolling
@@ -160,8 +160,8 @@
       .button {
           display: inline-block;
           vertical-align: text-bottom;
-          fill: #b0b09a;
-          color: #b0b09a;
+          fill: #a0a098;
+          color: #a0a098;
           background: #fff4;
           text-align: center;
           border-radius: 8px;
@@ -245,8 +245,8 @@
               color: #c1b497;
           }
           #stardate {
-              fill: #b0b09a;
-              color: #b0b09a;
+              fill: #a0a098;
+              color: #a0a098;
           }
           #set-date .button {
               color: black;
@@ -271,9 +271,7 @@
     <h2>First study how the Sun moves</h2>
     <p class="justified">The Sun moves around a great circle called the
       <em>ecliptic</em> yearly.  Thus the plane of the ecliptic always
-      contains both the Earth and the Sun.  The tilt of the ecliptic
-      relative to the equator (perpendicular to the Earth's spin axis)
-      causes the seasons.</p>
+      contains both the Earth and the Sun.</p>
 </div><div class="hidden">
     <h2>Sun's motion is non-uniform but periodic</h2>
     <p class="justified">Northern hemisphere spring and summer last
@@ -316,7 +314,7 @@
     <p class="justified">At each step, Earth, Sun, and Mars determine a
       plane, which cuts the sky in the great circle passing through the
       Sun and Mars.  Since the Sun-Mars vector is the same at each step,
-      all ten circles must intersect at a single point.</p>
+      all ten circles intersect at a single point.</p>
 </div><div class="hidden">
     <h2>Opposition is the best reference time</h2>
     <p class="justified">Unfortunately, the intersection point of the
@@ -366,7 +364,7 @@
       He also noticed an ellipse with 9&percnt; eccentricity has
       0.4&percnt; elongation.</p>
 </div><div class="hidden">
-    <h2>Planet moves faster when closer to Sun</h2>
+    <h2>Planets move faster when closer to Sun</h2>
     <p class="justified">The slight speed variations in the motion of
       the Sun around the ecliptic exactly align with the direction the
       center of Earth's orbit is displaced from the Sun!  The times of
@@ -379,12 +377,11 @@
       and farther from the Sun - his Second Law: The radius vector from
       the Sun to a planet sweeps out equal areas in equal times.</p>
 </div><div class="hidden">
-    <h2>Use Kepler's Laws to find other orbits</h2>
-    <p class="justified">Kepler derived his First and Second Laws by
-      triangulating many points around the orbits of Earth and Mars -
-      traditional surveying techniques.  However, using these Laws,
-      you can determine any orbit from only four observations - a
-      vast savings of time and labor.</p>
+    <h2>Use Kepler's Laws to survey other orbits</h2>
+    <p class="justified">Using Kepler's First and Second Laws, you can
+      determine any orbit from only four observations!  Thus Kepler's
+      Laws represent a major practical advance, vastly reducing the
+      time and effort required to survey an orbit.</p>
 </div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
@@ -404,9 +401,11 @@
     wide angle view is 100&deg; from side to side.  Click the date to
     pause.  Drag the sky to look around.</p>
 </div><div class="hidden">
-    <p class="justified">The planets wander above and below the
-      ecliptic, and also reverse direction sometimes - the motion of
-      the Sun is much simpler.</p>
+    <p class="justified">The tilt of the ecliptic relative to the
+      equator (perpendicular to the Earth's spin axis) causes the
+      seasons.  The planets wander above and below the ecliptic, and
+      also reverse direction sometimes - the motion of the Sun is much
+      simpler.</p>
 </div><div class="hidden">
     <p style="text-indent: 3em;">Day count: <span id="sun-counter">-</span></p>
     <p class="centered">Interval between equinoxes:
@@ -498,8 +497,8 @@
       the eccentricity of Mars's orbit is about 9&percnt;.</p>
 </div><div class="hidden">
     <p class="justified">Thus if Mars's orbit is an ellipse, the Sun
-      is at one focus.  (Exaggerate the differences between your
-      survey points and circles by a factor of 40 to see the
+      is at or near one focus.  (Exaggerate the differences between
+      your survey points and circles by a factor of 40 to see the
       elongation.)  On this evidence, Kepler formulated his First Law:
       Planets orbit the Sun along ellipses with the Sun at one
       focus.</p>
@@ -510,19 +509,20 @@
       factor of four for Mars, makes the non-uniformities obvious.  In
       both cases, the planet moves faster when closer to the Sun.</p>
 </div><div class="hidden">
-    <p class="justified">This seems like a strange idea at first.  But
-      note that your known survey points around both orbits are mostly
+    <p class="justified">This seems like a strange idea at first.
+      However, your known survey points around both orbits are mostly
       spaced by equal times (43.53 days).  You know the exact time
       Mars reaches those survey points, but not any others, so it's
-      natural to study equal time sectors of its ellipse.</p>
+      natural to study equal time sectors of its ellipse.  Kepler
+      noticed that within each orbit the sector areas match
+      exactly.</p>
 </div><div class="hidden">
     <p class="justified">For example, four observations spaced equally
-      in time give you four sight lines - the planet must be somewhere
-      on that line at that time.  Guessing the first two points
-      determines the ellipse and the area of the sector between them,
-      hence where the next two points fall on the ellipse.  Adjust the
-      first two points until the second two lie on their sight
-      lines.</p>
+      in time give you four sight lines, but none of the distances.
+      Guessing the first two distances determines the ellipse and the
+      area of the sector between those two, hence where the next two
+      points fall on the ellipse.  Adjust the first two distances
+      until the other two both lie on their sight lines.</p>
 </div></div>
 <div id="page-controls">
   <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"
