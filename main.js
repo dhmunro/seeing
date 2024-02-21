@@ -85,13 +85,21 @@ class PlanetPositions {
 
   ellipse(p, jd) {
     if (jd === undefined) jd = this.jd0;
-    const isSun = p == "sun";
-    if (isSun) p = "earth";
-    // Return orbit parameters ten years after given time.
-    const day = jd + 3652.5;
-    let [xAxis, yAxis, zAxis, e, a, b, ea, ma, madot] = orbitParams(p, day);
-    if (isSun) [a, b] = [-a, -b];
-    // sidereal period = 2*Math.PI / madot
+    // [xAxis, yAxis, zAxis, e, a, b, ea, ma, madot] = orbitParams(p, day)
+    let xAxis, yAxis, zAxis, e, a, b;
+    if (!Array.isArray(p)) {
+      const isSun = p == "sun";
+      if (isSun) p = "earth";
+      // Return orbit parameters ten years after given time.
+      const day = jd + 3652.5;
+      [xAxis, yAxis, zAxis, e, a, b] = orbitParams(p, day);
+      if (isSun) [a, b] = [-a, -b];
+    } else {
+      [xAxis, yAxis, zAxis, e, a, b] = p;
+      xAxis = gl2ecliptic(xAxis);
+      yAxis = gl2ecliptic(yAxis);
+      zAxis = gl2ecliptic(zAxis);
+    }
     // Construct matrix which takes points on unit circle into
     // this planet's ellipse.
     const matrix = new Matrix4();
@@ -103,6 +111,14 @@ class PlanetPositions {
                0, 0, 0, 1);
     return matrix;
   }
+}
+
+function gl2ecliptic([x, y, z]) {
+  return [z, x, y];
+}
+
+function ecliptic2gl([x, y, z]) {
+  return [y, z, x];
 }
 
 class SceneUpdater {
@@ -540,6 +556,19 @@ class SceneUpdater {
     scene3d.movePoints(radius, [[0, 0, 0],  [rx-x, ry-y, rz-z]]);
   }
 
+  centerVisibility(earth, mars) {
+    const centers = this.centers;
+    if (mars === undefined) {
+      centers.top.visible = earth;
+      centers.earth.visible = true;
+      centers.mars.visible = true;
+    } else {
+      centers.top.visible = earth || mars;
+      centers.earth.visible = earth;
+      centers.mars.visible = mars;
+    }
+  }
+
   addOrbitPoints(nEarth, nMars, nSweep) {
     let top = this.scene3d.group();
     top.visible = false;  // initially, group not drawn at all
@@ -673,6 +702,18 @@ class SceneUpdater {
     const orbitPoints = this.orbitPoints;
     if (em & 1) orbitPoints.earthSpokes.visible = false;
     if (em & 2) orbitPoints.marsSpokes.visible = false;
+  }
+
+  drawLOS(i, jd, drawLabel) {
+    const e = glPlanetPosition("earth", jd);
+    const m8 = glPlanetPosition("mars", jd).map((m, j) => e[j] + (m-e[j])*100);
+    const earth = this.orbitPoints.earth.children[i];
+    const spoke = this.orbitPoints.earthSpokes.children[i];
+    earth.visible = true;
+    earth.position.set(...e);
+    if (drawLabel) this.labels.earth.position.set(...e);
+    spoke.visible = true;
+    scene3d.movePoints(spoke, [e, m8]);
   }
 
   sweepSector(i, planet, jd0, jd1, ii, noSector) {
@@ -1176,6 +1217,7 @@ const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
 
 function resetScene(mode, noDelay) {
   if (!noDelay) toggleText("1");
+  toggleAreaLegend(false);
   sceneUpdater.triangle.visible = false;
   sceneUpdater.fadeTriangles(0, true, true);
   sceneUpdater.egrp.visible = true;
@@ -1189,7 +1231,7 @@ function resetScene(mode, noDelay) {
   sceneUpdater.triangles.visible = false;
   sceneUpdater.orbitPoints.top.visible = false;
   sceneUpdater.orbitPoints.sectors.visible = false;
-  sceneUpdater.centers.top.visible = false;
+  sceneUpdater.centerVisibility(false);
   sceneUpdater.resetMarsPoints();
   sceneUpdater.hideOrbitSpokes();
   const camera = scene3d.camera;
@@ -1928,9 +1970,161 @@ class Pager {
       },
 
       (noDelay) => {  // page 19: Use Kepler's Laws to survey other orbits
-        let [jdOpp, vec1, vec2, re0, rsm] = topViewSetup(noDelay, true);
+        let [jdOpp, vec1, vec2, re0, rsm, iOpp] = topViewSetup(noDelay, true);
         let [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
              ang0e, ang0m] = getOrbits(jdOpp, re0, false);
+        year = periodOf("earth", jdOpp);
+        const myear = periodOf("mars", jdOpp);
+        const jdStep = 2*year - myear;
+        // Five points will be jdOpp plus (-2, -1, 0, 1, 2) times jdStep
+        // If iOpp <2 or >7, some of these points on Earth's orbit will not
+        // have been previously surveyed, but don't worry about that here.
+        const jds = [-2, -1, 0, 1, 2].map(i => jdOpp+iOpp*myear + i*jdStep);
+        const earth = jds.map(jd => glPlanetPosition("earth", jd));
+        const mars = jds.map(jd => glPlanetPosition("mars", jd));
+        const em34 = [earth[3], mars[3], earth[4], mars[4]];
+        const utrue = mars.slice(0,3).map((p, i) =>
+          norm(p.map((q, j) => q - earth[i][j])));
+        sceneUpdater.centerVisibility(false);
+        sceneUpdater.orbitPoints.top.visible = true;
+        sceneUpdater.hideOrbitSpokes(2);
+        sceneUpdater.resetMarsPoints();
+        sceneUpdater.hideOrbit("mars", 0.25);
+        sceneUpdater.labels.mars.visible = false;
+        sceneUpdater.orbitPoints.earth.children.forEach(o => {
+          o.visible = false;});
+        sceneUpdater.orbitPoints.earthSpokes.visible = true;
+        sceneUpdater.orbitPoints.earthSpokes.children.forEach(o => {
+          o.visible = false;});
+        sceneUpdater.drawLOS(0, jds[0], true);
+        scene3d.render();
+        sceneUpdater.updateDate(jds[0]);
+        skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+          textToggled = toggleText("0");
+          skyAnimator.playChain();
+        });
+        let i;
+        for (i = 1; i < jds.length; i += 1) {
+          const j = i;
+          skyAnimator.chain(1000).chain(() => {
+            parameterAnimator.initialize(jds[j-1], jds[j], 1000, (jd) => {
+              sceneUpdater.drawLOS(j, jd, true);
+              scene3d.render();
+              sceneUpdater.updateDate(jd);
+            }).play();
+          });
+        }
+        function wiggler(ua, ub, uc) {
+          // f(0) = ua, f(max or min) = ub, f(1) = uc
+          // f(x) = a*(x-b)**2 - a*b**2 + ua = a*(x-b)**2 + ub
+          // f(1) = a*(1-b)**2 + ub = uc
+          //   a*b**2 = ua - ub
+          //   a*(1-b)**2 = uc - ub = a*b**2 - 2*a*b + a
+          //   uc - ua = a*(1 - 2*b)
+          //   uca*b**2 = uab*(1-2*b)  or   uca*b**2 + 2*uab - uab = 0
+          //   uca*b**2 - 2*uba*b + uba = 0
+          //   uca*b = uba +- sqrt(uba**2 - uba*uca)
+          //      d = uba**2 - uba*uca = uba*(uba-uca) = uba*ubc > 0!
+          //   uca*b = uba +- sqrt(uba*ubc)
+          //   b = (uba +- gmean(uba, ubc))/uca
+          //   b = uba / (uba -+ gmean(uba, ubc))
+          //       sign of gmean same as sign of uba (or ubc)
+          const uba = ub - ua, ubc = ub - uc, uca = uc - ua;
+          let gm = uba * ubc;
+          if (gm <= 0) return (x) => ua + uca*x;  // linear fallback
+          gm = Math.sqrt(gm) * Math.sign(uba);
+          const b = uba / (uba + gm);
+          const a = -uba / b**2;
+          return (x) => ub + a*(x - b)**2;
+        }
+        function drawAll(u0, u1, u2, all5) {
+          const p0 = pointOnLOS(earth[0], mars[0], u0);
+          const p1 = pointOnLOS(earth[1], mars[1], u1);
+          const p2 = pointOnLOS(earth[2], mars[2], u2);
+          const em = all5? em34 : [];
+          drawEllipse(p0, p1, p2, ...em);
+          sceneUpdater.updateDate(jds[0]);
+        }
+        function drawWiggles(u0, u1, u2, all5) {
+          function sitOrWiggle(u) {
+            if (!Array.isArray(u)) return (x) => u;
+            return wiggler(...u);
+          }
+          const wig0 = sitOrWiggle(u0);
+          const wig1 = sitOrWiggle(u1);
+          const wig2 = sitOrWiggle(u2);
+          parameterAnimator.initialize(0, 1, all5? 6000 : 1500, (f) => {
+            drawAll(wig0(f), wig1(f), wig2(f), all5);
+          }).play();
+        }
+        // utrue = 0.71257, 0.47514, 0.38169
+        skyAnimator.chain(1000).chain(() => {
+          sceneUpdater.drawLOS(0, jds[0], true);
+          scene3d.render();
+          sceneUpdater.updateDate(jds[0]);
+          skyAnimator.playChain();
+        }).chain(1000).chain(() => {
+          sceneUpdater.centerVisibility(false, true);
+          sceneUpdater.showOrbit("mars", 0.25);
+          drawAll(0.4, 0.6, 0.2);
+          skyAnimator.playChain();
+        }).chain(500).chain(() => {
+          drawWiggles([0.4, 0.7, 0.55], 0.6, 0.2);
+        }).chain(500).chain(() => {
+          drawWiggles(0.55, [0.6, 0.35, 0.43], 0.2);
+        }).chain(500).chain(() => {
+          drawWiggles(0.55, 0.43, [0.2, 0.45, 0.35]);
+        }).chain(2000).chain(() => {
+          toggleAreaLegend(true);
+          drawAll(0.55, 0.43, 0.35, true);
+          skyAnimator.playChain();
+        }).chain(3000).chain(() => {
+          drawWiggles([0.55, 0.75, utrue[0]],
+                      [0.43, 0.50, utrue[1]],
+                      [0.35, 0.42, utrue[2]], true);
+        }).chain(2000).chain(() => {
+          if (textToggled) toggleText("1");
+          skyAnimator.playChain();
+        }).playChain();
+      },
+
+      (noDelay) => {  // page 20: Kepler's Third Law
+        let [jdOpp, vec1, vec2, re0, rsm, iOpp] = topViewSetup(noDelay, true);
+        let [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
+             ang0e, ang0m] = getOrbits(jdOpp, re0, false);
+        year = periodOf("earth", jdOpp);
+        const myear = periodOf("mars", jdOpp);
+        const jdStep = 2*year - myear;
+        // Five points will be jdOpp plus (-2, -1, 0, 1, 2) times jdStep
+        // If iOpp <2 or >7, some of these points on Earth's orbit will not
+        // have been previously surveyed, but don't worry about that here.
+        const jds = [-2, -1, 0, 1, 2].map(i => jdOpp+iOpp*myear + i*jdStep);
+        const earth = jds.map(jd => glPlanetPosition("earth", jd));
+        const mars = jds.map(jd => glPlanetPosition("mars", jd));
+        const em34 = [earth[3], mars[3], earth[4], mars[4]];
+        const utrue = mars.slice(0,3).map((p, i) =>
+          norm(p.map((q, j) => q - earth[i][j])));
+        sceneUpdater.centerVisibility(false);
+        sceneUpdater.orbitPoints.top.visible = true;
+        sceneUpdater.hideOrbitSpokes(2);
+        sceneUpdater.resetMarsPoints();
+        sceneUpdater.hideOrbit("mars", 0.25);
+        sceneUpdater.labels.mars.visible = false;
+        sceneUpdater.orbitPoints.earth.children.forEach(o => {
+          o.visible = false;});
+        sceneUpdater.orbitPoints.earthSpokes.visible = true;
+        sceneUpdater.orbitPoints.earthSpokes.children.forEach(o => {
+          o.visible = false;});
+        for (let i = 0; i < 5; i += 1) {
+          sceneUpdater.drawLOS(i, jds[i], true);
+        }
+        sceneUpdater.drawLOS(0, jds[0], true);  // move label to first point
+        sceneUpdater.centerVisibility(false, true);
+        sceneUpdater.showOrbit("mars", 0.25);
+        sceneUpdater.labels.mars.position.set(...mars[0]);
+        sceneUpdater.labels.mars.visible = true;
+        drawEllipse(mars[0], mars[1], mars[2], ...em34);
+        sceneUpdater.updateDate(jds[0]);
       }
     ];
 
@@ -1957,7 +2151,8 @@ class Pager {
       noop,  // exit page 16 Kepler's First Law
       noop,  // exit page 17 Earth moves faster when closer to Sun
       noop,  // exit page 18 Kepler's Second Law
-      noop  // exit page 19 Use Kepler's Laws to survey other orbits
+      noop,  // exit page 19 Use Kepler's Laws to survey other orbits
+      noop  // exit page 20: Kepler's Third Law
     ];
 
     const helioFov = 36;  // fit Mars orbit for -3000-01-01
@@ -2001,7 +2196,7 @@ class Pager {
       // const [c, s] = [Math.cos(1.4), Math.sin(1.4)];
       // const vec2 = [-2*(xcn*c + zcn*s), 8, -2*(zcn*c - xcn*s)];
       const vec2 = [0, 5.2, 0];
-      return [jdOpp, vec1, vec2, re0, rsm];
+      return [jdOpp, vec1, vec2, re0, rsm, iOpp];
     }
 
     function helioSetup(jdOpp) {
@@ -2017,7 +2212,7 @@ class Pager {
     }
 
     function topViewSetup(noDelay, full) {
-      let [jdOpp, vec1, vec2, re0, rsm] = helioInit(noDelay);
+      let [jdOpp, vec1, vec2, re0, rsm, iOpp] = helioInit(noDelay);
       const camera = scene3d.camera;
       helioSetup(jdOpp);
       sceneUpdater.hideOrbit("sun", 0.25);
@@ -2045,7 +2240,7 @@ class Pager {
         scene3d.render();
         sceneUpdater.updateDate(jdOpp);
       }
-      return [jdOpp, vec1, vec2, re0, rsm];
+      return [jdOpp, vec1, vec2, re0, rsm, iOpp];
     }
 
     function getLoc(obj) {
@@ -2131,9 +2326,6 @@ class Pager {
       xm = [1, 2, 0].map(i => xm[i]);
       ym = [1, 2, 0].map(i => ym[i]);
       let [cmx, cmy, cmz] = xm.map(v => -e*am*v);
-      function dot(u, v) {
-        return u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
-      }
       re0 = [re0[0] - cex, re0[1] - cey, re0[2] - cez];
       const ang0e = Math.atan2(dot(re0, ye), dot(re0, xe));
       let rsm = glPlanetPosition("mars", jdOpp);  // re0 is Earth at jdOpp
@@ -2141,12 +2333,188 @@ class Pager {
       const ang0m = Math.atan2(dot(rsm, ym), dot(rsm, xm));
       const re = 0.5*(ae + be);  // min-max
       const rm = 0.5*(am + bm);  // min-max
-      sceneUpdater.centers.top.visible = true;
+      sceneUpdater.centerVisibility(true);
       sceneUpdater.setCenter("earth", cex, cey, cez, drawRadius);
       sceneUpdater.setCenter("mars", cmx, cmy, cmz, drawRadius);
       scene3d.render();
       return [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
               ang0e, ang0m];
+    }
+
+    // Return normal to plane of 0 and two vectors, or if more than
+    // two vectors, return the average of normals of successive pairs.
+    function planeOf(...vectors) {
+      let total, len;
+      let prev = vectors.shift();
+      for (let v of vectors) {
+        let p = cross(prev, v);
+        len = norm(p);
+        p = p.map(v => v/len);
+        if (total === undefined) {
+          total = p;
+        } else {
+          if (dot(total, p) < 0) p = p.map(v => -v);
+          total = p.map((v, i) => total[i] + v);
+        }
+        prev = v;
+      }
+      len = norm(total);
+      return total.map(v => v/len);
+    }
+
+    // Find ellipse with focus at 0 given three (coplanar) points.
+    function ellipseOf(p0, p1, p2) {
+      let zAxis = planeOf(p0, p1, p2);
+      let xAxis = project([0, 0, 1], zAxis);
+      let r = norm(xAxis);
+      xAxis = xAxis.map(v => v/r);
+      let yAxis = cross(zAxis, xAxis);
+      let [p0x, p0y] = [dot(p0, xAxis), dot(p0, yAxis)];
+      let [p1x, p1y] = [dot(p1, xAxis), dot(p1, yAxis)];
+      let [p2x, p2y] = [dot(p2, xAxis), dot(p2, yAxis)];
+      p0 = Math.sqrt(p0x**2 + p0y**2);
+      p1 = Math.sqrt(p1x**2 + p1y**2);
+      p2 = Math.sqrt(p2x**2 + p2y**2);
+      //  (p1x-p0x)*ecx + (p1y-p0y)*ecy = p1 - p0
+      //  (p2x-p1x)*ecx + (p2y-p1y)*ecy = p2 - p1
+      let [mxx, mxy, myx, myy] = [p1x-p0x, p1y-p0y, p2x-p1x, p2y-p1y];
+      let [bx, by] = [p1-p0, p2-p1];
+      let det = mxx*myy - mxy*myx;
+      let [ecx, ecy] = [(myy*bx - mxy*by)/det, (mxx*by - myx*bx)/det];
+      let b = ecx**2 + ecy**2;  // just a temporary for now
+      let e = Math.sqrt(b);  // eccentricity
+      b = 1 - b;  // now 1-e**2
+      let a = (p0 - (ecx*p0x + ecy*p0y))/b;  // = p1-ec.dot.p1 = p2-ec.dot.p2
+      b = a * Math.sqrt(b);  // e, a, b now eccentricity and semi-axes
+      if (e) {
+        // make xAxis be in -ec direction, i.e.- toward perihelion
+        xAxis = xAxis.map((v, i) => (-ecx*v - ecy*yAxis[i])/e);
+        yAxis = cross(zAxis, xAxis);
+      }
+      return [xAxis, yAxis, zAxis, e, a, b];
+    }
+
+    function pointOnEllipse([xAxis, yAxis, zAxis, e, a, b], earth, plos) {
+      // Assume xAxis, yAxis, zAxis in GL coordinates, not orbitParams!
+      // First project earth and plos into plane of ellipse.
+      earth = project(earth, zAxis);
+      plos = project(plos, zAxis);
+      // Convert to ellipse (x, y) coordinates, scaled and translated
+      // to make ellipse a unit circle centered at (0, 0).
+      let [ex, ey] = [dot(earth, xAxis)/a + e, dot(earth, yAxis)/b];
+      let [px, py] = [dot(plos, xAxis)/a + e, dot(plos, yAxis)/b];
+      let [dx, dy] = [px - ex, py - ey];
+      // If f>0 is the fraction of the distance from e to p of intersection,
+      // then (ex + f*dx)**2 + (ey + f*dy)**2 = 1
+      // (dx**2+dy**2)*f**2 + 2*(ex*dx+ey*dy)*f + (ex**2+ey**2) - 1 = 0
+      // Assume e inside ellipse, so that ex**2+ey**2 < 1.
+      let aa = dx**2 + dy**2;
+      let bb = ex*dx + ey*dy;
+      let cc = 1 - (ex**2 + ey**2);  // > 0
+      if (cc <= 0) return [null, -1];
+      let dd = Math.sqrt(bb**2 + aa*cc);  // > abs(bb)
+      let f = (bb < 0)? (dd - bb) / aa : cc / (dd + bb);
+      [px, py] = [ex + f*dx, ey + f*dy];
+      [px, py] = [(px - e)*a, py*b];  // restore origin and scale
+      // put back in original coordinates
+      let p = xAxis.map(v => px*v);
+      p = yAxis.map(v => py*v).map((v, i) => v + p[i]);
+      return [p, f];  // point and fraction
+    }
+
+    function pointOnLOS(earth, plos, u) {
+      plos = plos.map((v, i) => v - earth[i]);
+      let r = norm(plos);
+      plos = plos.map(v => v*u/r);
+      return plos.map((v, i) => v + earth[i]);
+    }
+
+    function drawMarsGuess(...p) {
+      const mars = sceneUpdater.orbitPoints.mars.children;
+      let spokes = sceneUpdater.orbitPoints.marsSpokes;
+      const drawSpoke = spokes.visible;
+      if (drawSpoke) spokes = spokes.children;
+      for (let i = 0; i < p.length; i += 1) {
+        if (p[i] !== null) {
+          mars[i].visible = true;
+          mars[i].position.set(...p[i]);
+          if (drawSpoke) scene3d.movePoints(spokes[i], [[0, 0, 0], p[i]]);
+        } else {
+          spokes[i].visible = false;
+        }
+      }
+    }
+
+    function drawEllipse(p0, p1, p2, e3, m3, e4, m4) {
+      let ell = ellipseOf(p0, p1, p2);
+      let [xAxis, yAxis, zAxis, e, a, b] = ell;
+      let c = xAxis.map(v => -e*a*v);
+      sceneUpdater.setCenter("mars", c[0], c[1], c[2], false);
+      sceneUpdater.orbits.mars.matrix = xyzNow.ellipse(ell);
+      let spokes = sceneUpdater.orbitPoints.marsSpokes;
+      let p = [p0, p1, p2];
+      if (e3 !== undefined) {
+        let i;
+        spokes.visible = true;
+        spokes = spokes.children;
+        for (i = 0; i < spokes.length; i += 1) {
+          spokes[i].visible = i < 5;
+        }
+        p.push(pointOnEllipse(ell, e3, m3)[0], pointOnEllipse(ell, e4, m4)[0]);
+        let areas = getAreas(ell, p);
+        for (i = 0; i < 4; i += 1) {
+          if (areas[i] === null) continue;
+          if (areas[i+1] === null) areas[i] = null;
+          else areas[i] = areas[i+1] - areas[i];
+        }
+        areas.pop();
+        setAreaLegend(...areas);
+      } else {
+        spokes.visible = false;
+      }
+      drawMarsGuess(...p);
+      scene3d.render();
+    }
+
+    function getAreas([xAxis, yAxis, zAxis, e, a, b], points) {
+      let area0 = 0.5*a*b;
+      let x, y, areas = [];
+      for (let p of points) {
+        if (p !== null) {
+          [x, y] = [dot(p, xAxis)/a + e, dot(p, yAxis)/b];
+          areas.push(area0*(Math.atan2(y, x) - e*y));
+        } else {
+          areas.push(null);
+        }
+      }
+      area0 = Math.PI*a*b;
+      for (let i = 1 ; i < areas.length; i += 1) {
+        if (areas[i] === null) break;
+        if (areas[i] < areas[i-1]) areas[i] += area0;
+      }
+      return areas;
+    }
+
+    function project(p, n, normalize) {
+      // project point p into plane normal to n
+      if (normalize) {
+        const r = norm(n);
+        n = n.map(v => v/r);
+      }
+      const pdotn = dot(p, n);
+      return p.map((v, i) => v - pdotn*n[i]);
+    }
+
+    function norm([x, y, z]) {
+      return Math.sqrt(x**2 + y**2 + z**2);
+    }
+
+    function dot([a, b, c], [x, y, z]) {
+      return a*x + b*y + c*z;
+    }
+
+    function cross([a, b, c], [x, y, z]) {
+      return [b*z - c*y, c*x - a*z, a*y - b*x];
     }
   }
 
@@ -2204,6 +2572,25 @@ const pager = new Pager(TOP_BOX, BOT_BOX,
 const SUN_COUNTER = document.getElementById("sun-counter");
 const MAR_SEP = document.getElementById("mar-sep");
 const SEP_MAR = document.getElementById("sep-mar");
+const AREA_LEGEND = document.getElementById("area-legend");
+const AREA_ITEMS = AREA_LEGEND.querySelectorAll("ul li");
+
+function toggleAreaLegend(visible) {
+  const classList = AREA_LEGEND.classList;
+  if (visible) classList.remove("hidden");
+  else classList.add("hidden");
+}
+
+function setAreaLegend(a0, a1, a2, a3) {
+  const areas = [a0, a1, a2, a3];
+  for (let i = 0; i < 4; i += 1) {
+    if (areas[i] !== null) {
+      AREA_ITEMS[i].innerHTML = areas[i].toFixed(4);
+    } else {
+      AREA_ITEMS[i].innerHTML = "-";
+    }
+  }
+}
 
 /* ------------------------------------------------------------------------ */
 

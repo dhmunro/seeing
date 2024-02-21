@@ -255,6 +255,25 @@
               display: none;
           }
       }
+
+      #area-legend {
+          position: absolute;
+          top: 50%;
+          left: calc(50% - 25rem);
+          transform: translateY(-50%);
+          color: #a0a098;
+          font-size: 1.125rem;  /* match topbox */
+          font-variant-numeric: tabular-nums;
+          background: #0004;
+      }
+      #area-legend ul {
+          margin: 0;
+          padding: 0;
+          list-style-type: none;
+      }
+      #area-legend ul li {
+          text-align: center;
+      }
     </style>
   </head>
   <body>
@@ -382,6 +401,14 @@
       determine any orbit from only five observations!  Thus Kepler's
       Laws represent a major practical advance, vastly reducing the
       time and effort required to survey an orbit.</p>
+</div><div class="hidden">
+    <h2>Kepler's Third Law</h2>
+    <p class="justified">Kepler discovered his first two laws by
+      careful study of the motion of Mars relative to the Sun.  Using
+      those two laws, he found the orbital parameters for the other
+      planets over the next decade, and discoverd the quantitative
+      relationship between the size and period of planetary orbits -
+      his Third Law:</p>
 </div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
@@ -392,6 +419,15 @@
     <input id="base-date" name="base-date" type="text"
            minlength="5" maxlength="5" size="5"/>
     <div class="button" onclick="setBaseDate(1)">Set Base Date</div>
+  </div>
+  <div id="area-legend" class="hidden">
+    <div class="justified">Sector Areas</div>
+    <ul>
+      <li>0.1234</li>
+      <li>1.2345</li>
+      <li>2.3456</li>
+      <li>3.4567</li>
+    </ul>
   </div>
 </div>
 <div id="botbox"><div>
@@ -518,11 +554,17 @@
       exactly.</p>
 </div><div class="hidden">
     <p class="justified">For example, make five observations spaced
-      equally in time to get five sight lines.  You know where Earth
-      and Sun are.  Guess the first three distances to determine an
-      ellipse, hence the other two distances.  Adjust your three
-      guesses to make the four sector areas equal, and you have the
-      orbit.</p>
+      equally in time to get five sight lines.  Guess the distances
+      along the first three sight lines to determine an ellipse, hence
+      the other two distances.  Adjust your three guesses to make the
+      four sector areas equal, and you have the orbit.</p>
+</div><div class="hidden">
+    <p class="justified">The cube of the long axis of the ellipse is
+      proportional to the square of the period.  Unlike the first two,
+      the Third Law relates the orbits of different planets.  By
+      providing another constraint on sector areas, the Third Law
+      reduces the number of observations needed to determine an orbit
+      to four.</p>
 </div></div>
 <div id="page-controls">
   <svg id="pageup" class="button disabled" xmlns="http://www.w3.org/2000/svg"
