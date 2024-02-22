@@ -63,7 +63,7 @@ class PlanetPositions {
     this.callback = callback;
   }
 
-  update(jd, jd0) {
+  update(jd, jd0, noCallback) {
     if (jd0 !== undefined) this.jd0 = jd0;  // change initial time
     if (jd === undefined) jd = this.jd0;  // reset to initial time
     const xyz = this._xyz;
@@ -72,7 +72,7 @@ class PlanetPositions {
       xyz[p] = glPlanetPosition(p, jd);
     }
     this.jd = jd;
-    if (this.callback) this.callback(this, jd0);
+    if (this.callback && !noCallback) this.callback(this, jd0);
     return this;
   }
 
@@ -2722,34 +2722,7 @@ function jd4date(text) {
   return dayOfDate(date);
 }
 
-function setStartDate(event) {
-  const text = event.target.value;
-  const match = event.target.value.match(/(-?[012]\d\d\d)(-\d\d)?(-\d\d)?/);
-  const jd = match? jd4date(event.target.value) : xyzNow.jd0;
-  xyzNow.update(jd, jd);
-  DATE_BOX.value = date4jd(xyzNow.jd0);
-  scene3d.render();
-}
-
 const _dummyVector = new Vector3();
-
-/* ------------------------------------------------------------------------ */
-
-const radii = (() => {
-  function makeRadius(c, dashed=false) {
-    const line = scene3d.segments([0, 0, 0,  1, 0, 0],
-      {color: c, linewidth: 2, dashed: dashed, dashSize: 0.03, gapSize: 0.05});
-    line.visible = false;
-    return line;
-  }
-  return {
-    earth: makeRadius(0xccccff),
-    venus: makeRadius(0xcccccc),
-    mars: makeRadius(0xffcccc),
-    gearth: makeRadius(0xccccff, true),
-    gmars: makeRadius(0xffcccc, true)
-  }
-})();
 
 /* ------------------------------------------------------------------------ */
 
@@ -3043,6 +3016,7 @@ const textureMaps = loadTextureFiles(
    "sun-alpha.png", "planet-alpha.png"],  // sprites
   ()  => setupSky(),
   "images/");
+let initialPage = 0;
 
 function setupSky() {
   // See https://svs.gsfc.nasa.gov/4851
@@ -3106,7 +3080,7 @@ function setupSky() {
   sceneUpdater.addOrbitPoints(10, 15, 12);
   sceneUpdater.addCenters();
 
-  pager.gotoPage(0);
+  pager.gotoPage(initialPage);
 }
 
 function adjustEcliptic(jd) {
@@ -3319,7 +3293,8 @@ function setBaseDate(buttonClick) {
   SET_DATE.style.transform = "scale(0)";
   return false;  // base date changed, dialog box taken down
 }
-window.setBaseDate = setBaseDate;
+
+window.setBaseDate = setBaseDate;  // used in index.html
 
 addEventListener("keydown", (event) => {
   if (event.target == YYYY || event.target == MMDD) {
@@ -3445,6 +3420,35 @@ addEventListener("keydown", (event) => {
       fsRequest.call(documentElement);
     }
   });
+
+  // Interpret URL query parameters
+  // page=n           (to set initial page displayed, default is 0)
+  // date=yyyy-mm-dd  (to set base date, else uses current date)
+  let urlQueries = window.location.search.replace("\?", "");
+  if (urlQueries) {
+    urlQueries = Object.fromEntries(urlQueries.split("&")
+                                    .map(q => q.split("=")));
+  } else {
+    urlQueries = {}
+  }
+  if (urlQueries.page && !isNaN(urlQueries.page)) {
+    let page = parseInt(urlQueries.page);
+    if (page > -22 && page < 22) initialPage = page;
+  }
+  if (urlQueries.date) {
+    let parts = urlQueries.date.split("-");
+    let minus = (parts[0] == "");
+    if (minus) parts.shift();
+    parts = parts.map(n => parseInt(n));
+    if (parts.length == 3 &&
+        !isNaN(parts[0])  && !isNaN(parts[1])  && !isNaN(parts[2])) {
+      let jd = jd4date(urlQueries.date);
+      if (!isNaN(jd)) {
+        xyzNow.update(jd, jd, true);
+        sceneUpdater.updateDate(jd);
+      }
+    }
+  }
 })();
 
 /* ------------------------------------------------------------------------ */
