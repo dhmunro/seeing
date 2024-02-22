@@ -129,6 +129,8 @@ class SceneUpdater {
     this.orbits = {};
     this.rings = {};
     this.mode = "sky";
+    this.freeCamera = false;
+    this.altCamera = null;
 
     xyz.onUpdate(xyzPlanets => this.update(xyzPlanets));
     this.updateDate(xyz.jd);
@@ -153,10 +155,14 @@ class SceneUpdater {
     this.orbits.earth = scene3d.polyline(sun, style(0xccccff));
     this.orbits.venus = scene3d.polyline(sun, style(0xcccccc));
     this.orbits.mars = scene3d.polyline(sun, style(0xffcccc));
-    ["sun", "earth", "venus", "mars"].forEach(p => {
-      this.orbits[p].matrixAutoUpdate = false;
-      this.orbits[p].visible = false;
-    })
+    this.orbits.mercury = scene3d.polyline(sun, style(0xcccccc));
+    this.orbits.jupiter = scene3d.polyline(sun, style(0xcccccc));
+    this.orbits.saturn = scene3d.polyline(sun, style(0xffffcc));
+    ["sun", "earth", "venus", "mars", "mercury", "jupiter", "saturn"].forEach(
+      p => {
+        this.orbits[p].matrixAutoUpdate = false;
+        this.orbits[p].visible = false;
+      });
     this.orbits.sunMatrix = new Matrix4();
     this.updateOrbits(xyz, xyz.jd0);
   }
@@ -234,7 +240,8 @@ class SceneUpdater {
         }
       }
     }
-    this.updateCamera(xyzPlanets);
+    if (!this.freeCamera) this.updateCamera(xyzPlanets);
+    else if (this.altCamera) this.altCamera(xyzPlanets);
     adjustEcliptic(xyzPlanets.jd);
   }
 
@@ -247,7 +254,8 @@ class SceneUpdater {
 
   updateOrbits(xyzPlanets, jd) {
     this.orbits.sunMatrix = xyzPlanets.ellipse("sun", jd);  // see above
-    ["earth", "venus", "mars"].forEach(p => {
+    let planets = ["earth", "venus", "mars", "mercury", "jupiter", "saturn"];
+    planets.forEach(p => {
       this.orbits[p].matrix = xyzPlanets.ellipse(p, jd);
     });
   }
@@ -374,6 +382,10 @@ class SceneUpdater {
   }
 
   setTracking(mode) {
+    const freeCamera = (mode == "free");
+    this.freeCamera = freeCamera;
+    if (freeCamera) mode = "sky";
+    else this.altCamera = null;
     for (const [p, sprite] of Object.entries(this.planets)) {
       sprite.visible = true;
     }
@@ -382,12 +394,12 @@ class SceneUpdater {
       sprite.visible = false;
     }
     this.modeLabels[mode].forEach(name => { labels[name].visible = true; });
-    if (mode == "mars" && this.rings.mars.visible) {
+    if (freeCamera || (mode == "mars" && this.rings.mars.visible)) {
       labels.antisun.visible = false;
     }
     const skyMode = mode == "sky";
-    this.scene3d.setBackground(skyMode? 0.6 : 0.3);
-    controls.enabled = skyMode;
+    this.scene3d.setBackground((skyMode && !freeCamera)? 0.6 : 0.3);
+    controls.enabled = skyMode && !freeCamera;
     this.mode = mode;
   }
 
@@ -454,7 +466,7 @@ class SceneUpdater {
         scene3d.createSprite(earth, undefined, undefined, subgrp);
         scene3d.createSprite(mars, undefined, undefined, subgrp);
       } else {
-        sun = sceneUpdater.circleSprite(6, "#ffffff", subgrp);
+        sun = sceneUpdater.circleSprite(4.5, "#ffffff", subgrp);
         earth = sceneUpdater.circleSprite(3.5, "#ccccff", subgrp);
         mars = sceneUpdater.circleSprite(3.5, "#ffcccc", subgrp);
         mars.material.depthTest = false;
@@ -574,7 +586,7 @@ class SceneUpdater {
     top.visible = false;  // initially, group not drawn at all
     this.orbitPoints = {};
     this.orbitPoints.top = top;
-    let s = sceneUpdater.circleSprite(6, "#ffffff", top);
+    let s = sceneUpdater.circleSprite(4.5, "#ffffff", top);
     s.position.set(0, 0, 0);
     s.material.depthTest = false;
     // s.renderOrder = 999;
@@ -1504,10 +1516,10 @@ class Pager {
         let [jdOpp, vec1, vec2, re0, rsm] = helioInit(noDelay);
         const camera = scene3d.camera;
         helioSetup(jdOpp);
-        const v = vec1.map((v, i) => re0[i] + vec2[i]);
+        const pos = vec2.map((v, i) => re0[i] + v);
         const target = re0.map((v, i) => 0.5*v + 0.5*rsm[i]);
         camera.up.set(1, 0, 0);
-        camera.position.set(...v);
+        camera.position.set(...pos);
         camera.lookAt(...target);
         scene3d.setSize(undefined, undefined, helioFov);
         scene3d.render();
@@ -1517,7 +1529,6 @@ class Pager {
         }).chain(3000).chain(() => {
           sceneUpdater.hideOrbit("sun", 0.25, 1000);
         }).chain(1000).chain(() => {
-          const v0 = re0.map((v, i) => 0.5*v + 0.5*rsm[i]);
           const ntri = sceneUpdater.triangles.children.length;
           const offs = new Array(ntri);
           parameterAnimator.initialize(1, 0, [8000, 1000], (frac) => {
@@ -1528,9 +1539,9 @@ class Pager {
               offs[i] = f;
             }
             sceneUpdater.syncTriangles(jdOpp, offs);
-            // initially looking at v0, finally at 0
-            const target = v0.map(v => frac*v);
-            camera.lookAt(...target);
+            // initially looking at target from pos, finally at 0 from 0
+            camera.position.set(...pos.map((v, i) => (i==1)? v : frac*v));
+            camera.lookAt(...target.map(v => frac*v));
             scene3d.render();
           }).play();
         }).chain(() => {
@@ -1553,7 +1564,7 @@ class Pager {
         }).chain(() => {
           sceneUpdater.fadeTriangles(2000, false);
         }).chain(() => {
-          parameterAnimator.initialize(0, year, 5000, (djd) => {
+          parameterAnimator.initialize(0, year, [4000, 500], (djd) => {
             sceneUpdater.syncTriangles(jdOpp+djd, 0, true, 1);
             scene3d.render();
             sceneUpdater.updateDate(jdOpp+djd);
@@ -1739,12 +1750,14 @@ class Pager {
         }).chain(4000).chain(() => {
           viewZoom(0.4, 3000);
         }).chain(2000).chain(() => {
-          parameterAnimator.initialize(ang0e, ang0e+twopi, 4000, (ang) => {
+          parameterAnimator.initialize(
+            ang0e, ang0e+twopi, [4000, 500], (ang) => {
             setEarthR(ang);
             scene3d.render();
           }).play();
         }).chain(2000).chain(() => {
-          parameterAnimator.initialize(ang0m, ang0m+twopi, 4000, (ang) => {
+          parameterAnimator.initialize(
+            ang0m, ang0m+twopi, [6000, 500], (ang) => {
             setMarsR(ang);
             scene3d.render();
           }).play();
@@ -1849,7 +1862,8 @@ class Pager {
           textToggled = toggleText("0");
           skyAnimator.playChain();
         }).chain(1000).chain(() => {
-          parameterAnimator.initialize(jdOpp, jd0e+4*year, 12000, (jd) => {
+          parameterAnimator.initialize(
+            jdOpp, jd0e+4*year, [11000, 500], (jd) => {
             sceneUpdater.drawMarsPoint(0, jd, true);
             sceneUpdater.drawEarthPoints(jd, myear, 0);
             sceneUpdater.drawEarthSpokes(jd, myear);
@@ -1868,7 +1882,8 @@ class Pager {
           skyAnimator.playChain();
         }).chain(2000).chain(() => {
           sceneUpdater.labels.earth.position.copy(pos);
-          parameterAnimator.initialize(jdOpp, jdOpp+4*year, 10000, (jd) => {
+          parameterAnimator.initialize(
+            jdOpp, jdOpp+4*year, [9000, 500], (jd) => {
             djd = timePlanetAt("earth", ...meanEarth(jd), jd) - jd;
             jd -= (eFactor-1)*djd;  // enhance actual-mean time difference
             sceneUpdater.drawEarthPoints(jd, myear, 0);
@@ -1894,7 +1909,8 @@ class Pager {
           scene3d.render();
           skyAnimator.playChain();
         }).chain(2000).chain(() => {
-          parameterAnimator.initialize(jdOpp, jdOpp+4*myear, 10000, (jd) => {
+          parameterAnimator.initialize(
+            jdOpp, jdOpp+4*myear, [9000, 500], (jd) => {
             djd = timePlanetAt("mars", ...meanMars(jd), jd) - jd;
             jd -= (mFactor-1)*djd;  // enhance actual-mean time difference
             sceneUpdater.drawMarsPoint(0, jd, true);
@@ -2007,7 +2023,8 @@ class Pager {
         for (i = 1; i < jds.length; i += 1) {
           const j = i;
           skyAnimator.chain(1000).chain(() => {
-            parameterAnimator.initialize(jds[j-1], jds[j], 1000, (jd) => {
+            parameterAnimator.initialize(
+                jds[j-1], jds[j], [1000, 300], (jd) => {
               sceneUpdater.drawLOS(j, jd, true);
               scene3d.render();
               sceneUpdater.updateDate(jd);
@@ -2053,7 +2070,8 @@ class Pager {
           const wig0 = sitOrWiggle(u0);
           const wig1 = sitOrWiggle(u1);
           const wig2 = sitOrWiggle(u2);
-          parameterAnimator.initialize(0, 1, all5? 6000 : 1500, (f) => {
+          parameterAnimator.initialize(
+            0, 1, all5? [5000, 500] : [1000, 500], (f) => {
             drawAll(wig0(f), wig1(f), wig2(f), all5);
           }).play();
         }
@@ -2089,42 +2107,132 @@ class Pager {
       },
 
       (noDelay) => {  // page 20: Kepler's Third Law
-        let [jdOpp, vec1, vec2, re0, rsm, iOpp] = topViewSetup(noDelay, true);
-        let [cex, cey, cez, re, cmx, cmy, cmz, rm, xe, ye, xm, ym,
-             ang0e, ang0m] = getOrbits(jdOpp, re0, false);
-        year = periodOf("earth", jdOpp);
-        const myear = periodOf("mars", jdOpp);
-        const jdStep = 2*year - myear;
-        // Five points will be jdOpp plus (-2, -1, 0, 1, 2) times jdStep
-        // If iOpp <2 or >7, some of these points on Earth's orbit will not
-        // have been previously surveyed, but don't worry about that here.
-        const jds = [-2, -1, 0, 1, 2].map(i => jdOpp+iOpp*myear + i*jdStep);
-        const earth = jds.map(jd => glPlanetPosition("earth", jd));
-        const mars = jds.map(jd => glPlanetPosition("mars", jd));
-        const em34 = [earth[3], mars[3], earth[4], mars[4]];
-        const utrue = mars.slice(0,3).map((p, i) =>
-          norm(p.map((q, j) => q - earth[i][j])));
-        sceneUpdater.centerVisibility(false);
-        sceneUpdater.orbitPoints.top.visible = true;
-        sceneUpdater.hideOrbitSpokes(2);
-        sceneUpdater.resetMarsPoints();
-        sceneUpdater.hideOrbit("mars", 0.25);
-        sceneUpdater.labels.mars.visible = false;
-        sceneUpdater.orbitPoints.earth.children.forEach(o => {
-          o.visible = false;});
-        sceneUpdater.orbitPoints.earthSpokes.visible = true;
-        sceneUpdater.orbitPoints.earthSpokes.children.forEach(o => {
-          o.visible = false;});
-        for (let i = 0; i < 5; i += 1) {
-          sceneUpdater.drawLOS(i, jds[i], true);
+        resetScene("free", noDelay);
+        sceneUpdater.labels.earth.visible = true;
+        const camera = scene3d.camera;
+        camera.up.set(1, 0, 0);
+        camera.position.set(0, 5.2, 0);
+        camera.lookAt(0, 0, 0);
+        scene3d.setSize(undefined, undefined, helioFov);
+        ["mercury", "venus", "earth", "mars", "jupiter", "saturn"].forEach(
+          planet => {
+            const v = sceneUpdater.orbits[planet];
+            v.visible = true;
+            setColorMultiplier(v, 0.25);
+          });
+        sceneUpdater.egrp.visible = false;
+        sceneUpdater.eqgrp.visible = false;
+        sceneUpdater.ecLabel.visible = false;
+        sceneUpdater.eqLabel.visible = false;
+        scene3d.render();
+        skyAnimator.chain(2000).chain(() => {
+          skyAnimator.msEase(1000);
+          skyAnimator.playFor(20*365.25636);
+        }).chain(4000).chain(() => {
+          pager.gotoPage();
+        }).playChain();
+      },
+
+      (noDelay) => {  // page 21: Ready for Newton
+        resetScene("free", noDelay);
+        sceneUpdater.labels.earth.visible = true;
+        const camera = scene3d.camera;
+        camera.up.set(1, 0, 0);
+        camera.position.set(0, 5.2, 0);
+        camera.lookAt(0, 0, 0);
+        scene3d.setSize(undefined, undefined, helioFov);
+        ["mercury", "venus", "earth", "mars", "jupiter", "saturn"].forEach(
+          planet => {
+            const v = sceneUpdater.orbits[planet];
+            v.visible = true;
+            setColorMultiplier(v, 0.25);
+          });
+        sceneUpdater.egrp.visible = false;
+        sceneUpdater.eqgrp.visible = false;
+        sceneUpdater.ecLabel.visible = false;
+        sceneUpdater.eqLabel.visible = false;
+        scene3d.render();
+        function easer(x) {
+          let y;
+          if (x < 0.1) {
+            y = x**2;
+          } else if (x < 0.9) {
+            y = 0.01 + 0.2*(x - 0.1);
+          } else {
+            y = 0.18 - (1 - x)**2;
+          }
+          return y / 0.18;
         }
-        sceneUpdater.drawLOS(0, jds[0], true);  // move label to first point
-        sceneUpdater.centerVisibility(false, true);
-        sceneUpdater.showOrbit("mars", 0.25);
-        sceneUpdater.labels.mars.position.set(...mars[0]);
-        sceneUpdater.labels.mars.visible = true;
-        drawEllipse(mars[0], mars[1], mars[2], ...em34);
-        sceneUpdater.updateDate(jds[0]);
+        function altCamera(xyzPlanets) {
+          let djd = xyzPlanets.jd - xyzPlanets.jd0;
+          let jdStep = 365.25636;
+          djd -= jdStep;
+          if (djd < 0) return;
+          if (djd < jdStep) {
+            camera.position.set(0, 5.2 + (35-5.2)*djd/jdStep, 0);
+            return;
+          }
+          djd -= 2*jdStep;
+          if (djd < 0) return;
+          if (djd < jdStep) {
+            let f = easer(djd / jdStep);
+            let ang = f * Math.PI/2;
+            let [c, s] = [Math.cos(ang), Math.sin(ang)];
+            let r = 25*f + 35*(1-f);
+            camera.position.set(-r*s, r*c, 0);
+            camera.up.set(c, s, 0);
+            camera.lookAt(0, 0, 0);
+            return;
+          }
+          djd -= 1.2*jdStep;
+          if (djd < 0) return;
+          if (djd < jdStep) {
+            camera.position.set(-25 + (25 - 4)*djd/jdStep, 0, 0);
+            return;
+          }
+          djd -= jdStep;
+          if (djd < 0) return;
+          if (djd < 3*jdStep) {
+            let f = easer(djd / (3*jdStep));
+            let ang = f * 2*Math.PI;
+            let [c, s] = [Math.cos(ang), Math.sin(ang)];
+            camera.position.set(-4*c, 0, 4*s);
+            camera.lookAt(0, 0, 0);
+            return;
+          }
+          djd -= 3*jdStep;
+          if (djd < 0) return;
+          if (djd < 3*jdStep) {
+            let f = easer(djd / (3*jdStep));
+            let ang = f * 2*Math.PI;
+            let [c, s] = [Math.cos(ang), Math.sin(ang)];
+            ang = f * Math.PI/6;
+            let [c2, s2] = [Math.cos(ang), Math.sin(ang)];
+            camera.position.set(-4*c*c2, 4*s2, 4*s*c2);
+            camera.lookAt(0, 0, 0);
+            return;
+          }
+          djd -= 3.2*jdStep;
+          if (djd < 0) return;
+          if (djd < jdStep) {
+            let f = easer(djd / jdStep);
+            let ang0 = Math.PI/6;
+            let ang = f * Math.PI/3;
+            let [c, s] = [Math.cos(ang0+ang), Math.sin(ang0+ang)];
+            let r = 5.2*f + 4*(1-f);
+            camera.position.set(-r*c, r*s, 0);
+            camera.up.set(c, s, 0);
+            camera.lookAt(0, 0, 0);
+            return;
+          }
+        }
+        skyAnimator.chain(2000).chain(() => {
+          sceneUpdater.altCamera = altCamera;
+          skyAnimator.msEase(1000);
+          skyAnimator.playFor(14*365.25636);
+        }).chain(4000).chain(() => {
+          pager.gotoPage();
+        }).playChain();
       }
     ];
 
@@ -2152,7 +2260,8 @@ class Pager {
       noop,  // exit page 17 Earth moves faster when closer to Sun
       noop,  // exit page 18 Kepler's Second Law
       noop,  // exit page 19 Use Kepler's Laws to survey other orbits
-      noop  // exit page 20: Kepler's Third Law
+      noop,  // exit page 20: Kepler's Third Law
+      noop  // exit page 21: Kepler's Laws set the stage for Newton
     ];
 
     const helioFov = 36;  // fit Mars orbit for -3000-01-01
@@ -2217,9 +2326,8 @@ class Pager {
       helioSetup(jdOpp);
       sceneUpdater.hideOrbit("sun", 0.25);
       sceneUpdater.showOrbit("earth", 0.25);
-      const v = vec1.map((v, i) => re0[i] + vec2[i]);
       camera.up.set(1, 0, 0);
-      camera.position.set(...v);
+      camera.position.set(...vec2);
       camera.lookAt(0, 0, 0);
       scene3d.setSize(undefined, undefined, helioFov);
       if (full) {
@@ -2289,7 +2397,7 @@ class Pager {
       [x, y, z] = [x/r, y/r, z/r];
       let ang = Math.acos(dot);
       [x0, y0, z0, x, y, z] = [x0*r0, y0*r0, z0*r0, x*r0, y*r0, z*r0];
-      parameterAnimator.initialize(0, ang, msMove, (a) => {
+      parameterAnimator.initialize(0, ang, [msMove-600, 300], (a) => {
         const [c, s] = [Math.cos(a), Math.sin(a)];
         cameraTo(x0*c + x*s, y0*c + y*s, z0*c + z*s);
         scene3d.render();
@@ -2971,7 +3079,7 @@ function setupSky() {
   sceneUpdater.eqLabel = eqLabel;
 
   // planets.sun = scene3d.createSprite(textureMaps[1], 0.6, 0xffffff);
-  sceneUpdater.addPlanet("sun", textureMaps[1], 0.6, 0xffffff);
+  sceneUpdater.addPlanet("sun", textureMaps[1], 0.4, 0xffffff);
 
   const planetTexture = textureMaps[2];
   sceneUpdater.addPlanet("venus", planetTexture, 0.6, 0xffffff);
@@ -3031,11 +3139,6 @@ window.xyzNow = xyzNow;
 window.sceneUpdater = sceneUpdater;
 window.skyAnimator = skyAnimator;
 
-window.getCamera = () => {
-  let dir = scene3d.camera.getWorldDirection(_dummyVector);
-  return scene3d.camera, dir;
-};
-
 /* ------------------------------------------------------------------------ */
 
 const PRESS_TIMEOUT = 750;
@@ -3043,7 +3146,8 @@ const PRESS_TIMEOUT = 750;
 STARDATE.addEventListener("pointerdown", (event) => {
   if (STARDATE.classList.contains("disabled")) return;
   const didPause = maybePause();  // pause immediately if playing
-  if (sceneUpdater.mode == "sky") sceneUpdater.recenterEcliptic();
+  if (sceneUpdater.mode == "sky" &&
+      !sceneUpdater.freeCamera) sceneUpdater.recenterEcliptic();
   // Wait to test for for press and hold.
   const gotPointerup = (event) => {
     // Got pointerup before timeout, this is just a click.

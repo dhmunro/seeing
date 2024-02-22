@@ -9,7 +9,7 @@
 
 // console.log(THREE.REVISION);  --> 155
 
-import {DefaultLoadingManager, TextureLoader, CubeTextureLoader,
+import {DefaultLoadingManager, TextureLoader, CubeTextureLoader, Fog,
         WebGLRenderer, PerspectiveCamera, Scene, Color, Sprite,
         SpriteMaterial, CanvasTexture, Object3D, Group, BufferGeometry,
         BufferAttribute, Mesh, MeshBasicMaterial, DoubleSide} from "three";
@@ -355,6 +355,14 @@ export class PerspectiveScene {
     if (parent === undefined) parent = this.scene;
     parent.add(grp);
     return grp;
+  }
+
+  fog(color, near, far) {
+    if (color === undefined || color === null) {
+      this.scene.fog = null;
+    } else {
+      this.scene.fog = new Fog(color, near, far);
+    }
   }
 }
 
