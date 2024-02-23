@@ -3183,7 +3183,13 @@ function togglePause() {
 const MAIN_MENU = document.getElementById("menu-bars");
 MAIN_MENU.addEventListener("click", () => {
   if (MAIN_MENU.classList.contains("disabled")) return;
-  console.log("open main menu");
+  MENU_BODY.style.transform = "scale(1)";
+});
+
+const MENU_BODY = document.getElementById("menu-body");
+const CLOSE_MENU = document.getElementById("close-menu");
+CLOSE_MENU.addEventListener("click", () => {
+  MENU_BODY.style.transform = "scale(0)";
 });
 
 function toggleText(opacity) {
@@ -3229,12 +3235,10 @@ REPLAY.addEventListener("click", () => {
 const SET_DATE = document.getElementById("set-date");
 const YYYY = document.getElementById("base-year");
 const MMDD = document.getElementById("base-date");
-// SET_DATE.style.display = "none";
 let sdState = 0;
 SET_DATE.ontransitionend = () => {
   if (sdState) {
     sdState = 0;
-    // SET_DATE.style.display = "none";
     return;
   }
   sdState = 1;
@@ -3344,6 +3348,21 @@ addEventListener("keydown", (event) => {
     break;
   case "End":
     pager.gotoPage(-1);
+    break;
+  case "X":
+  case "x":
+    if (MENU_BODY.getBoundingClientRect().height > 0) {
+      MENU_BODY.style.transform = "scale(0)"
+    } else {
+      toggleText();
+    }
+    break;
+  case "?":
+    if (MENU_BODY.getBoundingClientRect().height > 0) {
+      MENU_BODY.style.transform = "scale(0)"
+    } else {
+      MENU_BODY.style.transform = "scale(1)"
+    }
     break;
   }
 });
