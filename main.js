@@ -3019,6 +3019,7 @@ const textureMaps = loadTextureFiles(
 let initialPage = 0;
 
 function setupSky() {
+  document.querySelector(".lds-spinner").style.display = "none";
   // See https://svs.gsfc.nasa.gov/4851
   // Converted with exrtopng from http://scanline.ca/exrtools/ then
   // equirectangular to cubemap using images/starmapper.py script in this repo.
