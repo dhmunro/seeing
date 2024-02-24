@@ -183,6 +183,16 @@
           text-align: right;
           width: 7em;
       }
+      .day-counter {
+          margin: auto;
+          width: 10em;
+      }
+      .day-counter span {
+          display: inline-block;
+          text-align: right;
+          width: 4em;
+          font-variant-numeric: tabular-nums;
+      }
 
       .button {
           display: inline-block;
@@ -592,8 +602,8 @@
       seasons.  The planets wander above and below the ecliptic, and
       also reverse direction sometimes - the motion of the Sun is much
       simpler.</p>
-</div><div class="hidden">
-    <p style="text-indent: 3em;">Day count: <span id="sun-counter">-</span></p>
+  </div><div class="hidden">
+    <p class="day-counter">Day count: <span id="sun-counter">-</span></p>
     <p class="centered">Interval between equinoxes:
     <br/>March to September: <span id="mar-sep" class="equibox"></span>
     <br/>September to March: <span id="sep-mar" class="equibox"></span>
