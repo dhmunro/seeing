@@ -3,7 +3,7 @@
   <head>
     <title>Touching the Solar System</title>
     <meta name="description"
-          content="How Newton recast Kepler's Laws and brought the heavens to earth">
+          content="How Newton recast Kepler's Laws and grounded the heavens">
     <meta charset="utf-8">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
@@ -78,6 +78,36 @@
           color: #c1b497;
       }
 
+      .hidden {
+          display: none !important;
+      }
+      .unselectable {
+          -webkit-user-select: none; /* Safari */
+          -ms-user-select: none; /* IE 10 and IE 11 */
+          user-select: none; /* Standard syntax */
+      }
+      .centered {
+          text-align: center;
+      }
+      .justified {
+          text-align: justify;
+      }
+
+      .textcolumn {
+          padding-left: 1em;
+          padding-right: 1em;
+          min-width: 22em;
+          max-width: 52em;
+          margin: 0 auto;
+      }
+      .halfwide {
+          width: 60%;
+      }
+      @media only screen and (max-width: 620px) {
+          .halfwide {
+              width: 100%;
+          }
+      }
     </style>
   </head>
   <body>
@@ -85,14 +115,52 @@
 <!-- --------------------------------------------------------------------- -->
 
 <h1>UNDER CONSTRUCTION</h1>
-
 <hr/>
 
-<h1>Touching the Solar System</h1>
-<h2>How Newton recast Kepler's Laws and brought the heavens to earth</h2>
+<div class="textcolumn">
+  <h1 style="text-align: center;">
 
-<p>Kepler's three <a href="/index.html">laws of planetary motion</a>
-  are the crowning achievement of naked-eye astronomy.</p>
+<h1>Touching the Solar System</h1>
+<h2>How Newton recast <a href="/index.html">Kepler's Laws</a>
+  and grounded the heavens</h2>
+
+<p class="justified">Isaac Newton showed that his laws of motion
+  applied not only to ordinary things on Earth, but also governed the
+  planets and moons in our solar system.  His analysis set the
+  standard for all future generations of physicists; our mantra ever
+  since has been, "Think like Newton."</p>
+
+<p class="justified">The natural way to study motion is to begin with
+  trajectory - the arc of a cannonball or the orbit of a planet.  You
+  then think about describing how the object advances along its path
+  in time.  Galileo discovered that the canonball moves in a parabola
+  with a constant horizontal velocity, and this is exactly the pattern
+  of Kepler's first two laws: The planet moves in an ellipse with the
+  Sun at one focus, such that the line between the Sun and planet
+  sweeps out equal areas in equal times.</p>
+
+<p class="justified">Newton was not only one of the greatest
+  physicists of all time, but also one of the greatest mathematicians,
+  capable of inventing a new mathematical tool - the infinitessimal
+  calculus - specifically to be able to think about motion in a
+  radically new way.</p>
+
+<p class="justified">Newton demoted the trajectory into a secondary
+  feature of any motion, promoting instantaneous velocity as well as
+  position to be the primary features.  While Greek philosophers
+  imagined you had to push on things to change their position, Newton
+  recognized that it is the velocity of an object that remains fixed
+  when no forces act on it.  Pushing on things changes their velocity
+  directly, only indirectly changing their position.  That is, force
+  causes acceleration, the change in velocity over time.  With
+  calculus, Newton could derive the trajectories and rules of movement
+  along them from his more fundamental instantaneous positions,
+  velocities, and accelerations.</p>
+
+<p class="justified">So what is the velocity and acceleration of a
+  planet according to Kepler's first two laws?</p>
+
+</div>
 
 <!-- --------------------------------------------------------------------- -->
 
