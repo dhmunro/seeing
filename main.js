@@ -1425,7 +1425,7 @@ class Pager {
           scene3d.render();
           skyAnimator.playChain();
         }).chain(2000).chain(() => {
-          sceneUpdater.pivot(8000, 1000);
+          sceneUpdater.pivot(12000, 1000);
         }).chain(() => {
           controls.enabled = true;
         }).playChain();
@@ -1442,7 +1442,7 @@ class Pager {
         scene3d.render();
         sceneUpdater.showSpokes(500, true);
         skyAnimator.chain(noDelay? 0 : 1000).chain(() => {
-          sceneUpdater.pivot(8000, 1000);
+          sceneUpdater.pivot(12000, 1000);
         }).chain(2000).chain(() => {
           sceneUpdater.zoom(10, 5000);
         }).chain(2000).chain(() => {
