@@ -281,6 +281,63 @@
           border-color: #c1b497;
           color: #c1b497;
       }
+      .range-box {
+          display: table-cell;
+          vertical-align: middle;
+      }
+      .range-box label {
+          vertical-align: middle;
+      }
+      .range-box input {
+          vertical-align: middle;
+      }
+      input[type="range"] {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+          cursor: pointer;
+          width: 12em;
+          padding: 0.2em;
+          border: 0.1em solid transparent;
+          margin-left: 1em;
+      }
+      input[type="range"]:focus {
+          outline: none;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+          background: #fff4;
+          height: 0.5em;
+          border-radius: 0.25em;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          background-color: #c1b497;
+          height: 1.5em;
+          width: 1.5em;
+          border-radius: 0.75em;
+          margin-top: -1em;  /* (track height + thumb height)/2 */
+      }
+      input[type="range"]:focus::-webkit-slider-thumb {
+          border: 0.1rem solid #a0a098;
+          outline: 0.2rem solid #a0a098;
+          outline-offset: 0.1rem;
+      }
+      input[type="range"]::-moz-range-track {
+          background: #fff4;
+          height: 0.5em;
+          border-radius: 0.25em;
+      }
+      input[type="range"]::-moz-range-thumb {
+          background-color: #c1b497;
+          height: 1.5em;
+          width: 1.5em;
+          border: none;
+          border-radius: 0.75em;
+      }
+      input[type="range"]:focus {
+          border: 0.1rem solid #a0a098;
+      }
 
       #set-date {
           position: absolute;
@@ -772,6 +829,8 @@
         <li>Lower left: full screen button</li>
         <li>Upper right: previous page, replay, next page</li>
         <li>Lower right: click to pause, press and hold to change date</li>
+        <li style="display:none;"><div class="range-box"><label for="speed-adj">Adjust speed:</label>
+            <input id="speed-adj" type="range" value="100"></div></li>
       </ul>
     </li>
     <li>Keyboard shortcuts:

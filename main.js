@@ -1280,7 +1280,7 @@ class Pager {
         scene3d.camera.up.set(0, 1, 0);
         resetScene("sky", noDelay);
         skyAnimator.chain(noDelay? 0 : 4000).chain(() => {
-          sceneUpdater.pivot(8000, 1000);
+          sceneUpdater.pivot(12000, 1000);
         }).chain(2000).chain(() => {
           skyAnimator.msEase(1000);
           skyAnimator.playFor(730.51272);
