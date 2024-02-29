@@ -249,6 +249,7 @@
           z-index: 2;
           max-width: 90%;
           max-height: 90%;
+          overflow: auto;
           min-height: 6rem;
           padding: 4rem 1rem 1rem 3.5rem;
           border-radius: 0.5rem;
@@ -316,12 +317,14 @@
           height: 1.5em;
           width: 1.5em;
           border-radius: 0.75em;
-          margin-top: -1em;  /* (track height + thumb height)/2 */
+          margin-top: -0.5em;
       }
       input[type="range"]:focus::-webkit-slider-thumb {
-          border: 0.1rem solid #a0a098;
-          outline: 0.2rem solid #a0a098;
-          outline-offset: 0.1rem;
+          background-color: #c1b497;
+          height: 1.5em;
+          width: 1.5em;
+          border: none;
+          border-radius: 0.75em;
       }
       input[type="range"]::-moz-range-track {
           background: #fff4;
