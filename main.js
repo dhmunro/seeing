@@ -2746,6 +2746,8 @@ class SkyAnimator extends Animator {
       if (stop && self._chain.length) {
         const callback = self._chain.shift();
         setTimeout(() => callback(self), 0);
+      } else if (stop) {
+        enableStardate(false);
       }
       return stop;
     });
@@ -2913,6 +2915,7 @@ class SkyAnimator extends Animator {
     if (this._chain.length) {
       const callback = this._chain.shift();
       setTimeout(() => callback(this), 0);
+      enableStardate(true);
     }
     return this;
   }
@@ -3160,6 +3163,14 @@ STARDATE.addEventListener("pointerdown", (event) => {
   STARDATE.addEventListener("pointerup", gotPointerup);
 });
 
+function enableStardate(yes=true) {
+  const disabled = STARDATE.classList.contains("disabled");
+  if (yes == disabled) {
+    if (yes) STARDATE.classList.remove("disabled");
+    else STARDATE.classList.add("disabled");
+  }
+}
+
 function maybePause() {
   if (parameterAnimator.isPlaying) {
     if (!parameterAnimator.isPaused) {
@@ -3197,6 +3208,7 @@ function togglePause() {
 const PLAY_BUTTON = document.getElementById("play");
 function showPlay(yes=true) {
   PLAY_BUTTON.style.display = yes? "block" : "none";
+  if (yes) enableStardate(false);
 }
 PLAY_BUTTON.addEventListener("click", () => {
   showPlay(false);
