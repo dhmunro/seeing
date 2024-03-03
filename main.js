@@ -1286,7 +1286,7 @@ class Pager {
           sceneUpdater.pivot(12000, 1000);
         }).chain(2000).chain(() => {
           skyAnimator.msEase(1000);
-          skyAnimator.playFor(730.51272);
+          skyAnimator.playFor(5*365.25636);
         }).chain(2500).chain(() => {
           xyzNow.update();
           scene3d.render();
@@ -1309,7 +1309,7 @@ class Pager {
           sceneUpdater.pivotToMeanSun(4000, 1000);
         }).chain(() => {
           skyAnimator.msEase(1000);
-          skyAnimator.playFor(2*730.51272);
+          skyAnimator.playFor(5*365.25636);
         });
         scene3d.render();
         if (noDelay) skyAnimator.playChain();
