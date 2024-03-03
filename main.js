@@ -299,7 +299,7 @@ class SceneUpdater {
     //          normal=400, bold=700
     // size = in px or em, optional /lineheight in px or em
     // family = optional
-    let font = getProp(params, "font", "16px Arial, sans-serif");
+    let font = getProp(params, "font", "bold 16px Arial, sans-serif");
     ctx.font = font;
     let fontSize = parseFloat(
       ctx.font.match(/(?<value>\d+\.?\d*)/).groups.value);
@@ -1289,8 +1289,6 @@ class Pager {
           xyzNow.update();
           scene3d.render();
           skyAnimator.playChain();
-        }).chain(4000).chain(() => {
-          pager.gotoPage(0);
         });
         scene3d.render();
       },
@@ -2121,8 +2119,6 @@ class Pager {
         skyAnimator.chain(() => {
           skyAnimator.msEase(1000);
           skyAnimator.playFor(20*365.25636);
-        }).chain(4000).chain(() => {
-          pager.gotoPage();
         });
       },
 
@@ -2223,8 +2219,6 @@ class Pager {
           sceneUpdater.altCamera = altCamera;
           skyAnimator.msEase(1000);
           skyAnimator.playFor(14*365.25636);
-        }).chain(4000).chain(() => {
-          pager.gotoPage();
         });
       }
     ];
