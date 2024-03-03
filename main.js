@@ -467,8 +467,8 @@ class SceneUpdater {
         scene3d.createSprite(mars, undefined, undefined, subgrp);
       } else {
         sun = sceneUpdater.circleSprite(4.5, "#ffffff", subgrp);
-        earth = sceneUpdater.circleSprite(3.5, "#ccccff", subgrp);
-        mars = sceneUpdater.circleSprite(3.5, "#ffcccc", subgrp);
+        earth = sceneUpdater.circleSprite(3.5, "#aaaaff", subgrp);
+        mars = sceneUpdater.circleSprite(3.5, "#ffaaaa", subgrp);
         mars.material.depthTest = false;
         earth.material.depthTest = false;
         sun.material.depthTest = false;
@@ -608,7 +608,7 @@ class SceneUpdater {
     g = this.scene3d.group(top);
     g.visible = false;
     this.orbitPoints.earthSpokes = g;
-    // 0x444466    0x6c6c89 = three.js 0.25 of 0cccccff
+    // 0x444466    0x6c6c89 = three.js 0.25 of 0xcccccff
     let style = scene3d.createLineStyle({color: 0x6c6c89, linewidth: 2});
     for (i = 0; i < nEarth; i += 1) {
       scene3d.polyline([[0,0,0], [0,0,0]], style, g);
@@ -616,7 +616,7 @@ class SceneUpdater {
     g = this.scene3d.group(top);
     g.visible = false;
     this.orbitPoints.marsSpokes = g;
-    // 0x553333    0x896c6c = three.js 0.25 of 0ffccccc
+    // 0x553333    0x896c6c = three.js 0.25 of 0xffccccc
     style = scene3d.createLineStyle({color: 0x896c6c, linewidth: 2});
     for (i = 0; i < nMars; i += 1) {
       scene3d.polyline([[0,0,0], [0,0,0]], style, g);
@@ -627,7 +627,7 @@ class SceneUpdater {
       if (i) {
         scene3d.createSprite(s, undefined, undefined, g);
       } else {
-        s = sceneUpdater.circleSprite(3.5, "#ccccff", g);
+        s = sceneUpdater.circleSprite(3.5, "#aaaaff", g);
         s.material.depthTest = false;
       }
     }
@@ -637,7 +637,7 @@ class SceneUpdater {
       if (i) {
         scene3d.createSprite(s, undefined, undefined, g);
       } else {
-        s = sceneUpdater.circleSprite(3.5, "#ffcccc", g);
+        s = sceneUpdater.circleSprite(3.5, "#ffaaaa", g);
         s.material.depthTest = false;
       }
     }
@@ -1258,6 +1258,7 @@ function resetAnimators() {
   skyAnimator.msEase().jdRate();
   parameterAnimator.stop();
   parameterAnimator.initialize();
+  showPlay(true);
 }
 
 class Pager {
@@ -1279,7 +1280,7 @@ class Pager {
       (noDelay) => {  // page 0: Seeing the Solar System
         scene3d.camera.up.set(0, 1, 0);
         resetScene("sky", noDelay);
-        skyAnimator.chain(noDelay? 0 : 4000).chain(() => {
+        skyAnimator.chain(() => {
           sceneUpdater.pivot(12000, 1000);
         }).chain(2000).chain(() => {
           skyAnimator.msEase(1000);
@@ -1292,7 +1293,6 @@ class Pager {
           pager.gotoPage(0);
         });
         scene3d.render();
-        skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 1: First study how the Sun moves
@@ -1311,7 +1311,6 @@ class Pager {
           skyAnimator.playFor(2*730.51272);
         });
         scene3d.render();
-        skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 2: The Sun's motion is non-uniform but periodic
@@ -1358,7 +1357,6 @@ class Pager {
         }
         for (let i=0; i<6; i+=1) countDays();
         scene3d.render();
-        skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 3: Venus zig-zags about the Sun
@@ -1374,7 +1372,6 @@ class Pager {
           skyAnimator.playFor(8 * 365.25636);
         });
         scene3d.render();
-        skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 4: Visualize Venus's orbit
@@ -1382,9 +1379,7 @@ class Pager {
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("venus", noDelay);
         sceneUpdater.lookAlong(xc, yc, zc);
-        skyAnimator.chain(noDelay? 0 : 2000);
         sceneUpdater.initializeRing("venus", xyzNow, false, true);
-        skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 5: Find the orbital plane of Venus
@@ -1393,14 +1388,12 @@ class Pager {
         resetScene("venus", noDelay);
         sceneUpdater.lookAlong(xc, yc, zc);
         sceneUpdater.initializeRing("venus", xyzNow, true, true);
-        skyAnimator.chain(noDelay? 0 : 5000);
         const [ta, tb, yr] = sceneUpdater.playToNodes(true);
         for (let i = 1; i <= 4 ; i += 1) {
           skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(ta + i*yr));
           skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(tb + i*yr));
         }
         scene3d.render();
-        skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 6: Venus is to Earth as Earth is to Mars
@@ -1411,6 +1404,7 @@ class Pager {
         sceneUpdater.initializeRing("venus", xyzNow, true, true);
         scene3d.render();
         controls.enabled = true;
+        showPlay(false);
       },
 
       (noDelay) => {  // page 7: Visualize Earth's orbit
@@ -1418,7 +1412,6 @@ class Pager {
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
         resetScene("mars", noDelay);
         sceneUpdater.lookAlong(xc, yc, zc);
-        skyAnimator.chain(noDelay? 0 : 2000);
         sceneUpdater.initializeRing("mars", xyzNow, false, true);
         skyAnimator.chain(() => {
           sceneUpdater.planets.sun.visible = false;
@@ -1428,7 +1421,7 @@ class Pager {
           sceneUpdater.pivot(12000, 1000);
         }).chain(() => {
           controls.enabled = true;
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 8: How to find the Sun-Mars direction
@@ -1441,7 +1434,7 @@ class Pager {
         sceneUpdater.labels.antisun.visible = false;
         scene3d.render();
         sceneUpdater.showSpokes(500, true);
-        skyAnimator.chain(noDelay? 0 : 1000).chain(() => {
+        skyAnimator.chain(() => {
           sceneUpdater.pivot(12000, 1000);
         }).chain(2000).chain(() => {
           sceneUpdater.zoom(10, 5000);
@@ -1452,7 +1445,7 @@ class Pager {
           skyAnimator.playFor(2 * periodOf("mars", xyzNow.jd));
         }).chain(() => {
           controls.enabled = true;
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 9: Opposition is the best reference time
@@ -1465,7 +1458,7 @@ class Pager {
         scene3d.render();
         const jdNow = xyzNow.jd;
         const [jdOpp, iOpp] = sceneUpdater.findOpposition();
-        skyAnimator.chain(noDelay? 0 : 3000).msEase(1000).chain(() => {
+        skyAnimator.msEase(1000).chain(() => {
           skyAnimator.playFor(jdOpp - jdNow);
         }).chain(2000).chain(() => {
           sceneUpdater.zoom(10, 5000);
@@ -1473,19 +1466,19 @@ class Pager {
           sceneUpdater.zoom(HFOV, 5000);
         }).chain(() => {
           controls.enabled = true;
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 10: Begin surveying Earth's orbit!
         let [jdOpp, vec1, vec2, re0, rsm] = helioInit(noDelay);
         scene3d.render();
         const camera = scene3d.camera;
-        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
+        skyAnimator.chain(() => {
           helioSetup(jdOpp);
           scene3d.render();
           skyAnimator.playChain();
           textToggled = toggleText("0");
-        }).chain(2000).chain(() => {
+        }).chain(500).chain(() => {
           const lhfov0 = Math.log(HFOV);
           const lhfov1 = Math.log(scene3d.hfov(helioFov));
           parameterAnimator.initialize(0, 3, [6000, 1000], (frac) => {
@@ -1509,7 +1502,7 @@ class Pager {
         }).chain(3000).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 11: Adopt the heliocentric view
@@ -1523,10 +1516,10 @@ class Pager {
         camera.lookAt(...target);
         scene3d.setSize(undefined, undefined, helioFov);
         scene3d.render();
-        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
+        skyAnimator.chain(() => {
           textToggled = toggleText("0");
           skyAnimator.playChain();
-        }).chain(3000).chain(() => {
+        }).chain(500).chain(() => {
           sceneUpdater.hideOrbit("sun", 0.25, 1000);
         }).chain(1000).chain(() => {
           const ntri = sceneUpdater.triangles.children.length;
@@ -1549,7 +1542,7 @@ class Pager {
         }).chain(3000).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 12: Survey a second point on Mars's orbit
@@ -1558,10 +1551,10 @@ class Pager {
         scene3d.render();
         year = periodOf("earth", jdOpp);
         const myear = periodOf("mars", jdOpp);
-        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
+        skyAnimator.chain(() => {
           textToggled = toggleText("0");
           skyAnimator.playChain();
-        }).chain(() => {
+        }).chain(500).chain(() => {
           sceneUpdater.fadeTriangles(2000, false);
         }).chain(() => {
           parameterAnimator.initialize(0, year, [4000, 500], (djd) => {
@@ -1592,7 +1585,7 @@ class Pager {
         }).chain(3000).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 13: Survey more points on Mars's orbit
@@ -1654,11 +1647,11 @@ class Pager {
           });
         }
 
-        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
+        skyAnimator.chain(() => {
           textToggled = toggleText("0");
           skyAnimator.playChain();
         });
-        takeStep(2, 0, 2000, 800);
+        takeStep(2, 0, 1000, 800);
         takeStep(3, 1, 2000, 800);
         takeStep(4, 2, 2000, 800);
         startStep(5, 4, 2000);
@@ -1686,7 +1679,7 @@ class Pager {
         }).chain(2000).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 14: Fly around orbits of Earth and Mars
@@ -1702,7 +1695,7 @@ class Pager {
         [mx, my, mz] = [mx/mr, my/mr, mz/mr];  // southern mars solstice
 
         const {x: p0x, y: p0y, z: p0z} = scene3d.camera.position;
-        skyAnimator.chain(noDelay? 0 : 6000).chain(() => {
+        skyAnimator.chain(() => {
           viewDirection([-0.25, -0.1, 0.5], 6000);
         }).chain(() => {
           viewDirection([0, 0, 1], 2000);
@@ -1720,7 +1713,7 @@ class Pager {
           viewZoom(0.8, 3000);
         }).chain(() => {
           viewDirection([p0x, p0y, p0z], 5000);
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 15: Orbits are nearly eccentric circles
@@ -1742,10 +1735,10 @@ class Pager {
         scene3d.render();
 
         const twopi = 2*Math.PI;
-        skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+        skyAnimator.chain(() => {
           textToggled = toggleText("0");
           skyAnimator.playChain();
-        }).chain(1000).chain(() => {
+        }).chain(500).chain(() => {
           viewZoom(2.5, 3000);
         }).chain(4000).chain(() => {
           viewZoom(0.4, 3000);
@@ -1764,7 +1757,7 @@ class Pager {
         }).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 16: Kepler's First Law
@@ -1792,10 +1785,10 @@ class Pager {
           }
           scene3d.render();
         }
-        skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+        skyAnimator.chain(() => {
           textToggled = toggleText("0");
           skyAnimator.playChain();
-        }).chain(1000).chain(() => {
+        }).chain(500).chain(() => {
           parameterAnimator.initialize(1, 40, 4000, (f) => {
             exaggerate(f);
           }).play();
@@ -1806,7 +1799,7 @@ class Pager {
         }).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 17: Earth moves faster when closer to Sun
@@ -1858,10 +1851,10 @@ class Pager {
         djd = timePlanetAt("mars", ...meanMars(jdOpp), jdOpp) - jdOpp;
         const jd0m = jdOpp - (mFactor-1)*djd;
         const pos = sceneUpdater.orbitPoints.earth.children[0].position;
-        skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+        skyAnimator.chain(() => {
           textToggled = toggleText("0");
           skyAnimator.playChain();
-        }).chain(1000).chain(() => {
+        }).chain(500).chain(() => {
           parameterAnimator.initialize(
             jdOpp, jd0e+4*year, [11000, 500], (jd) => {
             sceneUpdater.drawMarsPoint(0, jd, true);
@@ -1930,7 +1923,7 @@ class Pager {
         }).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 18: Kepler's Second Law
@@ -1953,7 +1946,7 @@ class Pager {
         const jd0m = jdOpp - 3*jdStep;
         const jd1m = jdOpp + year - 4*jdStep;
         sceneUpdater.sweepSector(0, "earth", jd0e, 0, 0);
-        skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+        skyAnimator.chain(() => {
           textToggled = toggleText("0");
           skyAnimator.playChain();
         });
@@ -1982,7 +1975,7 @@ class Pager {
         skyAnimator.chain(2000).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 19: Use Kepler's Laws to survey other orbits
@@ -2015,7 +2008,7 @@ class Pager {
         sceneUpdater.drawLOS(0, jds[0], true);
         scene3d.render();
         sceneUpdater.updateDate(jds[0]);
-        skyAnimator.chain(noDelay? 0 : 5000).chain(() => {
+        skyAnimator.chain(() => {
           textToggled = toggleText("0");
           skyAnimator.playChain();
         });
@@ -2103,7 +2096,7 @@ class Pager {
         }).chain(2000).chain(() => {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 20: Kepler's Third Law
@@ -2125,12 +2118,12 @@ class Pager {
         sceneUpdater.ecLabel.visible = false;
         sceneUpdater.eqLabel.visible = false;
         scene3d.render();
-        skyAnimator.chain(2000).chain(() => {
+        skyAnimator.chain(() => {
           skyAnimator.msEase(1000);
           skyAnimator.playFor(20*365.25636);
         }).chain(4000).chain(() => {
           pager.gotoPage();
-        }).playChain();
+        });
       },
 
       (noDelay) => {  // page 21: Ready for Newton
@@ -2226,13 +2219,13 @@ class Pager {
             return;
           }
         }
-        skyAnimator.chain(2000).chain(() => {
+        skyAnimator.chain(() => {
           sceneUpdater.altCamera = altCamera;
           skyAnimator.msEase(1000);
           skyAnimator.playFor(14*365.25636);
         }).chain(4000).chain(() => {
           pager.gotoPage();
-        }).playChain();
+        });
       }
     ];
 
@@ -3058,11 +3051,11 @@ function setupSky() {
 
   const planetTexture = textureMaps[2];
   sceneUpdater.addPlanet("venus", planetTexture, 0.6, 0xffffff);
-  sceneUpdater.addPlanet("mars", planetTexture, 0.6, 0xffcccc);
+  sceneUpdater.addPlanet("mars", planetTexture, 0.6, 0xffaaaa);
   sceneUpdater.addPlanet("jupiter", planetTexture, 0.6, 0xffffff);
-  sceneUpdater.addPlanet("saturn", planetTexture, 0.6, 0xffffcc);
+  sceneUpdater.addPlanet("saturn", planetTexture, 0.6, 0xffffaa);
   sceneUpdater.addPlanet("mercury", planetTexture, 0.4, 0xffffff);
-  sceneUpdater.addPlanet("earth", planetTexture, 0.6, 0xccccff);
+  sceneUpdater.addPlanet("earth", planetTexture, 0.6, 0xaaaaff);
 
   sceneUpdater.addLabel("sun", {}, 2, 1.8);
   sceneUpdater.addLabel("venus", {}, 2, 1.25);
@@ -3180,6 +3173,15 @@ function togglePause() {
 }
 
 /* ------------------------------------------------------------------------ */
+
+const PLAY_BUTTON = document.getElementById("play");
+function showPlay(yes=true) {
+  PLAY_BUTTON.style.display = yes? "block" : "none";
+}
+PLAY_BUTTON.addEventListener("click", () => {
+  showPlay(false);
+  skyAnimator.playChain();
+});
 
 const MAIN_MENU = document.getElementById("menu-bars");
 MAIN_MENU.addEventListener("click", () => {

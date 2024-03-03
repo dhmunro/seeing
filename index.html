@@ -234,6 +234,13 @@
           bottom: 0.5rem;
           left: 0.5rem;
       }
+      #play {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) scale(1.5);
+          display: block;
+      }
       #main-menu {
           position: absolute;
           top: 0.5rem;
@@ -632,6 +639,9 @@
 </div></div>
 <div id="midbox">
   <canvas id="skymap"></canvas>
+  <svg id="play" class="button" xmlns="http://www.w3.org/2000/svg"
+       height="2rem" viewBox="0 0 512 512">
+    <use xlink:href="#fa-play" /></svg>
   <div id="stardate" class="button unselectable">2024<br>01-02</div>
   <div id="set-date">
     <input id="base-year" name="base-year" type="text"
