@@ -2747,7 +2747,7 @@ class SkyAnimator extends Animator {
         const callback = self._chain.shift();
         setTimeout(() => callback(self), 0);
       } else if (stop) {
-        enableStardate(false);
+        runIndicator(false);
       }
       return stop;
     });
@@ -2897,12 +2897,13 @@ class SkyAnimator extends Animator {
   chain(callback) {
     if (Number.isFinite(callback)) {
       if (callback <= 0) return this;
-      const chain = this._chain;
+      const _chain = this._chain;
       const time = callback;
       callback = () => {
         this.cancelTimeout();
         this._timeout = setTimeout(() => {
-          if (chain.length) chain.shift()(this);
+          if (_chain.length) _chain.shift()(this);
+          else runIndicator(false);
         }, time);
       };
     }
@@ -2915,7 +2916,9 @@ class SkyAnimator extends Animator {
     if (this._chain.length) {
       const callback = this._chain.shift();
       setTimeout(() => callback(this), 0);
-      enableStardate(true);
+      runIndicator(true);
+    } else {
+      runIndicator(false);
     }
     return this;
   }
@@ -3163,14 +3166,6 @@ STARDATE.addEventListener("pointerdown", (event) => {
   STARDATE.addEventListener("pointerup", gotPointerup);
 });
 
-function enableStardate(yes=true) {
-  const disabled = STARDATE.classList.contains("disabled");
-  if (yes == disabled) {
-    if (yes) STARDATE.classList.remove("disabled");
-    else STARDATE.classList.add("disabled");
-  }
-}
-
 function maybePause() {
   if (parameterAnimator.isPlaying) {
     if (!parameterAnimator.isPaused) {
@@ -3208,7 +3203,7 @@ function togglePause() {
 const PLAY_BUTTON = document.getElementById("play");
 function showPlay(yes=true) {
   PLAY_BUTTON.style.display = yes? "block" : "none";
-  if (yes) enableStardate(false);
+  if (yes) runIndicator(false);
 }
 PLAY_BUTTON.addEventListener("click", () => {
   showPlay(false);
@@ -3266,6 +3261,11 @@ REPLAY.addEventListener("click", () => {
   if (REPLAY.classList.contains("disabled")) return;
   pager.replay();
 });
+
+function runIndicator(yes=true) {
+  if (yes) REPLAY.classList.add("highlighted");
+  else REPLAY.classList.remove("highlighted");
+}
 
 const SET_DATE = document.getElementById("set-date");
 const YYYY = document.getElementById("base-year");

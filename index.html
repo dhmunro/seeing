@@ -349,6 +349,22 @@
           border: 0.1rem solid #a0a098;
       }
 
+      .highlighted {
+          fill: beige;  /* #a0a098 */
+          color: beige;  /* #a0a098 */
+          animation: color-pulser 1s infinite alternate ease-in-out;
+      }
+      @keyframes color-pulser {
+          0% {
+              fill: beige;
+              color: beige;
+          }
+          100% {
+              fill: #a0a098;
+              color: #a0a098;
+          }
+      }
+
       #set-date {
           position: absolute;
           bottom: 0.5rem;
@@ -642,7 +658,7 @@
   <svg id="play" class="button" xmlns="http://www.w3.org/2000/svg"
        height="2rem" viewBox="0 0 512 512">
     <use xlink:href="#fa-play" /></svg>
-  <div id="stardate" class="button unselectable disabled">2024<br>01-02</div>
+  <div id="stardate" class="button unselectable">2024<br>01-02</div>
   <div id="set-date">
     <input id="base-year" name="base-year" type="text"
            minlength="4" maxlength="5" size="5"/>
