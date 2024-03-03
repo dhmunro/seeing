@@ -1231,6 +1231,8 @@ function resetScene(mode, noDelay) {
   if (!noDelay) {
     toggleText("1");
     showPlay(true);
+  } else {
+    showPlay(false);
   }
   toggleAreaLegend(false);
   sceneUpdater.triangle.visible = false;
@@ -1405,12 +1407,12 @@ class Pager {
       (noDelay) => {  // page 6: Venus is to Earth as Earth is to Mars
         sceneUpdater.recenterEcliptic();
         const [xc, yc, zc] = sceneUpdater.cameraDirection();
-        resetScene("venus", noDelay);
+        resetScene("venus", true);  // always toggle text on
+        showPlay(false);  // never show play button
         sceneUpdater.lookAlong(xc, yc, zc);
         sceneUpdater.initializeRing("venus", xyzNow, true, true);
         scene3d.render();
         controls.enabled = true;
-        showPlay(false);
       },
 
       (noDelay) => {  // page 7: Visualize Earth's orbit
@@ -2654,6 +2656,7 @@ class Pager {
     const pageExit = this.pageExit[iPage];
     const pageEnter = this.pageEnter[i];
     resetAnimators();
+    if (noDelay) showPlay(false);
     if (pageExit) pageExit();
     if (pageEnter) pageEnter(noDelay);
   }
