@@ -1228,7 +1228,10 @@ const sceneUpdater = new SceneUpdater(scene3d, xyzNow);
 /* ------------------------------------------------------------------------ */
 
 function resetScene(mode, noDelay) {
-  if (!noDelay) toggleText("1");
+  if (!noDelay) {
+    toggleText("1");
+    showPlay(true);
+  }
   toggleAreaLegend(false);
   sceneUpdater.triangle.visible = false;
   sceneUpdater.fadeTriangles(0, true, true);
@@ -1258,7 +1261,6 @@ function resetAnimators() {
   skyAnimator.msEase().jdRate();
   parameterAnimator.stop();
   parameterAnimator.initialize();
-  showPlay(true);
 }
 
 class Pager {
@@ -1291,6 +1293,7 @@ class Pager {
           skyAnimator.playChain();
         });
         scene3d.render();
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 1: First study how the Sun moves
@@ -1309,6 +1312,7 @@ class Pager {
           skyAnimator.playFor(2*730.51272);
         });
         scene3d.render();
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 2: The Sun's motion is non-uniform but periodic
@@ -1355,6 +1359,7 @@ class Pager {
         }
         for (let i=0; i<6; i+=1) countDays();
         scene3d.render();
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 3: Venus zig-zags about the Sun
@@ -1370,6 +1375,7 @@ class Pager {
           skyAnimator.playFor(8 * 365.25636);
         });
         scene3d.render();
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 4: Visualize Venus's orbit
@@ -1378,6 +1384,7 @@ class Pager {
         resetScene("venus", noDelay);
         sceneUpdater.lookAlong(xc, yc, zc);
         sceneUpdater.initializeRing("venus", xyzNow, false, true);
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 5: Find the orbital plane of Venus
@@ -1392,6 +1399,7 @@ class Pager {
           skyAnimator.chain(2000).chain(() => skyAnimator.playUntil(tb + i*yr));
         }
         scene3d.render();
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 6: Venus is to Earth as Earth is to Mars
@@ -1420,6 +1428,7 @@ class Pager {
         }).chain(() => {
           controls.enabled = true;
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 8: How to find the Sun-Mars direction
@@ -1444,6 +1453,7 @@ class Pager {
         }).chain(() => {
           controls.enabled = true;
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 9: Opposition is the best reference time
@@ -1465,6 +1475,7 @@ class Pager {
         }).chain(() => {
           controls.enabled = true;
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 10: Begin surveying Earth's orbit!
@@ -1501,6 +1512,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 11: Adopt the heliocentric view
@@ -1541,6 +1553,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 12: Survey a second point on Mars's orbit
@@ -1584,6 +1597,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 13: Survey more points on Mars's orbit
@@ -1678,6 +1692,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 14: Fly around orbits of Earth and Mars
@@ -1712,6 +1727,7 @@ class Pager {
         }).chain(() => {
           viewDirection([p0x, p0y, p0z], 5000);
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 15: Orbits are nearly eccentric circles
@@ -1756,6 +1772,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 16: Kepler's First Law
@@ -1798,6 +1815,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 17: Earth moves faster when closer to Sun
@@ -1922,6 +1940,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 18: Kepler's Second Law
@@ -1974,6 +1993,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 19: Use Kepler's Laws to survey other orbits
@@ -2095,6 +2115,7 @@ class Pager {
           if (textToggled) toggleText("1");
           skyAnimator.playChain();
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 20: Kepler's Third Law
@@ -2120,6 +2141,7 @@ class Pager {
           skyAnimator.msEase(1000);
           skyAnimator.playFor(20*365.25636);
         });
+        if (noDelay) skyAnimator.playChain();
       },
 
       (noDelay) => {  // page 21: Ready for Newton
@@ -2220,6 +2242,7 @@ class Pager {
           skyAnimator.msEase(1000);
           skyAnimator.playFor(14*365.25636);
         });
+        if (noDelay) skyAnimator.playChain();
       }
     ];
 
