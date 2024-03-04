@@ -360,7 +360,7 @@ class SceneUpdater {
     //          normal=400, bold=700
     // size = in px or em, optional /lineheight in px or em
     // family = optional
-    let font = getProp(params, "font", "16px Arial, sans-serif");
+    let font = getProp(params, "font", "bold 16px Arial, sans-serif");
     ctx.font = font;
     let fontSize = parseFloat(
       ctx.font.match(/(?<value>\d+\.?\d*)/).groups.value);
@@ -1449,7 +1449,7 @@ class Pager {
           sceneUpdater.zoom(10, 5000);
         }).chain(2000).chain(() => {
           sceneUpdater.zoom(HFOV, 5000);
-        }).chain(5000).chain(() => {
+        }).chain(3000).chain(() => {
           skyAnimator.msEase(1000);
           skyAnimator.playFor(2 * periodOf("mars", xyzNow.jd));
         }).chain(() => {
@@ -2141,7 +2141,7 @@ class Pager {
         scene3d.render();
         skyAnimator.chain(() => {
           skyAnimator.msEase(1000);
-          skyAnimator.playFor(20*365.25636);
+          skyAnimator.playFor(6*365.25636);
         });
         if (noDelay) skyAnimator.playChain();
       },
@@ -3185,6 +3185,7 @@ function maybePause() {
 }
 
 function togglePause() {
+  showPlay(false);
   if (parameterAnimator.isPlaying) {
     if (parameterAnimator.isPaused) parameterAnimator.play()
     else parameterAnimator.pause();
