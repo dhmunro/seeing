@@ -139,6 +139,12 @@
   Sun at one focus, such that the line between the Sun and planet
   sweeps out equal areas in equal times.</p>
 
+[Picture of elliptical orbit, showing radius sweeping out orbit.]
+<br><br>
+[Idea: Pictures are full column width, appearing at bottom of screen
+under text, and coupled to scrolling, so that as relevant text scrolls
+into view, the picture changes accordingly.]
+
 <p class="justified">Newton was not only one of the greatest
   physicists of all time, but also one of the greatest mathematicians,
   capable of inventing a new mathematical tool - the infinitessimal
@@ -157,8 +163,242 @@
   along them from his more fundamental instantaneous positions,
   velocities, and accelerations.</p>
 
-<p class="justified">So what is the velocity and acceleration of a
+[Picture adds velocity vector and position vector, while area and orbit
+ trajectory fade out.]
+
+<p class="justified">So what are the velocity and acceleration of a
   planet according to Kepler's first two laws?</p>
+
+<h2>Kepler's Second Law</h2>
+
+<p class="justified">The radius vector from the Sun to a planet sweeps
+  out equal areas in equal times as the planet moves.  Thus, Kepler's
+  second law is already a statement about a rate of change: The rate
+  that a planet's radius sweeps out area is some fixed constant.</p>
+
+[Picture shows ellipse with fixed time/area sector drawn.]
+
+<p class="justified">Newton's first law states that absent any forces,
+  a body will move in a straight line at a constant speed.  You can
+  easily see this implies that the radius vector from any fixed point
+  to the body will sweep out equal areas in equal times.  This is a
+  simple consequence of the fact that the area of a triangle is half
+  the product of its base and height: The rate of change of the area
+  is half the height times the speed of the body along the base.</p>
+
+[Picture changes to straight line motion under point with fixed
+ time/area triangle drawn.]
+
+<p class="justified">Now the height of the triangle is an inconvenient
+  quantity; the radius and the velocity vectors are Newton's preferred
+  way to describe motion.  Notice that if you decompose the velocity
+  vector into components in the radial and transverse directions, then
+  the right triangle with the radius as its hypotenuse and height as
+  one side is similar to the triangle with the whole velocity as its
+  hypotenuse and the transverse velocity component as one side.  Thus,
+  the rate of change of area is also half the product of the radius
+  and the transverse component of velocity.
+
+[Picture changes to show similar position and velcity triangles, then
+ the two equal area hs = rv triangles.]
+
+<p>If the velocity suddenly changes, the rate of change of area will
+  remain unchanged if and only if only the radial component of
+  velocity changes.</p>
+
+[Picture changes to show a deflecting trajectory, with the equal area
+ triangles before and after the deflection.  Add more and closer spaced
+ radial deflections until trajectory becomes smooth curve.]
+
+<p class="justified">Now when you say that a planet moves around the
+  Sun, what you are really saying is that its velocity is continually
+  being deflected towards the Sun.  You just reasoned that if the rate
+  the radius vector sweeps out area remains constant, then only the
+  radial component of velocity can be changing.  (Although the
+  transverse velocity component does not change over infinitessimal
+  times, over finite times it does changes because the radial and
+  transverse directions are changing!)  That is, Newton recast
+  Kepler's second law into the statement that a planet is always
+  accelerating directly toward the Sun.</p>
+
+[Picture changes to show the original elliptical trajectory with the
+ moving shaded sector, then adding the velocity vector and inward
+ radial acceleration vector, finally fading out the shaded sector
+ and trajectory for just the velocity and radial acceleration
+ vectors.]
+
+<p class="justified">A planet always accelerates directly toward the
+  Sun.  Surely that is a better way to think about what is happening,
+  instead of imagining radius vectors sweeping out areas!</p>
+
+<h2>Newton's program</h2>
+
+<p class="justified">Do the position and velocity of the planet
+  completely determine the instantaneous rate both position and
+  velocity are changing?</p>
+
+<p class="justified">If so, starting from any position and velocity,
+  their rates of change tell you the new position and velocity an
+  infinitessimal time later.  Those new values then give you new rates
+  of change for the next infinitessimal time step, and so on.  Newton
+  invented calculus to be able to accumulate infinitely many such
+  infinitessimal time steps, and thereby follow the trajectory for
+  finite time intervals.  This is Newton's program for describing
+  planetary motion: Instead of giving the shape of the orbit, give the
+  rule for calculating the rates of change of position and velocity as
+  functions of position and velocity.</p>
+
+<p class="justified">By definition, the velocity is the rate of change
+  of the position.  You already know that the rate of change of
+  velocity - acceleration - of a planet points directly at the Sun
+  from Kepler's second law.  Newton's program thus boils down to
+  finding a rule relating the magnitude of a planet's acceleration to
+  its position (and, perhaps, it's velocity).  Such a rule is called
+  a <em>force law</em>; find the force law, and you have described the
+  motion.</p>
+
+<p class="justified">If you can find a force law for the planets, the
+  shape of their orbits becomes just a side effect.  The orbit will
+  remain Kepler's ellipse traversed according to his equal area law,
+  but you instead describe the motion like so: This planet started at
+  this position, moving with this velocity, and thereafter, it
+  accelerated directly toward the Sun at such-and-such a rate.  You
+  will have cast planetary motion in an entirely new light, equivalent
+  to Kepler but expressed quite differently.</p>
+
+<h2>Circular motion and constant speed motion</h2>
+
+<p class="justified">To follow Newton's reasoning about planetary
+  motion, you must first study a special case: An acceleration that
+  changes only the direction of a velocity, leaving speed unchanged.
+  Begin with a body moving around a circle at a constant speed.</p>
+
+<p class="justified">The position and velocity vectors evidently each
+  revolve around their own circle in lockstep, with the velocity
+  vector ninety degrees ahead of the position vector.  The radius of
+  the velocity circle is the constant speed - the perimeter of the
+  position circle divided by the period.  The angular speed is the
+  rate either vector is changing direction, in degrees per second for
+  example.  However, using radians to measure angles is a more
+  convenient choice here, because then the radius of the velocity
+  circle is just the product of the angular speed and the radius of
+  the position circle.</p>
+
+<p class="justified">As long as the body is constrained to move along
+  the circle, its instantaneous velocity will always be the product of
+  its instantaneous angular speed and its radius, in the direction
+  ninety degrees ahead of its current position.  The motion need not
+  have a constant speed for the instantaneous formula to apply.  The
+  velocity vector will not be confined to a circle when the angular
+  speed is not constant; its length will change in proportionally as
+  the angualr speed changes.</p>
+
+<p class="justified">Similarly, the magnitude of the acceleration is
+  the product of the angular speed and the radius of the velocity
+  circle, and its direction is ninety degrees ahead of the velocity
+  vector.  Once again, this formula applies as long as the radius
+  of the velocity vector - the speed - remains constant, and you use
+  the angular speed of the velocity direction - the rate of turning.
+  Notice that a non-uniform constant speed motion can produce a
+  completely arbitrary trajectory in position space - in principle,
+  you can drive around any track at a constant speed.</p>
+
+<h2>What exactly is an ellipse?</h2>
+
+<p class="justified">Kepler's first law involves ellipses and their
+  foci, so you need to know precisely what those terms mean to be able
+  to follow Newton's reasoning.  In simplest terms, an ellipse is a
+  circle elongated along one axis.  More precisely, an ellipse is the
+  shape of a section of a right circular cylinder cut by a plane not
+  normal to its axis - think of cucumber slices when cut on a
+  bias.</p>
+
+[Picture of circle stretching into ellipse, then add 3D cylinder with
+ slicing plane and rotate in 3D to an orientation you might see if you
+ were slicing a cucumber.]
+
+<p class="justified">To find the focus of this ellipse, introduce a
+  sphere of the same radius as the cylinder and slide its center along
+  the axis of the cylinder until it just touches the cutting plane.
+  That tangency point is one focus of the ellipse.</p>
+
+[Picture shows sphere moving down axis, stopping when it touches the
+ cutting plane, then rotating to show face on view ellipse with focus,
+ then back to side on view of cylinder.]
+
+<p class="justified">Label the focus S and any point on the ellipse P.
+  SP is tangent to the sphere at S.  Draw PD along the surface of the
+  cylinder parallel to its axis, with D on the circle where the sphere
+  touches the cylinder.  Then DP has the same length as SP, because all
+  tangents to a sphere drawn from a point outside the sphere have the
+  same length.  Slide a copy of the tangent circle down the cylinder
+  until the focus S lies in the plane of this new circle, and extend
+  DP to reach the new circle at E.  Now the length of DE is just the
+  distance between the two circles, which is the same for any choice
+  of P.  Draw right triangle GED with G in the cutting plane and GED
+  perpendicular to the cutting plane.  Note that right triangle GEP
+  always has the same shape (moving P merely changes its size); in
+  fact, angle PGE is the angle of the cutting plane from the normal
+  to the cylinder axis.</p>
+
+<p class="justified">The invariant length DE=DP+PE, so SP+PE=DE, a
+  constant.  Rotate E around GP by ninety degrees to bring E into the
+  plane of the ellipse.  The constancy of SP+PE as P moves defines the
+  ellipse.  Choosing the invariant shape of the right triangle GEP is
+  the same thing as choosing the angle of the slice.  As the cut
+  becomes normal, the edge PE of GEP becomes zero and the condition
+  that SP is constant defines a circle.  Note that when the direction
+  of GP reverses, you have to treat PE as an algebraic quantity and
+  subtract its length from SP to keep the constant value DE.  You now
+  have two equivalent ways to describe the shape of an ellipse: it is
+  a stretched circle generated by cutting a cylinder on a bias, and it
+  is the locus of points P for which SP+PE is constant.</p>
+
+<p class="justified">The geometry of an ellipse is extremely rich;
+  ellipses have many elegant properties worked out by Apollonius
+  twenty two centuries ago.  To follow Newton's reasoning, you need
+  yet another equivalent way to describe the shape.  Notice that you
+  can slide a second sphere into the opposite end of the cylinder,
+  defining a second focus, call it F.  As you did for the first focus,
+  connect an arbitrary point P on the ellipse to point H on the circle
+  where the second sphere touches the cylinder.  Now FP equals HP,
+  just as before you found SP and DP equal.  But DP+PH=DH, which is
+  always the distance between the centers of the two spheres.  Thus
+  the ellipse is the set of points P for which SP+FP=DH, that is, for
+  which the sum of the distances from its two foci is a fixed
+  constant.  It's not hard to see that the constant DH equals the long
+  axis of the ellipse.</p>
+
+[Picture mutates to described endpoint.  The two tangent segments
+connected to the tiny circle fold together, while the two segments
+connected to the huge circle connect the Sun focus to the circle
+centered on the other focus in two equal steps via a point on the
+ellipse.  The point on the ellipse runs once around to show that the
+sum of distances remains fixed.]
+
+<p class="justified">Consider the vector SQ from the S focus to the
+  point Q on the circle.  SQ has constant length, equal to the long
+  axis of the ellipse.  Vector OQ is the sum of a fixed vector
+  OS and the vector OQ from the O focus to the point Q.  Furthermore,
+  OQ is always perpendicular to the tangent to the ellipse at point P,
+  which is the perpendicular bisector MP of the isoceles triangle
+  OPQ.</p>
+
+[Picture adds labeled points, the vectors ST, TQ, and SQ, and the
+pependicular bisector PB, then P runs once around to show tangency of
+PB (which should extend a bit beyond P and B).]
+
+<h2>Kepler's First Law</h2>
+
+<p class="justified">As a planet orbits around its ellipse sweeping
+  out equal areas in equal times, its velocity vector clearly orbits
+  around a closed path in velocity space.  What is the shape of that
+  curve in velocity space?</p>
+
+<p class="justified">The direction of the velocity vector is the same
+  as the tangent to the ellipse, namely the perpendicular bisector PB.
+  But what is its magnitude?
+</p>
 
 </div>
 
