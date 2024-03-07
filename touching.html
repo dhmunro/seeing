@@ -199,7 +199,7 @@ into view, the picture changes accordingly.]
   the rate of change of area is also half the product of the radius
   and the transverse component of velocity.
 
-[Picture changes to show similar position and velcity triangles, then
+[Picture changes to show similar position and velocity triangles, then
  the two equal area hs = rv triangles.]
 
 <p>If the velocity suddenly changes, the rate of change of area will
@@ -237,6 +237,10 @@ into view, the picture changes accordingly.]
   completely determine the instantaneous rate both position and
   velocity are changing?</p>
 
+[Picture splits into separate position and velocity diagrams, showing
+ velocity vector on both, moving acceleration vector to velocity
+ diagram.]
+
 <p class="justified">If so, starting from any position and velocity,
   their rates of change tell you the new position and velocity an
   infinitessimal time later.  Those new values then give you new rates
@@ -255,10 +259,14 @@ into view, the picture changes accordingly.]
   finding a rule relating the magnitude of a planet's acceleration to
   its position (and, perhaps, it's velocity).  Such a rule is called
   a <em>force law</em>; find the force law, and you have described the
-  motion.</p>
+  motion.  The function that produces acceleration for each position
+  is called a <em>force field</em>.</p>
 
-<p class="justified">If you can find a force law for the planets, the
-  shape of their orbits becomes just a side effect.  The orbit will
+[Picture shows many acceleration vectors in background to indicate
+ acceleration field.]
+
+<p class="justified">If you can find a force law for a planet, the
+  shape of its orbit becomes just a side effect.  The orbit will
   remain Kepler's ellipse traversed according to his equal area law,
   but you instead describe the motion like so: This planet started at
   this position, moving with this velocity, and thereafter, it
@@ -266,51 +274,14 @@ into view, the picture changes accordingly.]
   will have cast planetary motion in an entirely new light, equivalent
   to Kepler but expressed quite differently.</p>
 
-<h2>Circular motion and constant speed motion</h2>
+<h2>Three ways to define an ellipse</h2>
 
-<p class="justified">To follow Newton's reasoning about planetary
-  motion, you must first study a special case: An acceleration that
-  changes only the direction of a velocity, leaving speed unchanged.
-  Begin with a body moving around a circle at a constant speed.</p>
-
-<p class="justified">The position and velocity vectors evidently each
-  revolve around their own circle in lockstep, with the velocity
-  vector ninety degrees ahead of the position vector.  The radius of
-  the velocity circle is the constant speed - the perimeter of the
-  position circle divided by the period.  The angular speed is the
-  rate either vector is changing direction, in degrees per second for
-  example.  However, using radians to measure angles is a more
-  convenient choice here, because then the radius of the velocity
-  circle is just the product of the angular speed and the radius of
-  the position circle.</p>
-
-<p class="justified">As long as the body is constrained to move along
-  the circle, its instantaneous velocity will always be the product of
-  its instantaneous angular speed and its radius, in the direction
-  ninety degrees ahead of its current position.  The motion need not
-  have a constant speed for the instantaneous formula to apply.  The
-  velocity vector will not be confined to a circle when the angular
-  speed is not constant; its length will change in proportionally as
-  the angualr speed changes.</p>
-
-<p class="justified">Similarly, the magnitude of the acceleration is
-  the product of the angular speed and the radius of the velocity
-  circle, and its direction is ninety degrees ahead of the velocity
-  vector.  Once again, this formula applies as long as the radius
-  of the velocity vector - the speed - remains constant, and you use
-  the angular speed of the velocity direction - the rate of turning.
-  Notice that a non-uniform constant speed motion can produce a
-  completely arbitrary trajectory in position space - in principle,
-  you can drive around any track at a constant speed.</p>
-
-<h2>What exactly is an ellipse?</h2>
-
-<p class="justified">Kepler's first law involves ellipses and their
-  foci, so you need to know precisely what those terms mean to be able
-  to follow Newton's reasoning.  In simplest terms, an ellipse is a
-  circle elongated along one axis.  More precisely, an ellipse is the
-  shape of a section of a right circular cylinder cut by a plane not
-  normal to its axis - think of cucumber slices when cut on a
+<p class="justified">Kepler's first law involves an ellipse and its
+  focus, so you need to know precisely what those terms mean to be
+  able to follow Newton's reasoning.  In simplest terms, an ellipse is
+  a circle elongated along one axis.  More precisely, an ellipse is
+  the shape of a section of a right circular cylinder cut by a plane
+  not normal to its axis - think of cucumber slices when cut on a
   bias.</p>
 
 [Picture of circle stretching into ellipse, then add 3D cylinder with
@@ -326,79 +297,227 @@ into view, the picture changes accordingly.]
  cutting plane, then rotating to show face on view ellipse with focus,
  then back to side on view of cylinder.]
 
-<p class="justified">Label the focus S and any point on the ellipse P.
-  SP is tangent to the sphere at S.  Draw PD along the surface of the
-  cylinder parallel to its axis, with D on the circle where the sphere
-  touches the cylinder.  Then DP has the same length as SP, because all
+<p class="justified">Let point S be the focus, point C be the center
+  of the ellipse (where the cylinder axis intersects the cutting
+  plane), point B be the point on the ellipse farthest from C on the
+  same side as S, and point A be on the cylinder such that CAB is a
+  right angle whose plane is normal to the cutting plane.  CA is the
+  radius of the sphere and cylinder, or half the short axis of the
+  ellipse, CB is half the long axis of the ellipse, and BA equals CS,
+  the distance of the focus from the center of the ellipse.  The ratio
+  CS/CB (or BA/CB) is the eccentricity, or &epsilon;, of the ellipse.
+  As &epsilon; varies from 0 to 1, the ellipse varies from a circle to
+  an infinitely elongated cigar.</p>
+
+[Picture labels S, rolls to top view of slice, then triangle CAB fades
+ in.  A copy of this triangle rotates and flips to show CS=AB -
+ perhaps rolling a bit to turn the flip into a continuous rotation
+ about CA.]
+
+<p class="justified">Choose any point on the ellipse P.  SP is tangent
+  to the sphere at S.  Draw DP along the surface of the cylinder
+  parallel to its axis, with D on the circle where the sphere touches
+  the cylinder.  Then DP has the same length as SP, because all
   tangents to a sphere drawn from a point outside the sphere have the
   same length.  Slide a copy of the tangent circle down the cylinder
   until the focus S lies in the plane of this new circle, and extend
-  DP to reach the new circle at E.  Now the length of DE is just the
-  distance between the two circles, which is the same for any choice
-  of P.  Draw right triangle GED with G in the cutting plane and GED
-  perpendicular to the cutting plane.  Note that right triangle GEP
-  always has the same shape (moving P merely changes its size); in
-  fact, angle PGE is the angle of the cutting plane from the normal
-  to the cylinder axis.</p>
+  DP to reach the new circle at E.  Draw right triangle GED with G in
+  the cutting plane and GED perpendicular to the cutting plane.  Note
+  that triangle GEP is always the same shape as CAB - only its size
+  changes as P moves around the ellipse.  Therefore PE/GP equals the
+  eccentricity &epsilon;.  In other words, PE equals &epsilon;GP - a
+  fixed fraction of GP.</p>
 
-<p class="justified">The invariant length DE=DP+PE, so SP+PE=DE, a
-  constant.  Rotate E around GP by ninety degrees to bring E into the
-  plane of the ellipse.  The constancy of SP+PE as P moves defines the
-  ellipse.  Choosing the invariant shape of the right triangle GEP is
-  the same thing as choosing the angle of the slice.  As the cut
-  becomes normal, the edge PE of GEP becomes zero and the condition
-  that SP is constant defines a circle.  Note that when the direction
-  of GP reverses, you have to treat PE as an algebraic quantity and
-  subtract its length from SP to keep the constant value DE.  You now
-  have two equivalent ways to describe the shape of an ellipse: it is
-  a stretched circle generated by cutting a cylinder on a bias, and it
-  is the locus of points P for which SP+PE is constant.</p>
+[Picture mutates to show construction of DP, highlighting SP and DP in
+ the same color, and letting P orbit the ellipse once to show SP=DP.
+ Show second circle moving along cylinder, and intersection line of
+ its plane with cutting plane, stopping when that intersection line
+ reaches S.  Add point G on that line and extend DP to E to form right
+ triangle GED.  Again, let P orbit once showing constancy of DE.
+ Finally, roll cylinder to top view to show GEP is same shape as CAB.]
 
-<p class="justified">The geometry of an ellipse is extremely rich;
-  ellipses have many elegant properties worked out by Apollonius
-  twenty two centuries ago.  To follow Newton's reasoning, you need
-  yet another equivalent way to describe the shape.  Notice that you
-  can slide a second sphere into the opposite end of the cylinder,
-  defining a second focus, call it F.  As you did for the first focus,
-  connect an arbitrary point P on the ellipse to point H on the circle
-  where the second sphere touches the cylinder.  Now FP equals HP,
-  just as before you found SP and DP equal.  But DP+PH=DH, which is
-  always the distance between the centers of the two spheres.  Thus
-  the ellipse is the set of points P for which SP+FP=DH, that is, for
-  which the sum of the distances from its two foci is a fixed
-  constant.  It's not hard to see that the constant DH equals the long
-  axis of the ellipse.</p>
+<p class="justified">Now the length of DE is just the distance between
+  the two circles, no matter what P you choose.  Since DP equals SP,
+  the sum SP+PE must remain constant (equal to DE) as P moves around
+  the ellipse.  Note that you need to regard PE as an algebraic
+  quantity with a sign, positive when P is between D and E, but
+  negative when E is between D and P.  This relationship provides a
+  second way to define the ellipse: The locus of all points P such
+  that SP+&epsilon;GP equals a constant.  If you write &epsilon;GP for
+  PE here, then unlike the sliced cylinder definition of an ellipse,
+  this definition doesn't involve the third dimension.</p>
 
-[Picture mutates to described endpoint.  The two tangent segments
-connected to the tiny circle fold together, while the two segments
-connected to the huge circle connect the Sun focus to the circle
-centered on the other focus in two equal steps via a point on the
-ellipse.  The point on the ellipse runs once around to show that the
-sum of distances remains fixed.]
+[Picture rolls away from top view of slice, then shows how GEP changes
+ as P orbits the ellipse, and how the sign of PE changes.  Rotate to
+ view ellipse plane.  Finally, let P orbit ellipse to show how
+ SP+&epsilon;GP remains constant?]
 
-<p class="justified">Consider the vector SQ from the S focus to the
-  point Q on the circle.  SQ has constant length, equal to the long
-  axis of the ellipse.  Vector OQ is the sum of a fixed vector
-  OS and the vector OQ from the O focus to the point Q.  Furthermore,
-  OQ is always perpendicular to the tangent to the ellipse at point P,
-  which is the perpendicular bisector MP of the isoceles triangle
-  OPQ.</p>
+<p class="justified">You can slide a second sphere into the opposite
+  end of the cylinder, defining a second focus, call it F.  As you did
+  for the first focus, connect an arbitrary point P on the ellipse to
+  point H on the circle where the second sphere touches the cylinder.
+  Now FP equals HP, just as before you found SP and DP equal.  But
+  DP+PH=DH, which is always the distance between the centers of the
+  two spheres.  DH equals the long axis of the ellipse, twice CB.
+  Thus the ellipse is the set of points P for which SP+FP=DH, that is,
+  for which the sum of the distances from its two foci is a fixed
+  constant equal to the long axis of the ellipse.  Again, this is a
+  purely two dimensional definition.</p>
 
-[Picture adds labeled points, the vectors ST, TQ, and SQ, and the
-pependicular bisector PB, then P runs once around to show tangency of
-PB (which should extend a bit beyond P and B).]
+[Picture rotates back to 3D view.  Second sphere appears and slides to
+ second focus.  Circle plane containng S slides to position where
+ second sphere touches cylinder.  HP and FP appear in same color,
+ contrasting with SP and DP to show equal length pairs.  P orbits
+ ellipse once to show DH stays constant length.  Roll to top view to
+ show DH equals long axis of ellipse.]
 
-<h2>Kepler's First Law</h2>
+<p class="justified">In the plane of the ellipse, you can extend SP to
+  a point Q, where PQ equals FP.  As P moves around the ellipse, Q
+  moves around a circle, since SQ=SP+PF remains constant.  Relative to
+  point F, SQ is an eccentric circle.  Its eccentricity - offset of
+  its center S from F as a fraction of its radius - is FS/SQ.  Notice
+  that FS/SQ equals &epsilon;, the same as the eccentricity of the
+  ellipse.</p>
 
-<p class="justified">As a planet orbits around its ellipse sweeping
-  out equal areas in equal times, its velocity vector clearly orbits
-  around a closed path in velocity space.  What is the shape of that
-  curve in velocity space?</p>
+[Picture rotates back to ellipse plane, then copy of FP rotates around
+ P to Q.  P orbits the ellipse, tracing the circle SQ.  P pauses when
+ FP vertical to show circle and ellipse have same eccentricity.]
 
-<p class="justified">The direction of the velocity vector is the same
-  as the tangent to the ellipse, namely the perpendicular bisector PB.
-  But what is its magnitude?
-</p>
+<h2>Relation between eccentric circle and ellipse</h2>
+
+<p class="justified">You need to know how to construct the tangent to
+  an ellipse, since a planet's velocity is tangent to its ellipse.</p>
+
+<p class="justified">Draw the midpoint M of FQ, and consider a point N
+  on the line MP, the perpendicular bisector of FQ.  When N is at P,
+  it is on the ellipse, so that SN+NF=DH.  At any other point,
+  SN+NF=SN+NQ must be larger, since SPQ is a straight line.  Thus,
+  every other point N on MP is outside of the ellipse, so that MP must
+  be tangent to the ellipse at P, since it intersects the ellipse only
+  at the one point P.</p>
+
+<p class="justified">Circle SQ is an eccentric circle, if you consider
+  point F to be the center.  In fact, its eccentricity - the offset
+  between F and the center of the circle S as a fraction of its radius
+  SQ - is exactly the same as the eccentricity of the ellipse.  There
+  is a subtle but crucial geometrical relationship between the
+  eccentric circle and the ellipse with the same eccentricity.</p>
+
+<p class="justified">Extend QS to I such that FIQ is a right angle,
+  making IQ the projection of FQ onto SQ.  Notice that the ratio IS/SQ
+  is the product of IS/FS and FS/SQ.  Next, bring back the triangle
+  GEP, and notice that the ratio PE/SP is the product of PE/GP and
+  GP/SP.  But triangles SPG and FSI exactly the same shape, so GP/SP
+  and IS/FS are equal (even as signed quantities).  Moreover, PE/GP
+  and FS/SQ both equal the eccentricity by their construction (even
+  thought there are no similar triangles).  Therefore IS/SQ equals
+  PE/SP (even changing sign together).</p>
+
+<p class="justified">Remember that SP+PE is constant as P moves around
+  the ellipse, so that SP times (1+PE/SP) is constant.  Now SQ is also
+  constant, so the product of SP+PE and SQ is constant.  Because PE/SP
+  equals IS/SQ, that product equals SP times SQ+IS.  In other words,
+  the product of SP and IQ remains constant as P moves around the
+  ellipse.  Thus, the product of SP and IQ, which is the projection of
+  FQ onto the direction of SP, remains constant as P moves around the
+  ellipse.  SP and IQ are inversely proportional.</p>
+
+<p class="justified">Separate the eccentric circle from the ellipse to
+  see the the full relationship between them: As P moves around the
+  ellipse, Q moves around the circle.  FQ is always perpendicular to
+  the tangent to the ellipse at P, and the length of its projection IQ
+  onto SQ is inversely proportional to the length of SP - the distance
+  of P from the focus S.  That is, the product of SP and IQ remains
+  constant as P and Q move together around S.</p>
+
+<p class="justified">A mathematician labels this kind of argument
+  a <em>lemma</em>.  You can heave a sigh of relief when you've
+  trudged through a lemma; the rest will be much easier.  You also get
+  a pleasant surprise when you discover that the boring details of the
+  lemma lead you directly to something really interesting.</p>
+
+<h2>Kepler's First and Third Laws</h2>
+
+<p class="justified">Recall that Newton's program involves working out
+  the path a body takes through ordinary space, but also the path its
+  velocity vector follows in velocity space.  Together, Kepler's first
+  two laws clearly determine the velocity of the planet at each point
+  on its orbit, as well as the orbit itself.  Consider the relation
+  between an eccentric circle and an ellipse you just labored through.
+  Since FQ is perpendicular to the ellipse tangent at P, if you rotate
+  the eccentric circle diagram by ninety degrees, FQ will point in the
+  direction of the velocity.  Is it possible that the velocity vector
+  traces this eccentric circle in velocity space?</p>
+
+<p class="justified">Rescale the eccentric circle diagram, and overlay
+  it onto the ellipse diagram with point F at P, so FQ is positioned
+  as a velocity vector is usually drawn.  Notice that IQ is the height
+  of the triangle SPQ, so that the area of the triangle SPQ is half
+  the product of SP and IQ.  You have just proven that product remains
+  constant as P moves around the ellipse.  But this is exactly
+  Kepler's First Law for an infinitessimal time step!  Therefore, FQ
+  really is proportional to the velocity of the planet.</p>
+
+<p class="justified">A planet's velocity vector moves around an
+  eccentric circle with the same eccentricity as its ellipse.  The
+  displacement of the center of the velocity circle from zero velocity
+  is ninety degrees from the displacement of the ellipse from its
+  center, and the radius vector of the velocity circle always remains
+  ninety degrees ahead of the sun-planet vector as the planet moves
+  around its orbit.</p>
+
+<p class="justified">By combining Kepler's First and Second Laws, you
+  have found the path a planet's velocity vector follows as the planet
+  moves around its orbit.  Your eccentric circle in velocity space is
+  replaces Kepler's Second Law as a description of how the planet
+  moves: You now know the instantaneous rate of change of its
+  position.  But this is only half of Newton's program.  To complete
+  the program, you need to find the force law that gives the
+  instantaneous rate of change of its velocity vector.</p>
+
+<p class="justified">Since the velocity radius moves around its
+  eccentric circle in lockstep with the radius vector of the planet,
+  always ninety degrees ahead, its angular speed around its center is
+  always the same as the angular speed of the planet around the Sun.
+  The instantaneous acceleration is just this angular speed (measured
+  in radians per unit time) times the constant radius of the velocity
+  circle.  But the constant rate of change of area swept out by the
+  planet's radius vector is just half its angular speed times the
+  square of that radius (the distance to the Sun).  In other words,
+  the angular speed around the Sun is inversely proportional to the
+  square of the distance from the Sun.  Thus, the missing part of the
+  force law is that the acceleration of the planet is inversely
+  proportional to the square of its distance from the Sun.</p>
+
+<p class="justified">Again, if the acceleration of a planet is always
+  directly toward the Sun with a magnitude inversely proportional to
+  the square of its distance from the Sun, then it will move exactly
+  as Kepler described: around an ellipse with its radius vector
+  sweeping out equal areas in equal times.  As a bonus, the planet's
+  velocity moves around an eccentric circle of the same eccentricity
+  as its ellipse, with the radius of its velocity circle always ninety
+  degrees ahead of its Sun-planet vector.</p>
+
+<p class="justified">So far, all you know is that a planet accelerates
+  toward the Sun at a rate inversely proportional to the square of its
+  distance.  The constant of proportionality in this inverse square
+  law might still be different from one planet to the next.  However,
+  from the known Keplerian elements of all the orbits of the planets,
+  you can work out the inverse square constant of proportionality for
+  each planet: Stunningly, the constants of proportionality all match!
+  Unlike Kepler's first two laws, just a single inverse square law
+  describes the motion of every planet.  That is, one inverse square
+  law for acceleration explains not only how an individual planet
+  speeds up and slows down as it approaches and recedes from the Sun
+  along its own orbit, but also how the orbital speed of planets
+  generally decreases as distance from the Sun increases!</p>
+
+<p class="justified">Thus, in Newton's description of planetary
+  motion, Kepler's Third Law becomes redundant; it is a side effect of
+  applying a single inverse square force law to all of the planets.
+  Note the units of the proportionality constant in Newton's inverse
+  square law are length cubed divided by time squared, the same as the
+  proportionality constant in Kepler's Third Law.</p>
 
 </div>
 
