@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Seeing and Touching the Solar System</title>
+    <meta name="description"
+          content="How Kepler and Newton revolutionized science">
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon.png">
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js">
+    </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.155.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.155.0/examples/jsm/"
+        }
+      }
+    </script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+      :root {
+          accent-color: #67f;
+      }
+
+      /* original landscape colors:
+       *   color: beige (#f5f5dc)
+       *   background: #444
+       * solarized palette:
+       *   base2:  #eee8d5  base3:  #fdf6e3
+       *   base00: #657b83  base01: #586e75  base02: #073642  base03: #002b36
+       *   yellow: #b58900
+       * portrait color:
+       *   #aaa (original)  #a0a2a4 (slightly blue)  #b0b09a (slightly yellow)
+       */
+      body {
+          box-sizing: border-box;
+          margin: 0;
+          /* index.html colors:
+           *   portrait mode:  background #002b36  color #c1b497
+           *   landscape mode: background #000000  color #a0a098
+           */
+          background:#c1b497;
+          color: #002b36;
+          font-family: 'Merriweather', serif;
+          /* Without a specified height, % units in children are meaningless.
+           * Use min-height so body can grow larger - without it, scrolling
+           * may break;
+           */
+          min-height: 100vh;
+          overflow-x: hidden;
+      }
+      h1, h2 {
+          text-align: center;
+      }
+      a {
+          outline-color: #fff4;  /* match buttons (or just transparent) */
+      }
+      a:link {
+          color: black;
+      }
+      a:visited {
+          color: #002b36;
+      }
+      a:focus {
+          text-decoration: none;
+          background: #fff4;
+      }
+      a:hover {
+          text-decoration: none;
+          background: #fff4;  /* match button hover */
+      }
+      a:active {
+          background: #073642;          /* reversed from body text */
+          color: #c1b497;
+      }
+
+      .hidden {
+          display: none !important;
+      }
+      .unselectable {
+          -webkit-user-select: none; /* Safari */
+          -ms-user-select: none; /* IE 10 and IE 11 */
+          user-select: none; /* Standard syntax */
+      }
+      .centered {
+          text-align: center;
+      }
+      .justified {
+          text-align: justify;
+      }
+
+      .textcolumn {
+          padding-left: 1em;
+          padding-right: 1em;
+          min-width: 22em;
+          max-width: 52em;
+          margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+
+<!-- --------------------------------------------------------------------- -->
+
+<div class="textcolumn">
+  <h1 style="text-align: center;">
+
+<h1>Seeing and Touching the Solar System</h1>
+<h2>How Kepler and Newton revolutionized science</h2>
+
+<p class="justified">Isaac Newton famously said that he stood on the
+  shoulders of giants.  Johannes Kepler was surely one of those
+  giants.</p>
+
+<p class="justified">Newton wrote the book that is still the
+  cornerstone of modern physics and engineering.  Published in 1687,
+  his <em>Principia</em> immediately generated an electric thrill and
+  shock not only among the scientific community, but also among the
+  public at large.  The most mind-blowing new idea is that the force
+  of gravity we have always known on earth extends into the heavens,
+  governing the motion of the moon and planets just as it governs the
+  motion of a thrown stone.</p>
+
+<p class="justified">Who provided Newton with the detailed and
+  accurate description of how the planets in fact move?  In 1609,
+  Kepler published his first two laws of planetary motion, finally
+  providing the definitive answer the the ancient question of how the
+  planets move.  A decade later, in 1620, having worked out the
+  orbital parameters for the remaining planets, Kepler published his
+  third law, the quantitative relationship between a planet's distance
+  from the sun and its period.  Although these summary laws are still
+  remembered and used in astronomy, Kepler's more ingenious and
+  original contribution was the technique he invented to survey the
+  orbits of Earth and Mars, which is largely untaught and unknown
+  today.</p>
+
+<p class="justified">The aim of these two webpages is to present what
+  Kepler and Newton did using animated drawings, without any algebra.
+  In the case of Newton, this is not quite possible - you will need
+  some high school geometry and relatively simple algebraic ideas.
+  However, there will be very few gaps requiring additional research
+  or work to fill: You can feel the full weight of the logic yourself,
+  and hopefully gain some understanding of how a modern scientist
+  thinks.  Think about when logic can serve as the basis for authority
+  and belief.  Think about the indispensible role of models for
+  interpreting everything you see and experience: Theory is a
+  necessity, not a luxury.</p>
+
+<p class="justified"><a href="./index.html">Seeing the Solar System</a>
+  is the story of Kepler's laws of planetary motion, beginning with his
+  brilliantly original surveying technique, then showing how he used
+  his survey results to discover his laws.</p>
+
+<p class="justified"><a href="./touching.html">Touching the Solar System</a>
+  is the story of Newton's law of universal gravity, beginning with how
+  he recast Kepler's laws into the language of rates of change, then
+  showing how he wove planetary motion into his more general laws of
+  motion.</p>
+
+</div>
+
+<!-- --------------------------------------------------------------------- -->
+
+  </body>
+</html>

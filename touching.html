@@ -395,6 +395,10 @@ into view, the picture changes accordingly.]
   ellipse at P, since it intersects the ellipse only at the one point
   P.</p>
 
+[Picture adds M and line through MP, then N on MP and bent line SNQ,
+ as well as FN. N slides back and forth over P showing that FN+SN
+ always greater than FP+SP, so N outside ellipse.]
+
 <p class="justified">Extend QS to I such that FIQ is a right angle,
   making IQ the projection of FQ onto SQ.  Notice that the ratio IS/SQ
   is the product of IS/FS and &epsilon;=FS/SQ.  Triangles SPG and FSI
@@ -407,6 +411,12 @@ into view, the picture changes accordingly.]
   ellipse, and SP varies inversely as this same quantity, the product
   of SP and IQ remains unchanged as P moves.</p>
 
+[Picture removes N, fades M and line MP.  Adds I and highlights
+ SPG and FSI, highlighting IS/FS and GP/SP.  No obvious way to picture
+ the remainder of this argument, but should probably have P orbit the
+ ellipse while highlighting IS+SQ and EP+SP to indicate they are
+ split in the same ratio.]
+
 <p class="justified">Now rotate FIQ ninety degrees around S.  FQ is
   now parallel to the ellipse tangent at P, so PJ, a translated copy
   of FQ, will be tangent to the ellipse at P.  Let SK be a second
@@ -417,67 +427,56 @@ into view, the picture changes accordingly.]
   triangle FIQ without changing the fact that the area of SPJK is
   independent of P.</p>
 
+[Picture rotates FIQ, shows the copies of FQ translating to P and S -
+ the copy that translates to S also translates a copy of IQ, to show
+ that IQ is the height of SPJK.  Highlight area, and let P move once
+ around the ellipse.  Lastly, scale FIQ to smaller size and orbit again.]
+
 <h2>Kepler's First and Third Laws</h2>
 
-<p class="justified">Recall that Newton's program involves working out
-  the path a body takes through ordinary space, but also the path its
-  velocity vector follows in velocity space.  Together, Kepler's first
-  two laws clearly determine the velocity of the planet at each point
-  on its orbit, as well as the orbit itself.  Consider the relation
-  between an eccentric circle and an ellipse you just labored through.
-  Since FQ is perpendicular to the ellipse tangent at P, if you rotate
-  the eccentric circle diagram by ninety degrees, FQ will point in the
-  direction of the velocity.  Is it possible that the velocity vector
-  traces this eccentric circle in velocity space?</p>
+<p class="justified">If FQ (or PJ) were the velocity vector of the
+  planet at P, then the rate of change of area in the instantaneous
+  version of Kepler's Second Law would be the area of triangle SPJ,
+  which is just half the constant area SPJK.  Hence, not only is FQ
+  tangent to the ellipse at P, but its length changes in exactly the
+  right way to satisfy the equal areas in equal times law.  Thus,
+  you've demonstrated that the velocity vector of a planet P traces an
+  eccentric circle with eccentricity equal to the eccentricity of its
+  ellipse, but rotated ninety degrees!</p>
 
-<p class="justified">Rescale the eccentric circle diagram, and overlay
-  it onto the ellipse diagram with point F at P, so FQ is positioned
-  as a velocity vector is usually drawn.  Notice that IQ is the height
-  of the triangle SPQ, so that the area of the triangle SPQ is half
-  the product of SP and IQ.  You have just proven that product remains
-  constant as P moves around the ellipse.  But this is exactly
-  Kepler's First Law for an infinitessimal time step!  Therefore, FQ
-  really is proportional to the velocity of the planet.</p>
+[Picture separates FSQ and velocity circle from SP and ellipse, then
+ adds a small copy of FSQ with F at P.  SP and all three sides of FSQ
+ are now drawn as vector arrows.  Letter labels fade.  P orbits ellipse
+ a couple of times.  Then eccentricity changes for another couple of
+ orbits, after which eccentricity returns to original.]
 
-<p class="justified">A planet's velocity vector moves around an
-  eccentric circle with the same eccentricity as its ellipse.  The
-  displacement of the center of the velocity circle from zero velocity
-  is ninety degrees from the displacement of the ellipse from its
-  center, and the radius vector of the velocity circle always remains
-  ninety degrees ahead of the sun-planet vector as the planet moves
-  around its orbit.</p>
+<p class="justified">To complete Newton's program, you need only find
+  the force law, that is, the acceleration.  Since the radius of the
+  velocity circle is unchanging with time, the velocity change is
+  always tangent to that circle, ninety degrees ahead of SQ, which
+  itself has been rotated to be ninety degrees ahead of SP.  Thus the
+  direction of the acceleration is always exactly opposite SP, that
+  is, directly toward the Sun, as you had already deduced.</p>
 
-<p class="justified">By combining Kepler's First and Second Laws, you
-  have found the path a planet's velocity vector follows as the planet
-  moves around its orbit.  Your eccentric circle in velocity space is
-  replaces Kepler's Second Law as a description of how the planet
-  moves: You now know the instantaneous rate of change of its
-  position.  But this is only half of Newton's program.  To complete
-  the program, you need to find the force law that gives the
-  instantaneous rate of change of its velocity vector.</p>
+<p class="justified">As for the magnitude of the acceleration, it is
+  the instantaneous angular speed (in radians per unit time) of Q
+  around the velocity circle, which is identical to the instantaneous
+  angular speed of the planet around the Sun (since SQ is always
+  ninety degrees from SP).  But the angular speed of P around S times
+  the distance SP is the transverse velocity of P, and the transverse
+  velocity times SP is twice the rate SP sweeps out area.  Hence the
+  rate area is being swept out, which is a constant, is the angular
+  speed times the square of SP.  In other words, the instantaneous
+  angular speed of a planet varies inversely as the square of SP.
+  Since acceleration is the constant SQ times this angular speed, you
+  have the force law:</p>
 
-<p class="justified">Since the velocity radius moves around its
-  eccentric circle in lockstep with the radius vector of the planet,
-  always ninety degrees ahead, its angular speed around its center is
-  always the same as the angular speed of the planet around the Sun.
-  The instantaneous acceleration is just this angular speed (measured
-  in radians per unit time) times the constant radius of the velocity
-  circle.  But the constant rate of change of area swept out by the
-  planet's radius vector is just half its angular speed times the
-  square of that radius (the distance to the Sun).  In other words,
-  the angular speed around the Sun is inversely proportional to the
-  square of the distance from the Sun.  Thus, the missing part of the
-  force law is that the acceleration of the planet is inversely
-  proportional to the square of its distance from the Sun.</p>
-
-<p class="justified">Again, if the acceleration of a planet is always
-  directly toward the Sun with a magnitude inversely proportional to
-  the square of its distance from the Sun, then it will move exactly
-  as Kepler described: around an ellipse with its radius vector
-  sweeping out equal areas in equal times.  As a bonus, the planet's
-  velocity moves around an eccentric circle of the same eccentricity
-  as its ellipse, with the radius of its velocity circle always ninety
-  degrees ahead of its Sun-planet vector.</p>
+<p class="justified">The acceleration of a planet is always directly
+  toward the Sun with magnitude inversely proportional to the square
+  of its distance from the Sun.  You have completed Newton's program.
+  If the acceleration of a planet obeys this inverse square law, then
+  it will move around a Keplerian ellipse according to his equal area
+  law.  Its velocity vector will move around an eccentric circle.</p>
 
 <p class="justified">So far, all you know is that a planet accelerates
   toward the Sun at a rate inversely proportional to the square of its
