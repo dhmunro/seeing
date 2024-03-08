@@ -3264,8 +3264,15 @@ REPLAY.addEventListener("click", () => {
 });
 
 function runIndicator(yes=true) {
-  if (yes) REPLAY.classList.add("highlighted");
-  else REPLAY.classList.remove("highlighted");
+  if (yes) {
+    REPLAY.classList.add("highlighted");
+    PAGE_UP.classList.add("highlighted");
+    PAGE_DOWN.classList.add("highlighted");
+  } else {
+    REPLAY.classList.remove("highlighted");
+    PAGE_UP.classList.remove("highlighted");
+    PAGE_DOWN.classList.remove("highlighted");
+  }
 }
 
 const SET_DATE = document.getElementById("set-date");
