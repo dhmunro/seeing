@@ -1429,6 +1429,7 @@ class Pager {
           sceneUpdater.pivot(12000, 1000);
         }).chain(() => {
           controls.enabled = true;
+          skyAnimator.playChain();
         });
         if (noDelay) skyAnimator.playChain();
       },
@@ -1454,6 +1455,7 @@ class Pager {
           skyAnimator.playFor(2 * periodOf("mars", xyzNow.jd));
         }).chain(() => {
           controls.enabled = true;
+          skyAnimator.playChain();
         });
         if (noDelay) skyAnimator.playChain();
       },
@@ -1476,6 +1478,7 @@ class Pager {
           sceneUpdater.zoom(HFOV, 5000);
         }).chain(() => {
           controls.enabled = true;
+          skyAnimator.playChain();
         });
         if (noDelay) skyAnimator.playChain();
       },
