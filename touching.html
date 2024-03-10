@@ -473,31 +473,58 @@ into view, the picture changes accordingly.]
 
 <p class="justified">The acceleration of a planet is always directly
   toward the Sun with magnitude inversely proportional to the square
-  of its distance from the Sun.  You have completed Newton's program.
-  If the acceleration of a planet obeys this inverse square law, then
-  it will move around a Keplerian ellipse according to his equal area
-  law.  Its velocity vector will move around an eccentric circle.</p>
+  of its distance from the Sun.  If the acceleration of a planet obeys
+  this inverse square law, then it will move around a Keplerian
+  ellipse according to his equal area law.  Its velocity vector will
+  move around an eccentric circle with the same eccentricity as its
+  ellipse, but rotated ninety degrees.  You have completed Newton's
+  program, describing orbits in terms of their instantaneous position
+  and acceleration, plus a force law.</p>
 
-<p class="justified">So far, all you know is that a planet accelerates
-  toward the Sun at a rate inversely proportional to the square of its
-  distance.  The constant of proportionality in this inverse square
-  law might still be different from one planet to the next.  However,
-  from the known Keplerian elements of all the orbits of the planets,
-  you can work out the inverse square constant of proportionality for
-  each planet: Stunningly, the constants of proportionality all match!
-  Unlike Kepler's first two laws, just a single inverse square law
-  describes the motion of every planet.  That is, one inverse square
-  law for acceleration explains not only how an individual planet
-  speeds up and slows down as it approaches and recedes from the Sun
-  along its own orbit, but also how the orbital speed of planets
-  generally decreases as distance from the Sun increases!</p>
+<h2>Kepler's Third Law</h2>
 
-<p class="justified">Thus, in Newton's description of planetary
-  motion, Kepler's Third Law becomes redundant; it is a side effect of
-  applying a single inverse square force law to all of the planets.
-  Note the units of the proportionality constant in Newton's inverse
-  square law are length cubed divided by time squared, the same as the
-  proportionality constant in Kepler's Third Law.</p>
+<p class="justified">So far, all you know is that each planet
+  accelerates toward the Sun at a rate inversely proportional to the
+  square of its distance.  The constant of proportionality in this
+  inverse square law might still be different from one planet to the
+  next.  But notice that the dimensions of this constant of
+  proportionality are acceleration times length squared, or length
+  cubed divided by time squared - exactly the same dimensions as the
+  constant of proportionality in Kepler's cube-square law.  Does a
+  single inverse square law explain the accelerations of all the
+  planets?</p>
+
+<p class="justified">Since the ellipse is just a circle elongated on
+  one axis, its area is A=&#x1D745;ab (the stretched
+  &#x1D745;r&sup2;), where a and b are its long and short semi-axes
+  (that is, measured from the center like the radius of a circle).  If
+  T is the period of the planet, then the constant area swept out per
+  unit time is A/T, and you know the constant of proportionality in
+  the inverse square law for the angular speed is just twice this, or
+  2&#x1D745;ab/T.  If v is the constant radius of the eccentric
+  velocity circle, then the constant of proportionality in the inverse
+  square law for the acceleration is v times 2&#x1D745;ab/T.</p>
+
+<p class="justified">But twice the area rate 2&#x1D745;ab/T is also
+  the transverse velocity times the planet radius SP.  Choose the
+  instant when SP is perpendicular to the long axis of the ellipse
+  because at that moment the transverse velocity equals the constant
+  radius of the eccentric velocity circle, call it v.  Going all the
+  way back to the diagrams you drew of the ellipse as a cylinder
+  slice, at this moment the planet radius SP is b&sup2;/a.  Hence,
+  vb&sup2;/a = 2&#x1D745;ab/T, or v = 2&#x1D745;a&sup2;/(Tb).</p>
+
+<p class="justified">Putting these two formulas together, the constant
+  of proportionality in the inverse square law for acceleration is
+  4&#x1D745;&sup2;a&sup3;/T&sup2;.  But Kepler's Third Law is that
+  a&sup3;/T&sup2; is the same for every planet, so the constant of
+  proportionality in Newton's inverse square law for the acceleration
+  is the same for every planet!</p>
+
+<p class="justified">All three of Kepler's laws follow from the single
+  statement that a planet accelerates directly toward the Sun at a
+  rate inversely proportional to the square of its distance from the
+  Sun.</p>
 
 </div>
 

@@ -3208,6 +3208,7 @@ const PLAY_BUTTON = document.getElementById("play");
 function showPlay(yes=true) {
   PLAY_BUTTON.style.display = yes? "block" : "none";
   if (yes) runIndicator(false);
+  else if (throbbing) stopThrobbing();
 }
 PLAY_BUTTON.addEventListener("click", () => {
   showPlay(false);
@@ -3216,9 +3217,15 @@ PLAY_BUTTON.addEventListener("click", () => {
 
 const MAIN_MENU = document.getElementById("menu-bars");
 MAIN_MENU.addEventListener("click", () => {
+  if (throbbing) stopThrobbing();
   if (MAIN_MENU.classList.contains("disabled")) return;
   MENU_BODY.style.transform = "scale(1)";
 });
+let throbbing = true;
+function stopThrobbing() {
+  MAIN_MENU.classList.remove("throbbing");
+  throbbing = false;
+}
 
 const MENU_BODY = document.getElementById("menu-body");
 const CLOSE_MENU = document.getElementById("close-menu");
@@ -3245,18 +3252,21 @@ const HIDE_TEXT = document.getElementById("hide-text");
 const HIDE_ICON = document.querySelector("#hide-text > use");
 HIDE_TEXT.addEventListener("click", () => {
   if (HIDE_TEXT.classList.contains("disabled")) return;
+  if (throbbing) stopThrobbing();
   toggleText();
 });
 
 const PAGE_UP = pager.pageup;
 PAGE_UP.addEventListener("click", () => {
   if (PAGE_UP.classList.contains("disabled")) return;
+  if (throbbing) stopThrobbing();
   pager.prev();
 });
 
 const PAGE_DOWN = pager.pagedn;
 PAGE_DOWN.addEventListener("click", () => {
   if (PAGE_DOWN.classList.contains("disabled")) return;
+  if (throbbing) stopThrobbing();
   pager.next();
 });
 
@@ -3347,6 +3357,7 @@ function setBaseDate(buttonClick) {
 window.setBaseDate = setBaseDate;  // used in index.html
 
 addEventListener("keydown", (event) => {
+  if (throbbing) stopThrobbing();
   if (event.target == YYYY || event.target == MMDD) {
     if (sdState == 0) return;
     if (event.key == "Enter") {

@@ -349,6 +349,39 @@
           border: 0.1rem solid #a0a098;
       }
 
+      .throbbing {
+          animation: size-pulser 5s infinite ease-in-out;
+      }
+      @keyframes size-pulser {
+          0% {
+              transform: scale(1);
+          }
+          20% {
+              transform: scale(1);
+          }
+          26% {
+              transform: scale(1.2);
+          }
+          32% {
+              transform: scale(1);
+          }
+          38% {
+              transform: scale(1.2);
+          }
+          44% {
+              transform: scale(1);
+          }
+          50% {
+              transform: scale(1.2);
+          }
+          56% {
+              transform: scale(1);
+          }
+          100% {
+              transform: scale(1);
+          }
+      }
+
       .highlighted {
           animation: color-pulser 1s infinite alternate ease-in-out;
       }
@@ -520,8 +553,9 @@
 <div id="topbox"><div>
   <h1>Seeing the Solar System</h1>
   <h2>How to map planetary orbits in 3D by naked eye</h2>
-  <p class="centered">Follow Johannes Kepler's brilliant
-    analysis of the problem that stumped astronomers for two millenia.</p>
+  <p class="centered">Follow Johannes Kepler's brilliant analysis of
+    the problem that stumped astronomers for two millenia.  What are
+    you looking at in the sky?</p>
 </div><div class="hidden">
     <h2>First study how the Sun moves</h2>
     <p class="justified">The Sun moves around a great circle called the
@@ -533,18 +567,20 @@
       longer than fall and winter: The Sun takes longer to move the
       180 degrees from March equinox to September equinox than to move
       the 180 degrees back to March equinox.  These speed variations
-      are identical every year.</p>
+      are identical every year.  Simple, but not too simple.</p>
 </div><div class="hidden">
     <h2>Venus zig-zags about the Sun</h2>
     <p class="justified">Venus (and Mercury) oscillate from one side
       of the Sun to the other.  The west-to-east leg (or morning to
       evening side of the Sun) takes much longer than the east-to-west
-      leg.</p>
+      leg.  What seems to be happening?</p>
 </div><div class="hidden">
     <h2>Visualize Venus's orbit</h2>
     <p class="justified">Viewed from Earth, Venus certainly does not
       move around the Sun periodically.  But is its orbit periodic
-      with respect to the stars?</p>
+      with respect to the stars?  If so, then when viewed from Venus,
+      the Sun would follow a simple, periodic path through the
+      stars.</p>
 </div><div class="hidden">
     <h2>Find the orbital plane of Venus</h2>
     <p class="justified">You could have made the first yearly snapshot
@@ -553,17 +589,18 @@
       plane.</p>
 </div><div class="hidden">
     <h2>Venus is to Earth as Earth is to Mars</h2>
-    <p class="justified">You have seen qualitatively how the motion of
-      Venus with respect to the Sun might be a simple planar periodic
-      orbit.  To make this insight quantitative, Kepler used Mars
-      instead of Venus.  Ask yourself what your sky would look like at
-      these same twenty times if you were on Venus.</p>
+    <p class="justified">What would snapshots of the sky from Venus
+      look like at these same twenty times?  The Sun would be at
+      twenty different points around Venus's orbital plane, and the
+      Earth would appear at at twenty points around a copy of this
+      Venus ring viewed from Earth, but with reversed sight lines.</p>
 </div><div class="hidden">
     <h2>Visualize Earth's orbit</h2>
     <p class="justified">To continue the analogy with Venus locations
       at Earth year intervals, build a ring of Mars locations at Mars
-      year intervals (687 days).  The Sun is at different places now,
-      so record those as well.</p>
+      year intervals.  (The 687 day period of Mars was accurately
+      known in antiquity.)  The Sun is at different places now, so
+      record those as well.</p>
 </div><div class="hidden">
     <h2>How to find the Sun-Mars direction</h2>
     <p class="justified">At each step, Earth, Sun, and Mars determine a
@@ -685,7 +722,7 @@
       equator (perpendicular to the Earth's spin axis) causes the
       seasons.  The planets wander above and below the ecliptic, and
       also reverse direction sometimes - the motion of the Sun is much
-      simpler.</p>
+      simpler.  How would the Sun move viewed from another planet?</p>
   </div><div class="hidden">
     <p class="day-counter">Day count: <span id="sun-counter">-</span></p>
     <p class="centered">Interval between equinoxes:
@@ -693,9 +730,9 @@
     <br/>September to March: <span id="sep-mar" class="equibox"></span>
     </p>
 </div><div class="hidden">
-    <p class="justified">You are watching Venus move around the Sun
-      from a nearly edge-on vantage point.  Venus moves around the Sun
-      in the same direction as the Sun moves around Earth
+    <p class="justified">Maybe you are watching Venus move around the
+      Sun from a nearly edge-on vantage point.  Venus moves around the
+      Sun in the same direction as the Sun moves around Earth
       (apparently), but faster, passing behind the Sun on its
       west-to-east leg, then in front of the Sun (much nearer us) on
       its east-to-west leg.</p>
@@ -712,13 +749,13 @@
       points are perfectly colinear, and the Sun is on the line!  You
       see that Venus's orbit lies in a plane containing the Sun - just
       like Earth - but inclined by about 3.4&deg; to the ecliptic.</p>
-</div><div class="hidden">
-    <p class="justified">The Venus-Earth sight line is just the
-      reverse of the Earth-Venus line, so Earth would appear in the
-      same ring, but reversed.  An imaginary Sun-Earth vector would
-      point into the Earth ring, at the point corresponding to the Sun
-      in this Venus ring.  Finally, the Sun would appear at points
-      around the great circle of Venus's orbital plane.</p>
+  </div><div class="hidden">
+      <p class="justified">The point of this exercise is that Kepler
+        used Mars instead of Venus.  Instead of comparing observations
+        one Earth year apart like this Venus ring, he began with
+        observations one Mars year apart.  Viewed from Mars, Earth
+        would appear in a ring like the Venus ring you see from
+        Earth.</p>
 </div><div class="hidden">
     <p class="justified">Since you stepped by Mars year intervals, the
       ten Sun-Mars vectors you have recorded are identical both in
@@ -833,7 +870,7 @@
     <use xlink:href="#fa-expand" /></svg>
 </div>
 <div id="main-menu">
-  <svg id="menu-bars" class="button" xmlns="http://www.w3.org/2000/svg"
+  <svg id="menu-bars" class="button throbbing" xmlns="http://www.w3.org/2000/svg"
        height="2.5rem" viewBox="0 0 448 512">
     <use xlink:href="#fa-bars" /></svg>
   <svg id="hide-text" class="button" xmlns="http://www.w3.org/2000/svg"
@@ -846,9 +883,6 @@
        height="2.5rem" viewBox="0 0 384 512">
     <use xlink:href="#fa-xmark" /></svg>
   <ul>
-    <li>Sequel:<br/><a href="/touching.html" style="margin: 2em;">
-        How Newton recast Kepler's Laws</a></li>
-    <hr/>
     <li>Best viewed fullscreen in landscape orientation</li>
     <li>Controls:
       <ul>
@@ -871,6 +905,9 @@
         <li>ArrowRight or ArrowLeft: step forward or back one day</li>
       </ul>
     </li>
+    <hr/>
+    <li>Sequel:<br/><a href="/touching.html" style="margin: 2em;">
+        How Newton recast Kepler's Laws</a></li>
     <hr/>
     <li>Source code on <a href="https://github.com/dhmunro/seeing"
                           target="_blank">github</a>.
