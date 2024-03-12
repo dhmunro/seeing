@@ -3126,9 +3126,8 @@ function adjustEcliptic(jd) {
 /* ------------------------------------------------------------------------ */
 
 scene3d.onContextLost(() => {
-  if (skyAnimator.isPaused) return;
-  skyAnimater.pause();
-  return () => { skyAnimator.play(); }  // resume when context restored
+  if (!maybePause()) return;
+  return () => { togglePause(); }  // resume when context restored
 });
 
 window.scene3d = scene3d;
@@ -3195,9 +3194,9 @@ function togglePause() {
   } else if (skyAnimator.isPlaying) {
     if (!skyAnimator.isPaused) skyAnimator.pause();
     else skyAnimator.play();
-  } else if (skyAnimator._timeout !== undefined) {
-    skyAnimator.cancelTimeout();  // prevent it from waking up
   } else {
+    // prevent any pending timeout from waking up
+    if (skyAnimator._timeout !== undefined) skyAnimator.cancelTimeout();  
     skyAnimator.playChain();
   }
 }
