@@ -197,8 +197,9 @@ into view, the picture changes accordingly.]
 
 <p class="justified">The radius vector from the Sun to a planet sweeps
   out equal areas in equal times as the planet moves.  Thus, Kepler's
-  second law is already a statement about a rate of change: The rate
-  that a planet's radius sweeps out area is some fixed constant.</p>
+  second law is already a statement about a rate of change: The area
+  per unit time a planet's radius sweeps out is some fixed
+  constant.</p>
 
 [Picture shows ellipse with fixed time/area sector drawn.]
 
@@ -206,29 +207,30 @@ into view, the picture changes accordingly.]
   a body will move in a straight line at a constant speed.  Then the
   radius vector from an arbitrary fixed point to the body will sweep
   out equal triangular areas in equal times: The area is half the
-  height (distance from the fixed point to the line) times the base,
-  which is the same for equal times since the body moves at constant
+  height (distance from the fixed point to the line) times the base.
+  The base is the same for equal times since the body moves at constant
   speed.  The rate area is swept out is just half the height times the
   speed.</p>
 
 [Picture changes to straight line motion under point with fixed
  time/area triangle drawn.]
 
-<p class="justified">The height of the triangle is an inconvenient
-  quantity; the radius and the velocity vectors are Newton's preferred
-  way to describe motion.  Notice that if you decompose the velocity
-  vector into components in the radial and transverse directions, then
-  the right triangle with the radius as its hypotenuse and height as
-  one side is similar to the triangle with the whole velocity as its
-  hypotenuse and the transverse velocity component as one side.  That
-  means the rate of change of area is also half the product of the
-  radius and the transverse component of velocity.</p>
+<p class="justified">The radius and velocity vectors are Newton's
+  preferred way to describe motion.  Notice that if you decompose the
+  velocity vector into components in the radial and transverse
+  directions, then the right triangle with the radius as its
+  hypotenuse and height as one side is similar to the triangle with
+  the whole velocity as its hypotenuse and the transverse velocity
+  component as one side.  Thus the rate of change of area is also half
+  the product of the radius and the transverse component of
+  velocity.</p>
 
 [Picture changes to show similar position and velocity triangles, then
  the two equal area hs = rv triangles.]
 
-<p class="justified">If the velocity suddenly changes, the rate of
-  change of area will remain unchanged if and only if the transverse
+<p class="justified">If the velocity suddenly changes - so quickly
+  that the change in position is negligible - then the rate of change
+  of area will remain unchanged if and only if the transverse
   component of velocity remains unchanged.</p>
 
 [Picture changes to show a deflecting trajectory, with the equal area
@@ -251,41 +253,37 @@ into view, the picture changes accordingly.]
  and trajectory for just the velocity and radial acceleration
  vectors.]
 
-<p class="justified">A planet always accelerates directly toward the
-  Sun.  Newton realized that the picture of sweeping out equal areas
-  in equal times is just a rather awkward and roundabout way to say
-  that the planets are being pulled straight toward the Sun.</p>
+<p class="justified">So the planets are accelerating directly toward
+  the Sun.  Newton realized that "sweeping out equal areas in equal
+  times" is just a rather clumsy and roundabout way to say that the
+  planets are being pulled straight toward the Sun.</p>
 
 <h2>Newton's program</h2>
-
-<p class="justified">Do the position and velocity of the planet
-  completely determine the instantaneous rate both position and
-  velocity are changing?</p>
 
 [Picture splits into separate position and velocity diagrams, showing
  velocity vector on both, moving acceleration vector to velocity
  diagram.]
 
-<p class="justified">If so, starting from any position and velocity,
-  their rates of change tell you the new position and velocity an
-  infinitessimal time later.  Those new values then give you new rates
-  of change for the next infinitessimal time step, and so on.  Newton
-  invented calculus to be able to accumulate infinitely many such
-  infinitessimal time steps, and thereby follow the trajectory for
-  finite time intervals.  This is Newton's program for describing
-  planetary motion: Instead of the shape of the orbit, Newton wants
-  the rule for calculating the rates of change of position and
-  velocity as functions of position and velocity.</p>
+<p class="justified">Suppose that given some starting position and
+  velocity, you knew how to compute the acceleration - then you would
+  be able to compute the position and velocity an infinitessimal time
+  later.  Those new values then give you new rates of change for the
+  next infinitessimal time step, and so on.  Newton invented calculus
+  to be able to accumulate infinitely many such infinitessimal time
+  steps, and thereby follow the trajectory for finite time intervals.
+  This is Newton's program for describing planetary motion: Instead of
+  asking for the shape of the orbit, Newton wants the rule for
+  calculating the acceleration as a function of position and
+  velocity.</p>
 
-<p class="justified">By definition, the velocity is the rate of change
-  of the position.  You already know that the rate of change of
-  velocity - acceleration - of a planet points directly at the Sun
-  from Kepler's second law.  Newton's program thus boils down to
-  finding a rule relating the magnitude of a planet's acceleration to
-  its position (and, perhaps, it's velocity).  Such a rule is called
-  a <em>force law</em>; find the force law, and you have described the
-  motion.  The function that produces acceleration for each position
-  is called a <em>force field</em>.</p>
+<p class="justified">You already know that the acceleration of a
+  planet points directly at the Sun from Kepler's second law.  So
+  Newton's program boils down to finding a rule relating the magnitude
+  of a planet's acceleration to its position (and, perhaps, it's
+  velocity).  Such a rule is called a <em>force law</em>; find the
+  force law, and you have described the motion.  The function that
+  produces acceleration for each position is called a <em>force
+  field</em>.</p>
 
 [Picture shows many acceleration vectors in background to indicate
  acceleration field.]
@@ -488,28 +486,29 @@ into view, the picture changes accordingly.]
 
 <p class="justified">As for the magnitude of the acceleration, it is
   the instantaneous angular speed (in radians per unit time) of Q
-  around the velocity circle, which is identical to the instantaneous
-  angular speed of the planet around the Sun (since SQ is always
-  ninety degrees from SP).  But the angular speed of P around S times
-  the distance SP is the transverse velocity of P, and the transverse
-  velocity times SP is twice the rate SP sweeps out area.  Hence the
-  rate area is being swept out, which is a constant, is the angular
-  speed times the square of SP.  In other words, the instantaneous
-  angular speed of a planet varies inversely as the square of SP.
-  Since acceleration is the constant SQ times this angular speed, you
-  have the force law:</p>
+  around the velocity circle, times the radius SQ of the velocity
+  circle.  Since SQ is always ninety degress from SP, the angular
+  speed of Q around S is identical to the angular speed of P around S.
+  But the angular speed of P around S times the distance SP is the
+  transverse velocity of P, and the transverse velocity times SP is
+  twice the rate SP sweeps out area.  Hence the rate area is being
+  swept out, which is a constant, is (half) the angular speed times
+  the square of SP.  In other words, the instantaneous angular speed
+  of a planet varies inversely as the square of SP.  Since
+  acceleration is the constant SQ times this angular speed, you have
+  the force law:</p>
 
 [Indicate angular speed in both diagrams, with P orbiting ellipse.]
 
 <p class="justified">The acceleration of a planet is always directly
   toward the Sun with magnitude inversely proportional to the square
   of its distance from the Sun.  If the acceleration of a planet obeys
-  this inverse square law, then it will move around a Keplerian
-  ellipse according to his equal area law.  Its velocity vector will
-  move around an eccentric circle with the same eccentricity as its
-  ellipse, but rotated ninety degrees.  You have completed Newton's
-  program, describing orbits in terms of their instantaneous position
-  and acceleration, plus a force law.</p>
+  this inverse square law, then it will move around an ellipse with
+  the Sun at one focus according to the equal area law.  Its velocity
+  vector will move around an eccentric circle with the same
+  eccentricity as its ellipse, but rotated ninety degrees.  You have
+  completed Newton's program, describing orbits in terms of their
+  instantaneous position and velocity, plus a force law.</p>
 
 [Animation making it obvious that angular speed is varying inversely
  with distance?]
