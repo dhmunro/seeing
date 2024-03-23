@@ -12,7 +12,9 @@
 import {DefaultLoadingManager, TextureLoader, CubeTextureLoader, Fog,
         WebGLRenderer, PerspectiveCamera, Scene, Color, Sprite,
         SpriteMaterial, CanvasTexture, Object3D, Group, BufferGeometry,
-        BufferAttribute, Mesh, MeshBasicMaterial, DoubleSide} from "three";
+        BufferAttribute, Mesh, MeshBasicMaterial, DoubleSide,
+        CylinderGeometry, SphereGeometry, MeshPhysicalMaterial,
+        FrontSide, BackSide, PMREMGenerator} from "three";
 import {Vector2, Vector3, Matrix3, Matrix4} from "three";
 export {Vector2, Vector3, Matrix3, Matrix4};
 import WebGL from 'three/addons/capabilities/WebGL.js';
@@ -21,6 +23,8 @@ import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
 import {LineGeometry} from 'three/addons/lines/LineGeometry.js';
 import {LineSegments2} from 'three/addons/lines/LineSegments2.js';
 import {LineSegmentsGeometry} from 'three/addons/lines/LineSegmentsGeometry.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 
 export function loadTextureFiles(filenames, callback, prefix) {
   if (prefix === undefined) prefix = "./";
@@ -157,6 +161,18 @@ export class PerspectiveScene {
       this.scene.backgroundBlurriness = blurriness;
     }
     return this;  // allow chained calls
+  }
+
+  setEnvironment(scene) {
+    let texture = scene;
+    if (scene === undefined) {  // default room-like environment
+      scene = new RoomEnvironment(this.renderer);
+    }
+    if (scene.isScene) {
+      const pmremgen = new PMREMGenerator(this.renderer);
+      texture = pmremgen.fromScene(scene).texture;
+    }
+    this.scene.environment = texture;
   }
 
   hfov(fov) {
@@ -328,15 +344,72 @@ export class PerspectiveScene {
     if (points instanceof Array) points = points.flat();
     geom.setAttribute("position",
                       new BufferAttribute(new Float32Array(points), 3));
-    let props = {color: color, side: DoubleSide};
-    if (color instanceof Array) {
-      [props.color, props.opacity] = color;
-      props.transparent = true;
+    let mat = color;
+    if (!mat.isMaterial) {
+      let props = {color: color, side: DoubleSide};
+      if (color instanceof Array) {
+        [props.color, props.opacity] = color;
+        props.transparent = true;
+      }
+      mat = new MeshBasicMaterial(props);
     }
-    const mat = new MeshBasicMaterial(props);
     const msh = new Mesh(geom, mat);
     parent.add(msh);
     return msh;
+  }
+
+  cylinder([rtop, rbot, height, nang, nlen, open, theta0, dtheta],
+           color, parent) {
+    const g = new CylinderGeometry(rtop, rbot,  // top and bottom radii
+                                   height,      // cylinder length
+                                   nang, nlen,  // # segments around and along
+                                   open,        // true if no caps (false)
+                                   theta0,      // start angle (0)
+                                   dtheta);     // cylinder angle (2*pi)
+    let mat = color;
+    if (!mat.isMaterial) {
+      let props = {color: color, side: DoubleSide};
+      if (color instanceof Array) {
+        [props.color, props.opacity] = color;
+        props.transparent = true;
+      }
+      mat = new MeshBasicMaterial(props);
+    }
+    if (parent === undefined) parent = this.scene;
+    const msh = new Mesh(g, mat);
+    parent.add(msh);
+    return msh;
+  }
+
+  sphere([r, nphi, ntheta, phi0, dphi, theta0, dtheta],
+           color, parent) {
+    const g = new SphereGeometry(r,             // sphere radius
+                                 ntheta, nphi,  // # segments around and along
+                                 phi0,          // start angle (0)
+                                 dphi,          // cylinder angle (2*pi)
+                                 theta0,        // start angle (0)
+                                 dtheta);       // cylinder angle (pi)
+    let mat = color;
+    if (!mat.isMaterial) {
+      let props = {color: color, side: DoubleSide};
+      if (color instanceof Array) {
+        [props.color, props.opacity] = color;
+        props.transparent = true;
+      }
+      mat = new MeshBasicMaterial(props);
+    }
+    if (parent === undefined) parent = this.scene;
+    const msh = new Mesh(g, mat);
+    parent.add(msh);
+    return msh;
+  }
+
+  createPhysical(properties) {
+    return new MeshPhysicalMaterial(properties);
+  }
+
+  destroyPhysical(material) {
+    material.dispose();
   }
 
   movePoints(obj, points) {
@@ -363,6 +436,15 @@ export class PerspectiveScene {
     } else {
       this.scene.fog = new Fog(color, near, far);
     }
+  }
+
+  orbitControls() {
+    const controls = new OrbitControls(this.camera, this.canvas);
+    controls.enableDamping = true;
+    controls.minDistance = 5;
+    controls.maxDistance = 25;
+    controls.update();
+    return controls;
   }
 }
 

@@ -136,6 +136,42 @@ scene3d.onContextLost(() => {
 
 window.scene3d = scene3d;
 
+const controls = scene3d.orbitControls();
+controls.enabled = true;
+scene3d.setEnvironment();
+let mats = scene3d.createPhysical({side: 0, color: 0x99bbff,
+                                   clearcoat: 0.5, clearcoatRoughness: 0.3,
+                                   transparent: true, opacity: 0.4});
+let matf = scene3d.createPhysical({side: 0, color: 0xaaaaff,
+                                   clearcoat: 0.5, clearcoatRoughness: 0.3,
+                                   transparent: true, opacity: 0.4});
+let matb = scene3d.createPhysical({side: 1, color: 0xaaaaff,
+                                   clearcoat: 0.5, clearcoatRoughness: 0.3,
+                                   transparent: true, opacity: 0.4});
+const cylb = scene3d.cylinder([1, 1, 4, 60, 5, true], matb);
+const cylf = scene3d.cylinder([1, 1, 4, 60, 5, true], matf);
+cylb.rotateZ(Math.PI/2);
+cylf.rotateZ(Math.PI/2);
+const sph = scene3d.sphere([1, 60, 30], mats);
+sph.rotateZ(Math.PI/2);
+cylb.renderOrder = -1;
+sph.renderOrder = 0;
+cylf.renderOrder = 1;
+let styk = scene3d.createLineStyle({color: 0x000000, linewidth: 2});
+let angle = new Array(61).fill(2*Math.PI/60).map((v, i) => i*v);
+let points = angle.map(v => [0, 1.001*Math.sin(v), -1.001*Math.cos(v)]);
+let ring0 = scene3d.polyline(points, styk);
+scene3d.camera.position.set(0, 0, -10);
+scene3d.camera.up.set(0, 1, 0);
+scene3d.camera.lookAt(0, 0, 0);
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  scene3d.render();
+}
+animate();
+
 /* ------------------------------------------------------------------------ */
 
 // See https://github.com/rafgraph/fscreen
