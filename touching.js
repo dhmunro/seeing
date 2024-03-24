@@ -167,6 +167,7 @@ function makeSphere(radius, nph, nth, color, opacity) {
                                      clearcoat: 0.5, clearcoatRoughness: 0.3,
                                      transparent: true, opacity: opacity});
   let sph = scene3d.sphere([radius, nph, nth], mats, grp);
+  sph.material.depthWrite = false;  // otherwise clips focus dots
   sph.rotateZ(Math.PI/2);  // align with cylinder orientation
   sph.renderOrder = 0;  // render between inside and outside of cylinder
   const styk = scene3d.createLineStyle({color: 0x000000, linewidth: 2});
@@ -187,40 +188,38 @@ let xsph1 = 0;
 const sph2 = makeSphere(1, 60, 30, 0x99bbff, 0.4);
 // sph2.visible = false;
 
-class Dot {
-  constructor(position, size, color, parent) {
-    // size is roughly size at distance of 1
-    this.top = scene3d.group(parent);
-    this.dot = scene3d.sphere([1, 8, 8], color, this.top);
-    if (position instanceof Array) {
-      this.top.position.set(...position);
-    } else {
-      this.top.position.copy(position);
-    }
-    this.size = size;
-    this.rescale();
-    Dot.dots.push(this);
-  }
-
-  rescale() {
-    const dot = this.dot;
-    const camera = scene3d.camera;
-    const xyz = dot.getWorldPosition(Dot._dummy);
-    camera.updateMatrixWorld();
-    camera.worldToLocal(xyz);
-    const z = -xyz.z;
-    let size = this.size;
-    if (z > 0.01) size *= z;
-    dot.scale.set(size, size, size);
-  }
-
-  static dots = [];
-  static _dummy = new Vector3();
-
-  static rescaleAll() {
-    Dot.dots.forEach(d => d.rescale());
-  }
+function circleSprite(radius, color, scene, parent) {
+  const txcanvas = new TextureCanvas();
+  const ctx = txcanvas.context;
+  txcanvas.width = 2*radius;
+  txcanvas.height = 2*radius;
+  ctx.beginPath();
+  ctx.arc(radius, radius, radius, 0, 2*Math.PI, false);
+  const gradient = ctx.createRadialGradient(radius, radius, 0.75*radius,
+                                            radius, radius, radius);
+  gradient.addColorStop(0, color);
+  gradient.addColorStop(0.7, standardColor(color, 0.75));
+  gradient.addColorStop(1, standardColor(color, 0.25));
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  return txcanvas.addTo(scene, 0.5, 0.5, parent);
 }
+
+// https://stackoverflow.com/a/47355187
+function standardColor(str, mult) {
+  _color_context.fillStyle = str;
+  let color = _color_context.fillStyle;  // "#rrggbb" or "rgba(r, g, b, a/255)"
+  if (mult !== undefined && color.length == 7) {  // assume #rrggbb
+    color = parseInt(color.slice(1), 16);
+    let [r, g, b] = [color >> 16, color >> 8, color].map(v => v & 0xff)
+        .map(v => v*mult).map(v => (v < 0)? 0 : v)
+        .map(v => (v > 255)? 255 : parseInt(v));
+    color = "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+  }
+  return color;
+}
+
+const _color_context = document.createElement('canvas').getContext('2d');
 
 function makeEllipse(a, b, nph, color, opacity) {
   const grp = scene3d.group();
@@ -230,6 +229,7 @@ function makeEllipse(a, b, nph, color, opacity) {
     [nph, i,  (i<nph-1)? i+1 : 0]);
   points[nph] = [0, 0, 0];
   const surf = scene3d.mesh(points, indices, [color, opacity], grp);
+  surf.material.depthWrite = false;  // avoid clipping focus dots
   surf.renderOrder = 1;
   points[nph] = points[0];
   points = points.map(([x, y, z]) => [1.001*x, 1.001*y, 1.001*z]);
@@ -239,8 +239,10 @@ function makeEllipse(a, b, nph, color, opacity) {
   data.a = a;
   data.b = b;
   data.c = Math.sqrt(a**2 - b**2);
-  let foc1 = new Dot([data.c, 0, 0], 0.0025, 0x000000, grp);
-  let foc2 = new Dot([-data.c, 0, 0], 0.0025, 0x000000, grp);
+  let foc1 = circleSprite(3, "#000000", scene3d, grp);
+  foc1.position.set(data.c, 0, 0);
+  let foc2 = circleSprite(3, "#000000", scene3d, grp);
+  foc2.position.set(-data.c, 0, 0);
   data.eps = data.c / data.a;
   data.ang = Math.atan2(data.b, data.c);
   data.matrix0 = new Matrix4().copy(grp.matrix);
@@ -274,7 +276,6 @@ scene3d.camera.up.set(0, 1, 0);
 scene3d.camera.lookAt(0, 0, 0);
 
 function animate() {
-  Dot.rescaleAll();
   xsph1 += 0.01;
   if (xsph1 > 2) {
     xsph1 = -5;
