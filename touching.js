@@ -138,34 +138,155 @@ window.scene3d = scene3d;
 
 const controls = scene3d.orbitControls();
 controls.enabled = true;
+
 scene3d.setEnvironment();
-let mats = scene3d.createPhysical({side: 0, color: 0x99bbff,
-                                   clearcoat: 0.5, clearcoatRoughness: 0.3,
-                                   transparent: true, opacity: 0.4});
-let matf = scene3d.createPhysical({side: 0, color: 0xaaaaff,
-                                   clearcoat: 0.5, clearcoatRoughness: 0.3,
-                                   transparent: true, opacity: 0.4});
-let matb = scene3d.createPhysical({side: 1, color: 0xaaaaff,
-                                   clearcoat: 0.5, clearcoatRoughness: 0.3,
-                                   transparent: true, opacity: 0.4});
-const cylb = scene3d.cylinder([1, 1, 4, 60, 5, true], matb);
-const cylf = scene3d.cylinder([1, 1, 4, 60, 5, true], matf);
-cylb.rotateZ(Math.PI/2);
-cylf.rotateZ(Math.PI/2);
-const sph = scene3d.sphere([1, 60, 30], mats);
-sph.rotateZ(Math.PI/2);
-cylb.renderOrder = -1;
-sph.renderOrder = 0;
-cylf.renderOrder = 1;
-let styk = scene3d.createLineStyle({color: 0x000000, linewidth: 2});
-let angle = new Array(61).fill(2*Math.PI/60).map((v, i) => i*v);
-let points = angle.map(v => [0, 1.001*Math.sin(v), -1.001*Math.cos(v)]);
-let ring0 = scene3d.polyline(points, styk);
-scene3d.camera.position.set(0, 0, -10);
+
+function makeCylinder(radius, length, nph, nlen, color, opacity) {
+  const grp = scene3d.group();
+  const matf = scene3d.createPhysical({side: 0, color: color,
+                                       clearcoat: 0.5, clearcoatRoughness: 0.3,
+                                       transparent: true, opacity: opacity});
+  const matb = scene3d.createPhysical({side: 1, color: color,
+                                       clearcoat: 0.5, clearcoatRoughness: 0.3,
+                                       transparent: true, opacity: opacity});
+  const cylb = scene3d.cylinder([radius, radius, length, nph, nlen, true],
+                                matb, grp);
+  cylb.renderOrder = -2;  // draw inner surface first
+  const cylf = scene3d.cylinder([radius, radius, length, nph, nlen, true],
+                                matf, grp);
+  cylf.renderOrder = 2;  // draw outside surface last
+  grp.rotateZ(Math.PI/2);
+  return grp;
+}
+const cyl = makeCylinder(1, 4, 60, 5, 0xaaaaff, 0.4);
+
+function makeSphere(radius, nph, nth, color, opacity) {
+  const grp = scene3d.group();
+  // Note: back side is not drawn, so opacity is only single pass.
+  let mats = scene3d.createPhysical({side: 0, color: color,
+                                     clearcoat: 0.5, clearcoatRoughness: 0.3,
+                                     transparent: true, opacity: opacity});
+  let sph = scene3d.sphere([radius, nph, nth], mats, grp);
+  sph.rotateZ(Math.PI/2);  // align with cylinder orientation
+  sph.renderOrder = 0;  // render between inside and outside of cylinder
+  const styk = scene3d.createLineStyle({color: 0x000000, linewidth: 2});
+  const angle = new Array(nph+1).fill(2*Math.PI/nph).map((v, i) => i*v);
+  const points = angle.map(v =>
+    [0, 1.001*radius*Math.sin(v), -1.001*radius*Math.cos(v)]);
+  const waist = scene3d.polyline(points, styk, grp);
+  return grp;
+}
+
+function hideWaist(grp, hide) {
+  grp.children[1].visible = !hide;
+}
+
+const sph1 = makeSphere(1, 60, 30, 0x99bbff, 0.4);
+let xsph1 = 0;
+
+const sph2 = makeSphere(1, 60, 30, 0x99bbff, 0.4);
+// sph2.visible = false;
+
+class Dot {
+  constructor(position, size, color, parent) {
+    // size is roughly size at distance of 1
+    this.top = scene3d.group(parent);
+    this.dot = scene3d.sphere([1, 8, 8], color, this.top);
+    if (position instanceof Array) {
+      this.top.position.set(...position);
+    } else {
+      this.top.position.copy(position);
+    }
+    this.size = size;
+    this.rescale();
+    Dot.dots.push(this);
+  }
+
+  rescale() {
+    const dot = this.dot;
+    const camera = scene3d.camera;
+    const xyz = dot.getWorldPosition(Dot._dummy);
+    camera.updateMatrixWorld();
+    camera.worldToLocal(xyz);
+    const z = -xyz.z;
+    let size = this.size;
+    if (z > 0.01) size *= z;
+    dot.scale.set(size, size, size);
+  }
+
+  static dots = [];
+  static _dummy = new Vector3();
+
+  static rescaleAll() {
+    Dot.dots.forEach(d => d.rescale());
+  }
+}
+
+function makeEllipse(a, b, nph, color, opacity) {
+  const grp = scene3d.group();
+  const angle = new Array(nph+1).fill(2*Math.PI/nph).map((v, i) => i*v);
+  let points = angle.map(v => [a*Math.cos(v), b*Math.sin(v), 0]);
+  const indices = new Array(nph).fill(0).map((v, i) =>
+    [nph, i,  (i<nph-1)? i+1 : 0]);
+  points[nph] = [0, 0, 0];
+  const surf = scene3d.mesh(points, indices, [color, opacity], grp);
+  surf.renderOrder = 1;
+  points[nph] = points[0];
+  points = points.map(([x, y, z]) => [1.001*x, 1.001*y, 1.001*z]);
+  const styk = scene3d.createLineStyle({color: 0x000000, linewidth: 2});
+  const waist = scene3d.polyline(points, styk, grp);
+  const data = grp.userData;
+  data.a = a;
+  data.b = b;
+  data.c = Math.sqrt(a**2 - b**2);
+  let foc1 = new Dot([data.c, 0, 0], 0.0025, 0x000000, grp);
+  let foc2 = new Dot([-data.c, 0, 0], 0.0025, 0x000000, grp);
+  data.eps = data.c / data.a;
+  data.ang = Math.atan2(data.b, data.c);
+  data.matrix0 = new Matrix4().copy(grp.matrix);
+  grp.rotateY(-data.ang);
+  grp.updateMatrix();
+  data.matrix1 = new Matrix4().copy(grp.matrix);
+  grp.setRotationFromMatrix(data.matrix0);
+  return grp;
+}
+
+function showFoci(ellipse, mask) {
+  const children = ellipse.children;
+  const foc1 = children[2];
+  const foc2 = children[3];
+  foc1.visible = (mask & 1) != 0;
+  foc2.visible = (mask & 2) != 0;
+}
+
+function orientEllipse(ellipse, toCylinder) {
+  const data = ellipse.userData;
+  ellipse.setRotationFromMatrix(toCylinder? data.matrix1 : data.matrix0);
+}
+
+const ellipse = makeEllipse(1.3, 1, 120, 0xffffff, 0.4);
+orientEllipse(ellipse, true);
+sph1.position.set(-1.3, 0, 0);
+sph2.position.set(1.3, 0, 0);
+
+scene3d.camera.position.set(-4, 1, 10);
 scene3d.camera.up.set(0, 1, 0);
 scene3d.camera.lookAt(0, 0, 0);
 
 function animate() {
+  Dot.rescaleAll();
+  xsph1 += 0.01;
+  if (xsph1 > 2) {
+    xsph1 = -5;
+    sph1.position.set(xsph1, 0, 0);
+    hideWaist(sph1, true);
+    showFoci(ellipse, 1);
+  } else if (xsph1 <= -ellipse.userData.a) {
+    sph1.position.set(xsph1, 0, 0);
+    hideWaist(sph1, xsph1 < -2);
+  } else {
+    showFoci(ellipse, 3);
+  }
   requestAnimationFrame(animate);
   controls.update();
   scene3d.render();
