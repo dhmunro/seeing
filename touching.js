@@ -6,6 +6,7 @@ import {Animator} from './animator.js';
 
 const theText = document.querySelector(".textcolumn");
 const paragraphs = Array.from(theText.querySelectorAll("p"));
+const HELP_PANEL = document.getElementById("help-panel");
 
 class ScrollPosition {
   constructor(callback) {
@@ -175,6 +176,13 @@ controls.enabled = true;
 
 scene3d.setEnvironment();
 
+const topObjects = [];
+function topObjectsInvisible() {
+  topObjects.forEach(obj => {
+    obj.visible = false;
+  });
+}
+
 function makeCylinder(radius, length, nph, nlen, color, opacity) {
   const grp = scene3d.group();
   const matf = scene3d.createPhysical({side: 0, color: color,
@@ -193,6 +201,7 @@ function makeCylinder(radius, length, nph, nlen, color, opacity) {
   return grp;
 }
 const cyl = makeCylinder(1, 4, 60, 5, 0xaaaaff, 0.4);
+topObjects.push(cyl);
 
 function makeSphere(radius, nph, nth, color, opacity) {
   const grp = scene3d.group();
@@ -218,6 +227,7 @@ function hideWaist(grp, hide) {
 
 const sph1 = makeSphere(1, 60, 30, 0x99bbff, 0.4);
 const sph2 = makeSphere(1, 60, 30, 0x99bbff, 0.4);
+topObjects.push(sph1, sph2);
 
 function circleSprite(radius, color, scene, parent) {
   const txcanvas = new TextureCanvas();
@@ -315,6 +325,7 @@ class Sector {
     this.darea = darea;
     this.zoff = zoff;
     const grp = scene3d.group(parent);
+    topObjects.push(grp);
     this.grp = grp;
     let points = new Array(n+1).fill([0, 0, zoff]);
     let indices = new Array(n-1).fill(0).map((v, i) => [0, i+1, i+2]);
@@ -377,6 +388,7 @@ class Sector {
 
 const ellipse_a = 1.3;
 const ellipse = makeEllipse(ellipse_a, 1, 120, 0xffffff, 0.4);
+topObjects.push(ellipse);
 const sector = new Sector(ellipse, 20, "#000000", 0x000000, 0xbbbbbb, 0.25);
 sph1.position.set(-ellipse_a, 0, 0);
 sph2.position.set(ellipse_a, 0, 0);
@@ -386,39 +398,110 @@ scene3d.camera.position.set(0, 0, 8);
 scene3d.camera.up.set(0, 1, 0);
 scene3d.camera.lookAt(0, 0, 0);
 
-cyl.visible = false;
-sph1.visible = false;
-sph2.visible = false;
+topObjectsInvisible();
 
+ellipse.visible = true;
 showFoci(ellipse, 1);
 orientEllipse(ellipse, false);
 scene3d.render();
 
-let xsph1 = 0, maNow = 0;
-function animate() {
-//   xsph1 += 0.01;
-//   if (xsph1 > 2) {
-//     xsph1 = -5;
-//     sph1.position.set(xsph1, 0, 0);
-//     hideWaist(sph1, true);
-//     showFoci(ellipse, 1);
-//   } else if (xsph1 <= -ellipse.userData.a) {
-//     sph1.position.set(xsph1, 0, 0);
-//     hideWaist(sph1, xsph1 < -2);
-//   } else {
-//     showFoci(ellipse, 3);
-//   }
-  maNow += 0.01;
-  sector.update(maNow);
-  requestAnimationFrame(animate);
-  controls.update();
-  scene3d.render();
+class ParameterAnimator extends Animator {
+  constructor() {
+    super((dms) => {
+      if (this._worker) return this._worker(dms);
+      else return true;
+    });
+  }
+
+  // You can supress this behavior by having onFinish return true.
+  initialize(p0, p1, msDelta, onStep, onFinish) {
+    if (onStep === undefined) {
+      delete this._worker;
+      return this;
+    }
+    let msEase = 0, msTotal;
+    if (msDelta.length) [msDelta, msEase] = msDelta;
+    let ms = 0, drate = 0;
+    msTotal = msDelta + msEase;
+    const rate = (p1 - p0) / msTotal;
+    if (msEase > 0) {
+      msDelta += msEase;
+      drate = 0.5 * rate / msEase;
+      msTotal += msEase;
+    }
+    let p = p0;
+    this._worker = (dms) => {
+      let stop = ms + dms >= msTotal;
+      if (!drate) {
+        p += rate * dms;
+        ms += dms;
+      } else {
+        let t = ms + dms;
+        if (dms > 0 && ms < msEase) {
+          dms = t - msEase;
+          if (dms > 0) t = msEase;
+          p = p0 + drate*t**2;
+          ms = t;
+        }
+        if (dms > 0 && ms < msDelta) {
+          dms = t - msDelta;
+          if (dms > 0) t = msDelta;
+          p = p0 + drate*msEase**2 + rate*(t - msEase);
+          ms = t;
+        }
+        if (dms > 0 && ms < msTotal) {
+          dms = t - msTotal;
+          if (dms > 0) t = msTotal;
+          p = p0 + 2*drate*msEase**2 + rate*(msDelta - msEase);
+          p -= drate*(msTotal - t)**2
+          ms = t;
+        }
+      }
+      if (stop) p = p1;
+      onStep(p);
+      if (stop && onFinish) onFinish.call(this);
+      return stop;
+    }
+    return this;
+  }
 }
-animate();
+
+// Only one parameter animator so it can be reset.
+const parameterAnimator = new ParameterAnimator();
 
 /* ------------------------------------------------------------------------ */
 
+function setup0() {
+  parameterAnimator.stop();
+  topObjectsInvisible();
+  ellipse.visible = true;
+  sector.show();
+  showFoci(ellipse, 1);
+  orientEllipse(ellipse, false);
+  sector.update(0);
+  scene3d.render();
+  parameterAnimator.initialize(0, 36000, 36000000, ma => {
+    sector.update(ma);
+    controls.update();
+    scene3d.render();
+  });
+}
+
+let prevPlace = -1;
 const scrollPos = new ScrollPosition((place) => {
+  const prev = (prevPlace<0)? place : prevPlace;
+  prevPlace = place;
+  if (place < 1) {
+    HELP_PANEL.classList.remove("hidden");
+    setup0();
+    return;
+  }
+  HELP_PANEL.classList.add("hidden");
+  parameterAnimator.pause();
+  if (place < 2) {
+    if (prev >= 2) setup0();
+    parameterAnimator.play();
+  }
 });
 
 /* ------------------------------------------------------------------------ */
