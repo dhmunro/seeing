@@ -109,6 +109,7 @@
           overflow-x: hidden;
           overflow-y: scroll;
           scrollbar-color: #888 #fff4;
+          scroll-behavior: smooth;
       }
 
       #figure-box {
@@ -169,12 +170,12 @@
 
 <p class="justified">The natural way to study motion is to begin with
   trajectory - the arc of a cannonball or the orbit of a planet.  You
-  then come up with a rule for how the object advances along its path
-  in time.  Galileo discovered that the canonball moves in a parabola
-  with a constant horizontal velocity, and this is exactly the pattern
-  of Kepler's first two laws: The planet moves in an ellipse with the
-  Sun at one focus, such that the line between the Sun and planet
-  sweeps out equal areas in equal times.</p>
+  then come up with a rule for how the object advances along this
+  trajectory in time.  Galileo discovered that the canonball moves in
+  a parabola with a constant horizontal velocity, and this is exactly
+  the pattern of Kepler's first two laws: The planet moves in an
+  ellipse with the Sun at one focus, such that the line between the
+  Sun and planet sweeps out equal areas in equal times.</p>
 
 <p class="justified">Newton demoted the trajectory into a secondary
   feature of any motion, promoting instantaneous position, velocity,
@@ -190,10 +191,13 @@
 <p class="justified">Newton was not only the greatest physicist of his
   age, but also its greatest mathematician.  He invented a new
   mathematical tool - the infinitessimal calculus - specifically to be
-  able to think about motion in this radically new way.  With
-  calculus, Newton could derive the trajectories and rules of movement
-  from his more fundamental instantaneous positions, velocities, and
-  accelerations.</p>
+  able to work with motion in this radically new way.  With calculus,
+  Newton could derive the trajectories and rules of movement from his
+  more fundamental instantaneous positions, velocities, and
+  accelerations.  In the jargon of calculus, velocity and acceleration
+  are the <em>derivatives</em> - instantaneous rates of change - of
+  position and velocity, and you <em>integrate</em> them to find the
+  trajectory - how they evolve over finite times.</p>
 
 <p class="justified">So what are the velocity and acceleration of a
   planet according to Kepler's laws?</p>
@@ -263,59 +267,21 @@
   times" is just a rather clumsy and roundabout way to say that the
   planets are being pulled straight toward the Sun.</p>
 
-<h2>Newton's program</h2>
-
-[Picture splits into separate position and velocity diagrams, showing
- velocity vector on both, moving acceleration vector to velocity
- diagram.]
-
-<p class="justified">Suppose that given some starting position and
-  velocity, you knew how to compute the acceleration - then you would
-  be able to compute the position and velocity an infinitessimal time
-  later.  Those new values then give you new rates of change for the
-  next infinitessimal time step, and so on.  Newton invented calculus
-  to be able to accumulate infinitely many such infinitessimal time
-  steps, and thereby follow the trajectory for finite time intervals.
-  This is Newton's program for describing planetary motion: Instead of
-  asking for the shape of the orbit, Newton wants the rule for
-  calculating the acceleration as a function of position and
-  velocity.</p>
-
-<p class="justified">You already know that the acceleration of a
-  planet points directly at the Sun from Kepler's second law.  So
-  Newton's program boils down to finding a rule relating the magnitude
-  of a planet's acceleration to its position (and, perhaps, it's
-  velocity).  Such a rule is called a <em>force law</em>; find the
-  force law, and you have described the motion.  The function that
-  produces acceleration for each position is called a <em>force
-  field</em>.</p>
-
-[Picture shows many acceleration vectors in background to indicate
- acceleration field.]
-
-<p class="justified">If you can find a force law for a planet, the
-  shape of its orbit becomes just a side effect.  The orbit will
-  remain Kepler's ellipse traversed according to his equal area law,
-  but you instead describe the motion like so: This planet started at
-  this position, moving with this velocity, and thereafter, it
-  accelerated directly toward the Sun at such-and-such a rate.  You
-  will have cast planetary motion in an entirely new light, equivalent
-  to Kepler but expressed quite differently.</p>
-
 <h2>Three ways to define an ellipse</h2>
 
-<p class="justified">Kepler's first law involves an ellipse and its
-  focus, so you need to know precisely what those terms mean to be
-  able to follow Newton's reasoning.  In simplest terms, an ellipse is
-  a circle elongated along one axis.  More precisely, an ellipse is
-  the shape of a section of a right circular cylinder cut by a plane
-  not normal to its axis - think of slicing a cucumber on a bias.</p>
+<p class="justified">Kepler's first law is much harder to recast in
+  Newtonian terms.  You need to know many properties of an ellipse and
+  its foci to even get started.  Precisely what is an ellipse and what
+  are its foci?  In simplest terms, an ellipse is a circle elongated
+  along one axis.  More precisely, an ellipse is the shape of a
+  section of a right circular cylinder cut by a plane not normal to
+  its axis - think of slicing a cucumber on a bias.</p>
 
 [Picture of circle stretching into ellipse, then add 3D cylinder with
  slicing plane and rotate in 3D to an orientation you might see if you
  were slicing a cucumber.]
 
-<p class="justified">To find the focus of this ellipse, introduce a
+<p class="justified">To find one focus of this ellipse, introduce a
   sphere of the same radius as the cylinder and slide its center along
   the axis of the cylinder until it just touches the cutting plane.
   That tangency point is one focus of the ellipse.</p>
@@ -412,13 +378,13 @@
 
 <h2>Relation between eccentric circle and ellipse</h2>
 
-<p class="justified">You need to know how to construct the tangent to
-  an ellipse, since a planet's velocity is tangent to its ellipse.
-  Draw the midpoint M of FQ, and consider a point N on the line MP,
-  the perpendicular bisector of FQ.  When N is at P, it is on the
-  ellipse, so that SN+NF=DH.  At any other point, SN+NF=SN+NQ must be
-  larger, since SPQ is a straight line.  Thus, every other point N on
-  MP is outside of the ellipse, so that MP must be tangent to the
+<p class="justified">You also need to know how to construct the
+  tangent to an ellipse.  (A planet's velocity is tangent to its
+  ellipse!)  Draw the midpoint M of FQ, and consider a point N on the
+  line MP, the perpendicular bisector of FQ.  When N is at P, it is on
+  the ellipse, so that SN+NF=DH.  At any other point, SN+NF=SN+NQ must
+  be larger, since SPQ is a straight line.  Thus, every other point N
+  on MP is outside of the ellipse, so that MP must be tangent to the
   ellipse at P, since it intersects the ellipse only at the one point
   P.</p>
 
@@ -572,7 +538,7 @@
 
 <div id="figure-box">
   <canvas id="figure"></canvas>
-  <div id="help-panel">
+  <div id="help-panel" class="hidden">
     Slowly scroll text to advance graphic illustrating highlighted
     paragraph.
   </div>

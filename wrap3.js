@@ -449,7 +449,8 @@ export class PerspectiveScene {
 }
 
 export class TextureCanvas {
-  constructor() {
+  constructor(scale) {
+    this.scale = scale? scale : 1;
     this.canvas = document.createElement("canvas");
     this.context = this.canvas.getContext("2d");
   }
@@ -471,8 +472,8 @@ export class TextureCanvas {
   }
 
   addTo(perspectiveScene, xcenter, ycenter, parent) {
-    const sprite = perspectiveScene.createSprite(this.canvas, 1, undefined,
-                                                 parent);
+    const sprite = perspectiveScene.createSprite(this.canvas, this.scale,
+                                                 undefined, parent);
     if (xcenter !== undefined) {
       sprite.center.set(xcenter, ycenter);
     }

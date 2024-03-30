@@ -9,7 +9,7 @@ const paragraphs = Array.from(theText.querySelectorAll("p"));
 const HELP_PANEL = document.getElementById("help-panel");
 
 class ScrollPosition {
-  constructor(callback) {
+  constructor(callback, onend) {
     // callback should set canvas to correct picture
     // - it must never cause theText to scroll
     this.highlight(0);
@@ -24,12 +24,17 @@ class ScrollPosition {
     theText.addEventListener("scroll", () => {
       callback(scrollPos.place());
     }, {passive: true});
+    if (onend) {
+      theText.addEventListener("scrollend", () => {
+        onend();
+      });
+    }
     theText.addEventListener("wheel", e => {
       e.preventDefault();
       // Apparently, deltaY is always +-120, which is supposed to be 3 lines.
       // Original idea was 1/8 degree, and most wheels step by 15 degrees.
       let sign = Math.sign(e.deltaY);
-      theText.scrollBy(0, Math.sign(e.deltaY)*this.lineHeight);
+      theText.scrollBy(0, Math.sign(e.deltaY)*2*this.lineHeight);
     });
     addEventListener("keydown", e => {
       switch (event.key) {
@@ -183,6 +188,12 @@ function topObjectsInvisible() {
   });
 }
 
+const renderHooks = [];
+function renderScene() {
+  renderHooks.forEach(f => f());
+  scene3d.render();
+}
+
 function makeCylinder(radius, length, nph, nlen, color, opacity) {
   const grp = scene3d.group();
   const matf = scene3d.createPhysical({side: 0, color: color,
@@ -262,6 +273,99 @@ function standardColor(str, mult) {
 
 const _color_context = document.createElement('canvas').getContext('2d');
 
+/* Arrow is a group comprising a fat line and a sprite head.
+ * (An optional second sprite can be at the tail?)
+ * Arrow canvas is 58x58 pixels
+ *   tip (58, 29), sides (9, 8) and (9, 50), center (29, 29), radius 29
+ *   head length 49
+ * This texture canvas needs to be big enough to rotate the arrow around
+ * its center to any orientation for material.map.rotation to work.
+ * Would like to shorten the line so that the tip of the arrow is half
+ * of the line thickness ahead of the point, but thickness and head length
+ * are specified in pixels, and the relationship between pixels and world
+ * coordinates changes with the camera.  This also has to be taken into
+ * account to set the head orientation, which means the line endpoint
+ * should be adjusted at that time as well.
+ */
+function makeArrow(points, color, thick, head, parent) {
+  const grp = scene3d.group(parent);
+  const data = grp.userData;
+  const sty = scene3d.createLineStyle({color: color, linewidth: thick});
+  data.points = points.map(p => new Vector3(...p));
+  const line = scene3d.polyline(points, sty, grp);
+  const txcanvas = new TextureCanvas(head / 49);  // head length is in pixels
+  const ctx = txcanvas.context;
+  txcanvas.width = txcanvas.height = 58;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(58, 29);
+  ctx.lineTo(9, 50);
+  ctx.lineTo(9, 8);
+  ctx.fill();
+  const sprite = txcanvas.addTo(scene3d, 0.5, 0.5, grp);
+  sprite.position.set(...points[points.length-1]);
+  sprite.material.map.center.set(0.5, 0.5);
+  sprite.renderOrder = 1;  // and drawn after 
+  // When arrowhead visible, final endpoint of line and center of head
+  // will be adjusted backwards so that tip of arrow (rather than center)
+  // is just half of linewidth beyond true endpoint.
+  data.ds = head - thick/2;  // adjustment in pixels (why not head/2???)
+  _arrows.push(grp);
+  return grp;
+}
+function moveArrow(arrow, points) {
+  arrow.userData.points = points.map(p => new Vector3(...p));
+  const [line, head] = arrow.children;
+  scene3d.movePoints(line, points);
+  head.position.set(...points[points.length-1]);
+}
+function hideArrowhead(arrow, yes=true) {
+  const [line, head] = arrow.children;
+  if (head.visible == !yes) return;
+  if (yes) {
+    const points = arrow.userData.points.map(({x, y, z}) => [x, y, z]);
+    scene3d.movePoints(line, points);
+    head.position.set(...points[points.length-1]);
+  }
+  head.visible = !yes;
+}
+const _arrows = [];
+renderHooks.push(() => {
+  _arrows.forEach(arrow => {
+    if (!arrow.visible) return;
+    const data = arrow.userData;
+    const [line, head] = arrow.children;
+    if (!head.visible) return;
+    // First adjust orientation of arrowhead to match line as displayed.
+    const camera = scene3d.camera;
+    camera.updateMatrixWorld();  // otherwise project(camera) wrong
+    const [pt0, pt1] = data.points.slice(-2);
+    _endpt0.copy(pt0).project(camera);
+    _endpt1.copy(pt1).project(camera);
+    _endpt1.sub(_endpt0);
+    let {x, y, z} = _endpt1;
+    const canvas = scene3d.canvas;
+    [x, y] = [x*canvas.width, y*canvas.height];  // pixel coordinates
+    // ECMA standard guarantees atan2(0, 0) == 0.
+    head.material.map.rotation = Math.atan2(y, x);
+    // Next adjust position of endpoint1 of line and position of head
+    // so that tip of arrow is just one half of line thickness beyond true
+    // endpoint.  The line endpoint becomes the center of the head.
+    const points = data.points.map(({x, y, z}) => [x, y, z]);
+    let frac = 1 - data.ds/Math.sqrt(x**2 + y**2);
+    _endpt0.copy(pt0);
+    _endpt1.copy(pt1).sub(_endpt0).multiplyScalar(frac).add(_endpt0);
+    ({x, y, z} = _endpt1);
+    points[points.length-1] = [x, y, z];
+    scene3d.movePoints(line, points);
+    head.position.set(...points[points.length-1]);
+    // For very short arrows, the line is not visible at all.
+    if (points.length == 2) line.visible = frac > 0;
+  });
+});
+const _endpt0 = new Vector3();
+const _endpt1 = new Vector3();
+
 function makeEllipse(a, b, nph, color, opacity) {
   const grp = scene3d.group();
   const angle = new Array(nph+1).fill(2*Math.PI/nph).map((v, i) => i*v);
@@ -330,16 +434,22 @@ class Sector {
     let points = new Array(n+1).fill([0, 0, zoff]);
     let indices = new Array(n-1).fill(0).map((v, i) => [0, i+1, i+2]);
     this.shade = scene3d.mesh(points, indices, cola, grp);
-    const sty = scene3d.createLineStyle({color: colr, linewidth: 2});
-    this.line = scene3d.polyline([[0, 0, zoff], [0, 0, zoff]], sty, grp);
+    this.line = makeArrow([[0, 0, zoff], [0, 0, zoff]], colr, 2, 16, grp);
+    hideArrowhead(this.line);
     this.dotp = circleSprite(3, colp, scene3d, grp);
+    this.dotp.renderOrder = 1;
     this.dots = circleSprite(3, colp, scene3d, grp);
+    this.dotp.renderOrder = 1;
     this.dots.position.set(c, 0, 2*zoff);
     this.update(0);
   }
 
   show(yes=true) {
     this.grp.visible = yes;
+  }
+
+  showArrow(yes=true) {
+    hideArrowhead(this.line, !yes);
   }
 
   update(ma) {
@@ -356,7 +466,7 @@ class Sector {
     });
     scene3d.meshMovePoints(this.shade, points);
     points = points.map(([x, y, z]) => [x, y, 2*z]);
-    scene3d.movePoints(this.line, [[c, 0, zoff], points[n]]);
+    moveArrow(this.line, [[c, 0, zoff], points[n]]);
     this.dotp.position.set(...points[n]);
   }
 
@@ -390,6 +500,7 @@ const ellipse_a = 1.3;
 const ellipse = makeEllipse(ellipse_a, 1, 120, 0xffffff, 0.4);
 topObjects.push(ellipse);
 const sector = new Sector(ellipse, 20, "#000000", 0x000000, 0xbbbbbb, 0.25);
+sector.show(false);
 sph1.position.set(-ellipse_a, 0, 0);
 sph2.position.set(ellipse_a, 0, 0);
 
@@ -403,7 +514,6 @@ topObjectsInvisible();
 ellipse.visible = true;
 showFoci(ellipse, 1);
 orientEllipse(ellipse, false);
-scene3d.render();
 
 class ParameterAnimator extends Animator {
   constructor() {
@@ -414,7 +524,7 @@ class ParameterAnimator extends Animator {
   }
 
   // You can supress this behavior by having onFinish return true.
-  initialize(p0, p1, msDelta, onStep, onFinish) {
+  initialize(p0, p1, msDelta, onStep, onFinish, onStart, context) {
     if (onStep === undefined) {
       delete this._worker;
       return this;
@@ -431,6 +541,7 @@ class ParameterAnimator extends Animator {
     }
     let p = p0;
     this._worker = (dms) => {
+      if (dms == 0 && onStart) onStart.call(context);
       let stop = ms + dms >= msTotal;
       if (!drate) {
         p += rate * dms;
@@ -458,8 +569,8 @@ class ParameterAnimator extends Animator {
         }
       }
       if (stop) p = p1;
-      onStep(p);
-      if (stop && onFinish) onFinish.call(this);
+      onStep.call(context, p);
+      if (stop && onFinish) onFinish.call(context);
       return stop;
     }
     return this;
@@ -473,23 +584,34 @@ const parameterAnimator = new ParameterAnimator();
 
 function setup0() {
   parameterAnimator.stop();
+  parameterAnimator.initialize();
   topObjectsInvisible();
   ellipse.visible = true;
   sector.show();
   showFoci(ellipse, 1);
   orientEllipse(ellipse, false);
-  sector.update(0);
-  scene3d.render();
-  parameterAnimator.initialize(0, 36000, 36000000, ma => {
-    sector.update(ma);
+  maNow = maNow % (2*Math.PI);
+  if (maNow < 0) maNow += 2*Math.PI;
+  sector.update(maNow);
+  renderScene();
+  let ma0 = 0;
+  parameterAnimator.initialize(0, 36000, 36000000, dma => {
+    sector.update(ma0 + dma);
     controls.update();
-    scene3d.render();
+    renderScene();
+  }, () => {
+    maNow = 0;
+  }, () => {
+    ma0 = maNow;
   });
 }
 
-let prevPlace = -1;
+let maNow = 0;
+let autoplay = false;
+let prevPlace = 1000;
 const scrollPos = new ScrollPosition((place) => {
-  const prev = (prevPlace<0)? place : prevPlace;
+  const prev = prevPlace;
+  autoplay = false;
   prevPlace = place;
   if (place < 1) {
     HELP_PANEL.classList.remove("hidden");
@@ -500,8 +622,15 @@ const scrollPos = new ScrollPosition((place) => {
   parameterAnimator.pause();
   if (place < 2) {
     if (prev >= 2) setup0();
-    parameterAnimator.play();
+    maNow = (place - 2)*2*Math.PI;
+    sector.update(maNow);
+    renderScene();
+    // autoplay = true;
+    if (place > 1.1 && place < 1.9) parameterAnimator.play();
+    else parameterAnimator.pause();
   }
+}, () => {
+  if (autoplay && parameterAnimator._worker) parameterAnimator.play();
 });
 
 /* ------------------------------------------------------------------------ */
