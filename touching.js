@@ -423,7 +423,7 @@ class Sector {
   //   n+1sr approx:  ea_(n+1) =
   //                      ea_n + (ma - (ea_n - e*sin(ea_n)))/(1-e*cos(ea_n))
   //   point on ellipse is (a*cos(ea), b*sin(ea))
-  constructor(ellipse, n, colp, colr, cola, darea, parent, zoff=0.003) {
+  constructor(ellipse, n, colp, colr, cola, darea, parent, colv, zoff=0.003) {
     const [a, b, c, eps] = this.reshape(ellipse);
     this.n = n;
     this.darea = darea;
@@ -434,8 +434,15 @@ class Sector {
     let points = new Array(n+1).fill([0, 0, zoff]);
     let indices = new Array(n-1).fill(0).map((v, i) => [0, i+1, i+2]);
     this.shade = scene3d.mesh(points, indices, cola, grp);
-    this.line = makeArrow([[0, 0, zoff], [0, 0, zoff]], colr, 2, 16, grp);
+    this.line = makeArrow([[0, 0, 2*zoff], [0, 0, 2*zoff]], colr, 2, 16, grp);
     hideArrowhead(this.line);
+    if (colv) {
+      this.vel = makeArrow([[0, 0, 2*zoff], [0, 0, 2*zoff]], colv, 2, 16, grp);
+      this.vel.visible = false;
+      // make maximum velocity amplitude b
+      // cv = eps*rv, vmax = (1+eps)*rv
+      this.av = b / (1 + eps);
+    }
     this.dotp = circleSprite(3, colp, scene3d, grp);
     this.dotp.renderOrder = 1;
     this.dots = circleSprite(3, colp, scene3d, grp);
@@ -448,26 +455,53 @@ class Sector {
     this.grp.visible = yes;
   }
 
-  showArrow(yes=true) {
-    hideArrowhead(this.line, !yes);
+  newton(yes=true) {
+    if (yes) {
+      this.shade.visible = false;
+      hideArrowhead(this.line, false);
+      this.vel.visible = true;
+    } else {
+      this.shade.visible = true;
+      hideArrowhead(this.line, true);
+      this.vel.visible = false;
+    }
   }
 
   update(ma) {
-    const zoff = this.zoff, c = this.c;
-    let ea0 = this.eaSolve(ma - this.darea);
+    const {c, n, darea, zoff} = this;
+    let ea0 = this.eaSolve(ma - darea);
     let ea1 = this.eaSolve(ma);
-    let {a, b, n} = this;
+    let {a, b} = this;
     let dea = (ea1 - ea0) / (n - 1);
     let points = new Array(n+1).fill([0, 0, zoff]);
-    points = points.map(([x, y, z], i) => {
-      if (i < 1) return [c, 0, z];
-      let ea = ea0 + (i-1)*dea;
-      return [a*Math.cos(ea), b*Math.sin(ea), z];
+    const pt0 = [c, 0, zoff];
+    points = points.map((p, i) => {
+      if (i < 1) return pt0;
+      return this.position(ea0 + (i-1)*dea);
     });
     scene3d.meshMovePoints(this.shade, points);
     points = points.map(([x, y, z]) => [x, y, 2*z]);
-    moveArrow(this.line, [[c, 0, zoff], points[n]]);
-    this.dotp.position.set(...points[n]);
+    const pt1 = points[n];
+    moveArrow(this.line, [pt0, pt1]);
+    this.dotp.position.set(...pt1);
+    if (this.vel && this.vel.visible) {
+      let [vx, vy, vz] = this.velocity(ea1);
+      moveArrow(this.vel, [[0, 0, vz], [vx, vy, vz]]);
+      this.vel.position.set(...pt1);
+    }
+  }
+
+  position(ea, dbl=1) {
+    let {a, b, zoff} = this;
+    return [a*Math.cos(ea), b*Math.sin(ea), dbl*zoff];
+  }
+
+  velocity(ea, dbl=1) {
+    let {a, b, c, av, zoff} = this;
+    let [vx, vy] = [-b*Math.sin(ea), a*Math.cos(ea) - c];
+    const cv = c * av / a;
+    av /= Math.sqrt(vx**2 + vy**2);
+    return [av*vx, av*vy + cv, dbl*zoff];
   }
 
   eaSolve(ma, tol=1.e-6) {
@@ -499,7 +533,8 @@ class Sector {
 const ellipse_a = 1.3;
 const ellipse = makeEllipse(ellipse_a, 1, 120, 0xffffff, 0.4);
 topObjects.push(ellipse);
-const sector = new Sector(ellipse, 20, "#000000", 0x000000, 0xbbbbbb, 0.25);
+const sector = new Sector(ellipse, 20, "#000000", 0x000000, 0xbbbbbb, 0.25,
+                          undefined, "#0000ff");
 sector.show(false);
 sph1.position.set(-ellipse_a, 0, 0);
 sph2.position.set(ellipse_a, 0, 0);
@@ -588,6 +623,7 @@ function setup0() {
   topObjectsInvisible();
   ellipse.visible = true;
   sector.show();
+  sector.newton(false);
   showFoci(ellipse, 1);
   orientEllipse(ellipse, false);
   maNow = maNow % (2*Math.PI);
@@ -596,7 +632,8 @@ function setup0() {
   renderScene();
   let ma0 = 0;
   parameterAnimator.initialize(0, 36000, 36000000, dma => {
-    sector.update(ma0 + dma);
+    maNow = ma0 + dma;
+    sector.update(maNow);
     controls.update();
     renderScene();
   }, () => {
@@ -611,23 +648,29 @@ let autoplay = false;
 let prevPlace = 1000;
 const scrollPos = new ScrollPosition((place) => {
   const prev = prevPlace;
-  autoplay = false;
   prevPlace = place;
+  autoplay = false;
+  parameterAnimator.pause();
   if (place < 1) {
     HELP_PANEL.classList.remove("hidden");
     setup0();
     return;
   }
   HELP_PANEL.classList.add("hidden");
-  parameterAnimator.pause();
   if (place < 2) {
-    if (prev >= 2) setup0();
-    maNow = (place - 2)*2*Math.PI;
+    if (prev >= 3) setup0();
+    sector.newton(false);
     sector.update(maNow);
     renderScene();
     // autoplay = true;
     if (place > 1.1 && place < 1.9) parameterAnimator.play();
-    else parameterAnimator.pause();
+  } else if (place < 3) {
+    if (prev >= 3) setup0();
+    sector.newton(true);
+    sector.update(maNow);
+    renderScene();
+    // autoplay = true;
+    if (place > 2.1 && place < 2.9) parameterAnimator.play();
   }
 }, () => {
   if (autoplay && parameterAnimator._worker) parameterAnimator.play();
