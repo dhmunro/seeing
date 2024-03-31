@@ -1,6 +1,6 @@
 import {loadTextureFiles, PerspectiveScene, TextureCanvas, setColorMultiplier,
         Vector3, Matrix4} from './wrap3.js';
-import {Animator} from './animator.js';
+import {Animation} from './animation.js';
 
 /* ------------------------------------------------------------------------ */
 
@@ -550,7 +550,7 @@ ellipse.visible = true;
 showFoci(ellipse, 1);
 orientEllipse(ellipse, false);
 
-class ParameterAnimator extends Animator {
+class ParameterAnimator extends Animation {
   constructor() {
     super((dms) => {
       if (this._worker) return this._worker(dms);

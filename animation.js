@@ -1,12 +1,12 @@
 /**
- * @file Animator class handles javascript animations.
+ * @file Animation class handles javascript animations.
  * @author David H. Munro
  * @copyright David H. Munro 2023
  * @license MIT
  */
 
 /**
- * Wrapper for animation details.  Animator offers play(), pause(), stop(),
+ * Wrapper for animation details.  Animation offers play(), pause(), stop(),
  * and also skip() to advance to final frame of entire animation.
  * Set the onFinish property to a callback when the entire animation
  * completes.  It will be called with `this` set to this animator.
@@ -18,10 +18,10 @@
  *    since the previous call (ms).  The callback must return true when
  *    this part of the animation has finished; false to be called again.
  *    The argument dt=0 indicates that this is the first callback for this
- *    part.  Callbacks are invoked with `this` set to Animator instance, so
+ *    part.  Callbacks are invoked with `this` set to Animation instance, so
  *    you can access other data you have stored as properties.
  */
-export class Animator {
+export class Animation {
   constructor(...parts) {
     function makeTimer(timeout) {
       const original = timeout;
@@ -49,7 +49,7 @@ export class Animator {
     this._skipping = false;
     let stepper = this.stepper;
     if (stepper === undefined) {  // start new run
-      let msPrev = null, iPart = 0;
+      let msElapsed = 0, msPrev = null, iPart = 0;
       const self = this;
 
       this.stepper = (ms) => {  // argument is window.performance.now();
@@ -61,10 +61,11 @@ export class Animator {
         } else if (ms !== null) {
           if (msPrev !== null) {
             dms = ms - msPrev;
+            msElapsed += (dms > 0)? dms : 0;
           }
           msPrev = ms;
           if (dms <= 0) dms = 1;  // assure finite step after start
-          while (parts[iPart].call(self, dms)) {
+          while (parts[iPart].call(self, dms, msElapsed)) {
             iPart += 1;
             if (iPart >= parts.length) {  // whole animation finished
               self.stop();
@@ -86,7 +87,7 @@ export class Animator {
           dms = 1.e20;
           while (true) {
             // call each part with dms=0 then dms=1e20
-            if (parts[iPart].call(self, dms) || dms) {
+            if (parts[iPart].call(self, dms, 1.e20) || dms) {
               iPart += 1;
               if (iPart >= parts.length) {
                 self.stop();

@@ -3,7 +3,7 @@ import {dayOfDate, dateOfDay, positionOf, orbitParams, timePlanetAt,
         periodOf, OppositionDetector} from './ephemeris.js';
 import {loadTextureFiles, PerspectiveScene, TextureCanvas, setColorMultiplier,
         Vector3, Matrix4} from './wrap3.js';
-import {Animator} from './animator.js';
+import {Animation} from './animation.js';
 import {SkyControls} from './skycontrols.js';
 
 /* ------------------------------------------------------------------------ */
@@ -2742,7 +2742,7 @@ const _dummyVector = new Vector3();
 
 /* ------------------------------------------------------------------------ */
 
-class SkyAnimator extends Animator {
+class SkyAnimator extends Animation {
   constructor(scene3d, xyzNow, daysPerSecond) {
     super(dms => {
       let stop = self.step(dms);
@@ -2946,7 +2946,7 @@ class SkyAnimator extends Animator {
 
 const skyAnimator = new SkyAnimator(scene3d, xyzNow, 40);
 
-class ParameterAnimator extends Animator {
+class ParameterAnimator extends Animation {
   constructor() {
     super((dms) => {
       if (this._worker) return this._worker(dms);
