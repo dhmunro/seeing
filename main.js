@@ -2928,7 +2928,8 @@ class SkyAnimator extends Animation {
 
   clearChain() {
     this.cancelTimeout();  // clear pending timeouts as well
-    this._chain.length = 0;  // NOT = []; timeouts hold copies of _chain
+    this._chain.splice(0, this._chain.length);
+      // NOT = []; timeouts hold copies of _chain
     return this;  // anim.clearChain().stop() to abort a chain
   }
 

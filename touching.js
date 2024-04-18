@@ -1,6 +1,6 @@
 import {loadTextureFiles, PerspectiveScene, TextureCanvas, setColorMultiplier,
         Vector3, Matrix4} from './wrap3.js';
-import {Animation} from './animation.js';
+import {Animation, Transition} from './animation.js';
 
 /* ------------------------------------------------------------------------ */
 
@@ -8,63 +8,101 @@ const theText = document.querySelector(".textcolumn");
 const paragraphs = Array.from(theText.querySelectorAll("p"));
 const HELP_PANEL = document.getElementById("help-panel");
 
+/* ------------------------------------------------------------------------ */
+/*
+
+The figures comprise a series of static line drawings and 3D renderings,
+so each static figure is displayed in a particular scroll region.  As you
+scroll through the document, the figure transitions to the next (or previous)
+figure when you cross from one region to the following (or preceding).
+However, these steps are not sudden - there is a gradual, reversible animation
+to transition from each static drawing to the next, which may take up to a
+few seconds depending on the complexity of the transition.  (Possibly some of
+the static drawings will include a play button to animate them in the absence
+of scrolling.)
+
+The transitions cause the figure state to lag the scroll position, so several
+transitions may be queued to run in the sequence they were triggered.  When
+a new transition is triggered, it may remove the last transition in this
+queue if the scrolling direction is reversed, or be added to the queue if
+it is forward.  If removal empties the queue, the currently running transition
+reverses, so eventually returning to its initial state.  If the queue gets
+longer than three or four transitions, the currently running transition
+speeds up to reach its final state more and more quickly the longer the
+queue, so that a long jump scroll very briefly displays all the intermediate
+figures.  (Perhaps just the final figure is displayed if the scroll jump
+is made by clicking off the scrollbar thumb or the page up/down keys,
+aborting and emptying the transition queue - this could be tied to when
+the final scroll position is not visible when the page is scrolled to
+the middle of the current figure's region?)
+
+Each graphical object has a state in every figure in which it is visible,
+as well as a method to display any intermediate state.
+
+*/
+
 class ScrollPosition {
   constructor(callback, onend) {
     // callback should set canvas to correct picture
     // - it must never cause theText to scroll
     this.highlight(0);
     this.onResize(callback);
+    // theText.scrollTop is delayed when CSS scroll-behavior: smooth
+    // keep separate value for eventual scrollTop position
+    this.scrollTop = theText.scrollTop;
     window.addEventListener("resize", () => {
       if (this._resizeTimeout !== null) {
-        clearTimeout(scrollPos._resizeTimeout);
+        clearTimeout(this._resizeTimeout);
       }
       this._resizeTimeout = setTimeout(
         () => this.onResize(callback), 50);
     });
     theText.addEventListener("scroll", () => {
-      callback(scrollPos.place());
+      callback(this.place());
     }, {passive: true});
-    if (onend) {
-      theText.addEventListener("scrollend", () => {
-        onend();
-      });
-    }
+    theText.addEventListener("scrollend", () => {
+      if (onend) onend();
+    });
     theText.addEventListener("wheel", e => {
       e.preventDefault();
       // Apparently, deltaY is always +-120, which is supposed to be 3 lines.
       // Original idea was 1/8 degree, and most wheels step by 15 degrees.
-      let sign = Math.sign(e.deltaY);
-      theText.scrollBy(0, Math.sign(e.deltaY)*2*this.lineHeight);
+      this.scrollBy(Math.sign(e.deltaY));
     });
     addEventListener("keydown", e => {
       switch (event.key) {
       case "Home":
+        this.scrollTop = 0;
         theText.scroll(0, 0);
         break;
       case "End":
-        theText.scroll(0, theText.scrollHeight);
+        this.scrollTop = theText.scrollHeight - theText.clientHeight;
+        theText.scroll(0, this.scrollTop);
         break;
       case "PageUp":
-        // theText.scrollBy(0, -this.pageHeight);
         this.stepParagraph(-1);
         break;
       case "PageDown":
-        // theText.scrollBy(0, this.pageHeight);
         this.stepParagraph();
         break;
       case "ArrowUp":
       case "Up":
-        theText.scrollBy(0, -this.lineHeight);
+        this.scrollBy(-1);
         break;
       case "ArrowDown":
       case "Down":
-        theText.scrollBy(0, this.lineHeight);
+        this.scrollBy(1);
         break;
       default:
         return;
       }
       e.preventDefault();
     });
+  }
+
+  scrollBy(nlines) {
+    this.scrollTop += nlines*this.lineHeight;
+    theText.scroll(0, this.scrollTop);
   }
 
   stepParagraph(back) {
@@ -74,7 +112,8 @@ class ScrollPosition {
     } else {
       if (i < paragraphs.length - 1) i += 1;
     }
-    theText.scroll(0, this.tops[i] + 0.001);
+    this.scrollTop = Math.floor(this.tops[i] + 0.001);
+    theText.scroll(0, this.scrollTop);
   }
 
   place() {  // current position of center of view in paragraphs
@@ -151,6 +190,7 @@ class ScrollPosition {
     this.lineHeight = Number(
       window.getComputedStyle(paragraphs[0]).getPropertyValue("font-size")
         .match(/\d+/)[0]) * 1.2;  // 1.2 * 1em is "normal" line spacing
+    this.lineHeight = Math.ceil(this.lineHeight);
     this.pageHeight = theText.clientHeight - this.lineHeight;
     callback(this.place());
   }
@@ -412,10 +452,10 @@ function orientEllipse(ellipse, toCylinder) {
 }
 
 class Sector {
-  // Sector consists of a point, a radial line, and a trailing shaded area.
+  // Sector consists of a point, a radial line, and a leading shaded area.
   // Angle of radial line relative to perihelion given by area, not angle,
-  // and darea similarly specifies the extent of the trailing shaded area
-  // behind the radial line.
+  // and darea similarly specifies the extent of the leading shaded area
+  // ahead the radial line.
   // Actually, all areas are specified as fractions of the total ellipse
   // area, scaled to run from 0 to 2pi like an angle in radians.
   //   area parameter = ma = ea - e*sin(ea)
@@ -438,7 +478,6 @@ class Sector {
     hideArrowhead(this.line);
     if (colv) {
       this.vel = makeArrow([[0, 0, 2*zoff], [0, 0, 2*zoff]], colv, 2, 16, grp);
-      this.vel.visible = false;
       // make maximum velocity amplitude b
       // cv = eps*rv, vmax = (1+eps)*rv
       this.av = b / (1 + eps);
@@ -449,19 +488,16 @@ class Sector {
     this.dotp.renderOrder = 1;
     this.dots.position.set(c, 0, 2*zoff);
     this.update(0);
+    if (colv) this.vel.visible = false;
   }
 
-  show(yes=true) {
-    this.grp.visible = yes;
-  }
-
-  newton(yes=true) {
-    if (yes) {
-      this.shade.visible = false;
+  show(all=true, mask=1) {
+    this.grp.visible = all;
+    this.shade.visible = (mask & 1) != 0;
+    if (mask & 2) {
       hideArrowhead(this.line, false);
       this.vel.visible = true;
     } else {
-      this.shade.visible = true;
       hideArrowhead(this.line, true);
       this.vel.visible = false;
     }
@@ -469,8 +505,8 @@ class Sector {
 
   update(ma) {
     const {c, n, darea, zoff} = this;
-    let ea0 = this.eaSolve(ma - darea);
-    let ea1 = this.eaSolve(ma);
+    let ea0 = this.eaSolve(ma);
+    let ea1 = this.eaSolve(ma + darea);
     let {a, b} = this;
     let dea = (ea1 - ea0) / (n - 1);
     let points = new Array(n+1).fill([0, 0, zoff]);
@@ -481,11 +517,11 @@ class Sector {
     });
     scene3d.meshMovePoints(this.shade, points);
     points = points.map(([x, y, z]) => [x, y, 2*z]);
-    const pt1 = points[n];
+    const pt1 = points[1];
     moveArrow(this.line, [pt0, pt1]);
     this.dotp.position.set(...pt1);
     if (this.vel && this.vel.visible) {
-      let [vx, vy, vz] = this.velocity(ea1);
+      let [vx, vy, vz] = this.velocity(ea0);
       moveArrow(this.vel, [[0, 0, vz], [vx, vy, vz]]);
       this.vel.position.set(...pt1);
     }
@@ -533,9 +569,8 @@ class Sector {
 const ellipse_a = 1.3;
 const ellipse = makeEllipse(ellipse_a, 1, 120, 0xffffff, 0.4);
 topObjects.push(ellipse);
-const sector = new Sector(ellipse, 20, "#000000", 0x000000, 0xbbbbbb, 0.25,
+const sector = new Sector(ellipse, 20, "#000000", 0x000000, 0xbbbbbb, 0.35,
                           undefined, "#0000ff");
-sector.show(false);
 sph1.position.set(-ellipse_a, 0, 0);
 sph2.position.set(ellipse_a, 0, 0);
 
@@ -549,77 +584,16 @@ topObjectsInvisible();
 ellipse.visible = true;
 showFoci(ellipse, 1);
 orientEllipse(ellipse, false);
+sector.show(true, 3);
+sector.update(-Math.PI/6);
+renderScene();
+window.sector = sector;
 
-class ParameterAnimator extends Animation {
-  constructor() {
-    super((dms) => {
-      if (this._worker) return this._worker(dms);
-      else return true;
-    });
-  }
-
-  // You can supress this behavior by having onFinish return true.
-  initialize(p0, p1, msDelta, onStep, onFinish, onStart, context) {
-    if (onStep === undefined) {
-      delete this._worker;
-      return this;
-    }
-    let msEase = 0, msTotal;
-    if (msDelta.length) [msDelta, msEase] = msDelta;
-    let ms = 0, drate = 0;
-    msTotal = msDelta + msEase;
-    const rate = (p1 - p0) / msTotal;
-    if (msEase > 0) {
-      msDelta += msEase;
-      drate = 0.5 * rate / msEase;
-      msTotal += msEase;
-    }
-    let p = p0;
-    this._worker = (dms) => {
-      if (dms == 0 && onStart) onStart.call(context);
-      let stop = ms + dms >= msTotal;
-      if (!drate) {
-        p += rate * dms;
-        ms += dms;
-      } else {
-        let t = ms + dms;
-        if (dms > 0 && ms < msEase) {
-          dms = t - msEase;
-          if (dms > 0) t = msEase;
-          p = p0 + drate*t**2;
-          ms = t;
-        }
-        if (dms > 0 && ms < msDelta) {
-          dms = t - msDelta;
-          if (dms > 0) t = msDelta;
-          p = p0 + drate*msEase**2 + rate*(t - msEase);
-          ms = t;
-        }
-        if (dms > 0 && ms < msTotal) {
-          dms = t - msTotal;
-          if (dms > 0) t = msTotal;
-          p = p0 + 2*drate*msEase**2 + rate*(msDelta - msEase);
-          p -= drate*(msTotal - t)**2
-          ms = t;
-        }
-      }
-      if (stop) p = p1;
-      onStep.call(context, p);
-      if (stop && onFinish) onFinish.call(context);
-      return stop;
-    }
-    return this;
-  }
-}
-
-// Only one parameter animator so it can be reset.
-const parameterAnimator = new ParameterAnimator();
+const animator = new Transition();
 
 /* ------------------------------------------------------------------------ */
 
 function setup0() {
-  parameterAnimator.stop();
-  parameterAnimator.initialize();
   topObjectsInvisible();
   ellipse.visible = true;
   sector.show();
@@ -630,17 +604,6 @@ function setup0() {
   if (maNow < 0) maNow += 2*Math.PI;
   sector.update(maNow);
   renderScene();
-  let ma0 = 0;
-  parameterAnimator.initialize(0, 36000, 36000000, dma => {
-    maNow = ma0 + dma;
-    sector.update(maNow);
-    controls.update();
-    renderScene();
-  }, () => {
-    maNow = 0;
-  }, () => {
-    ma0 = maNow;
-  });
 }
 
 let maNow = 0;
@@ -649,31 +612,7 @@ let prevPlace = 1000;
 const scrollPos = new ScrollPosition((place) => {
   const prev = prevPlace;
   prevPlace = place;
-  autoplay = false;
-  parameterAnimator.pause();
-  if (place < 1) {
-    HELP_PANEL.classList.remove("hidden");
-    setup0();
-    return;
-  }
-  HELP_PANEL.classList.add("hidden");
-  if (place < 2) {
-    if (prev >= 3) setup0();
-    sector.newton(false);
-    sector.update(maNow);
-    renderScene();
-    // autoplay = true;
-    if (place > 1.1 && place < 1.9) parameterAnimator.play();
-  } else if (place < 3) {
-    if (prev >= 3) setup0();
-    sector.newton(true);
-    sector.update(maNow);
-    renderScene();
-    // autoplay = true;
-    if (place > 2.1 && place < 2.9) parameterAnimator.play();
-  }
 }, () => {
-  if (autoplay && parameterAnimator._worker) parameterAnimator.play();
 });
 
 /* ------------------------------------------------------------------------ */
