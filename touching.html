@@ -165,25 +165,26 @@
 <p class="justified">Isaac Newton discovered laws of motion which not
   only apply to ordinary things on Earth, but also govern the planets
   and moons in our solar system.  His analysis of planetary motion set
-  the standard for all future generations of physicists.  All of
-  modern physical science is built on this foundation.</p>
+  the standard for all future generations of physicists - indeed, all
+  of modern physical science is built on this foundation.</p>
 
 <p class="justified">The natural way to study motion is to begin with
   trajectory - the arc of a cannonball or the orbit of a planet.  You
   then come up with a rule for how the object advances along this
-  trajectory in time.  Galileo discovered that the canonball moves in
-  a parabola with a constant horizontal velocity, and this is exactly
-  the pattern of Kepler's first two laws: The planet moves in an
-  ellipse with the Sun at one focus, such that the line between the
-  Sun and planet sweeps out equal areas in equal times.</p>
+  trajectory in time.  This is exactly the form of Kepler's first two
+  laws: The planet moves in an ellipse with the Sun at one focus, such
+  that the line between the Sun and planet sweeps out equal areas in
+  equal times.</p>
 
 <p class="justified">Newton demoted the trajectory into a secondary
   feature of any motion, promoting instantaneous position, velocity,
   and acceleration to be the primary features.  When a rigid body is
   free to move, Newton recognized that its velocity remains fixed when
   no forces act on it.  Pushing on it changes its velocity directly,
-  only indirectly changing their position.  That is, force causes
-  acceleration, the rate of change of velocity.</p>
+  only indirectly changing its position.  That is, force causes
+  acceleration, a rate of change of velocity.  This separation of
+  cause - a force - from effect - an acceleration - turns out to be
+  the crucial advantage of Newton's description of motion.</p>
 
 <p class="justified">Newton was not only the greatest physicist of his
   age, but also its greatest mathematician.  He invented a new
@@ -194,402 +195,321 @@
   accelerations.  In the jargon of calculus, velocity and acceleration
   are the <em>derivatives</em> - instantaneous rates of change - of
   position and velocity, and you <em>integrate</em> them - add them
-  back up - to find the trajectory - how they evolve over finite
+  back up - to find the trajectory, or how they evolve over finite
   times.</p>
+
+<p class="justified">To see planetary motion from Newton's
+  perspective, you begin by <em>differentiating</em> Kepler's first
+  two laws.  That is, by taking their derivatives to find the velocity
+  and acceleration of a planet.</p>
 
 <h2>Trajectory in velocity space</h2>
 
-<p class="justified">Since Kepler's first two laws describe exactly
-  how a planet moves, you know the laws must determine its velocity
-  and acceleration.  What are they?</p>
+<p class="justified">The basic idea of calculus is to break a
+  continuous motion into a large number of small steps.  That is
+  exactly how animation works - a rapidly displayed sequence of
+  drawings which change only slightly from one to the next looks like
+  a continuous motion.  The program which animates this ellipse
+  computes a series of small steps in the position of the point on the
+  ellipse using Kepler's equal area rule; by dividing each of these
+  small displacements by the interframe time, it can also draw a good
+  approximation to the instantaneous velocity vector at any time.</p>
 
-<p class="justified">You are reading this on a screen driven by a
-  powerful computer.  The computer draws Kepler's first law ellipse
-  and the radius from one focus to some point on the ellipse, then
-  moves on to other tasks.  After about a sixtieth of a second - a
-  very long time indeed for the computer, which is doing a few billion
-  operations each second - it returns to the animation, computes a new
-  point on the ellipse, and redraws the new radius.  Unlike a real
-  planet, the impression you have of continuous motion of the radius
-  vector here is a complete fiction - what you are seeing is a rapid
-  succession of very slightly different still pictures, with small but
-  finite changes between them.</p>
+<p class="justified">The direction of the velocity is always tangent
+  to the trajectory - the ellipse in this case.  The magnitude of the
+  velocity is the speed of the planet.  The scale of the velocity
+  arrow in the drawing is arbitrary - the tip of the arrow is where
+  the planet would have moved after some fixed, but arbitrary, time
+  had it continued in a straight line at a constant speed.  Instead of
+  drawing the tail of the velocity arrow at the planet, you can put it
+  at a fixed point - the origin of its own plane.  Each point in this
+  plane represents a velocity rather than a position - a velocity
+  space.</p>
 
-<p class="justified">If you understand how animation works, you
-  understand calculus.  When the time between frames is long, you see
-  a jumpy stop-action effect, but as time between frames drops below
-  about twenty milliseconds, you can't distinguish the animation from
-  a real continous motion.  Further decreasing the inter-frame time
-  has no perceptable effect as long as each individual change in the
-  picture decreases proportionally, so the total change over long
-  times remains the same.  Newton used the word
-  <em>infinitessimal</em> to describe a sufficiently tiny jump -
-  a word too imprecise for modern mathematicians, but which captures
-  the physical idea exactly: If you break down any real continuous
-  motion into small enough steps, you can't tell the difference
-  between jumping from one step to the next and moving smoothly
-  between steps.</p>
+<p class="justified">You know the tip of the radius vector traces an
+  ellipse with its tail at one focus.  It looks like the tip of the
+  velocity vector traces an eccentric circle, that is, a circle
+  displaced from the tail of the arrow.  With a modern computer, it is
+  not hard to verify this numerically, by taking smaller and smaller
+  steps around the Keplerian ellipse and applying the equal area law
+  between steps.  In fact, you can verify that the eccentricity of the
+  circle in velocity space (the ratio of the displacement of its
+  center from the origin to its radius) is identical to the
+  eccentricity of the ellipse in ordinary position space.</p>
 
-<p class="justified">Here, the point on the ellipse completes an orbit
-  in about two seconds.  When the computer needs to draw the next
-  frame of the animation after 1/60<sup>th</sup> of a second, it moves
-  the point on the ellipse so that the area swept out by the radius is
-  1/120<sup>th</sup> of the area of the whole ellipse.  That way, in
-  the next two seconds, the radius will have swept over 120 equal
-  areas, and thus made a complete trip around the ellipse, speeding up
-  and slowing down exactly according to Kepler's dictum that equal
-  areas be swept out in equal times.  (The formula for the area of a
-  sector of an ellipse determined by a focus and two given points on
-  the ellipse is called Kepler's equation.  The quickest way to solve
-  this equation - to find the point corresponding to a given area - is
-  called Newton's method.)</p>
+<p class="justified">So the trajectory of a planet in velocity space
+  is a circle with the same eccentricity as its ellipse in ordinary
+  space.  The geometrical proof of this fact is very pretty and gives
+  you some important additional insights into the connection between a
+  planet's velocity and its position.  Here it is, in two parts.</p>
 
-<h2>Kepler's Second Law</h2>
+<h2>Tangent to an ellipse</h2>
 
-<p class="justified">The radius vector from the Sun to a planet sweeps
-  out equal areas in equal times as the planet moves.  Thus, Kepler's
-  second law is already a statement about a rate of change: The area
-  per unit time a planet's radius sweeps out is some fixed constant.
-  Newton constantly (!) wants you to think about rates of change -
-  that's what calculus is about.  But you can't draw a picture of a
-  rate of change - you can perceive it in an animation, but you can
-  never point to it.</p>
+<p class="justified">An ellipse is the set of points for which the sum
+  of the distances from two fixed points - its foci - is constant.
+  The eccentricity is the ratio of the distance between the foci and
+  the fixed sum of distances; an ellipse with zero eccentricity is a
+  circle.  Notice that the major axis, or largest diameter, of the
+  ellipse equals that fixed sum of distances.</p>
 
-[Picture shows ellipse with fixed time/area sector drawn.]
+<p class="justified">Let S be the Sun at one focus and P be the planet
+  on the ellipse.  If O is the other focus, then SP plus PO is a fixed
+  constant for any position of P.  Extend SP to Q such that PQ equals
+  PO.  Then SQ remains constant as P moves around the ellipse; in
+  other words, SQ sweeps out a circle with center S.  Furthermore, OPQ
+  is always an isoceles triangle, which means that P lies on the
+  perpendicular bisector MP of OQ, where M is the midpoint of OQ.</p>
 
-<p class="justified">For example, in order to represent a rate of
-  change of area, this figure shades a finite area.  You are supposed
-  to interpret this as the area which would be swept out in some fixed
-  finite time if the rate remains constant.  Kepler's description is
-  literally how these figures depict a rate: you draw the equal area
-  being swept out in the equal (unit) time.  You can always choose
-  half the time and draw half the area to represent any given rate -
-  that's the <em>infinitessimal</em> in Newton's calculus.  Exactly
-  the same remark applies to the velocity and acceleration vectors
-  which will soon appear - their depicted length in the figures is
-  arbitrary.</p>
+<p class="justified">In fact, MP must be tangent to the ellipse at P.
+  To understand why, move P to any other point on the perpendicular
+  bisector of OQ.  Since SPQ is no longer a straight line, the sum of
+  SP and PQ, hence the sum of SP and PO, must be greater than SQ for
+  any point on line MP other than the original P on SQ.  But since the
+  ellipse is defined as all the points P with SP plus PO equal SQ,
+  every point on line MP must lie outside the ellipse, except for the
+  original P, which lies on it.  Since line MP touches the ellipse
+  only at one point P, it must be tangent to the ellipse at P.</p>
 
-<p class="justified">Newton's first law states that absent any forces,
-  a body will move in a straight line at a constant speed.  Then the
-  radius vector from an arbitrary fixed point to the body will sweep
-  out equal triangular areas in equal times: The area is half the
-  height (distance from the fixed point to the line) times the base.
-  The base is the same for equal times since the body moves at constant
-  speed.  The rate area is swept out is just half the height times the
-  speed.</p>
-
-[Picture changes to straight line motion under point with fixed
- time/area triangle drawn.]
-
-<p class="justified">The radius and velocity vectors are Newton's
-  preferred way to describe motion.  Notice that if you decompose the
-  velocity vector into components in the radial and transverse
-  directions, then the right triangle with the radius as its
-  hypotenuse and height as one side is similar to the triangle with
-  the whole velocity as its hypotenuse and the transverse velocity
-  component as one side.  Thus the rate of change of area is also half
-  the product of the radius and the transverse component of
-  velocity.</p>
-
-[Picture changes to show similar position and velocity triangles, then
- the two equal area hs = rv triangles.]
-
-<p class="justified">If the velocity suddenly changes - so quickly
-  that the change in position is negligible - then the rate of change
-  of area will remain unchanged if and only if the transverse
-  component of velocity remains unchanged.</p>
-
-[Picture changes to show a deflecting trajectory, with the equal area
- triangles before and after the deflection.  Add more and closer spaced
- radial deflections until trajectory becomes smooth curve.]
-
-<p class="justified">When you say that a planet moves around the Sun,
-  what you are really saying is that its velocity is continually being
-  deflected towards the Sun.  You just reasoned that if the rate the
-  radius vector sweeps out area remains constant, then only the radial
-  component of velocity can be changing.  (Although the transverse
-  velocity component does not change over infinitessimal times, over
-  finite times it does change because the radial and transverse
-  <em>directions</em> are changing!)  That is, Kepler's second law
-  means that a planet's acceleration is directly toward the Sun.</p>
-
-[Picture changes to show the original elliptical trajectory with the
- moving shaded sector, then adding the velocity vector and inward
- radial acceleration vector, finally fading out the shaded sector
- and trajectory for just the velocity and radial acceleration
- vectors.]
-
-<p class="justified">So the planets are accelerating directly toward
-  the Sun.  Newton realized that "sweeping out equal areas in equal
-  times" is just a rather clumsy and roundabout way to say that the
-  planets are being pulled straight toward the Sun.</p>
-
-<h2>Three ways to define an ellipse</h2>
-
-<p class="justified">Kepler's first law is much harder to recast in
-  Newtonian terms.  You need to know many properties of an ellipse and
-  its foci to even get started.  Precisely what is an ellipse and what
-  are its foci?  In simplest terms, an ellipse is a circle elongated
-  along one axis.  More precisely, an ellipse is the shape of a
-  section of a right circular cylinder cut by a plane not normal to
-  its axis - think of slicing a cucumber on a bias.</p>
-
-[Picture of circle stretching into ellipse, then add 3D cylinder with
- slicing plane and rotate in 3D to an orientation you might see if you
- were slicing a cucumber.]
-
-<p class="justified">To find one focus of this ellipse, introduce a
-  sphere of the same radius as the cylinder and slide its center along
-  the axis of the cylinder until it just touches the cutting plane.
-  That tangency point is one focus of the ellipse.</p>
-
-[Picture shows sphere moving down axis, stopping when it touches the
- cutting plane, then rotating to show face on view ellipse with focus,
- then back to side on view of cylinder.]
-
-<p class="justified">Let point S be the focus, point C be the center
-  of the ellipse (where the cylinder axis intersects the cutting
-  plane), point B be the point on the ellipse farthest from C on the
-  same side as S, and point A be on the cylinder such that CAB is a
-  right angle whose plane is normal to the cutting plane.  CA is the
-  radius of the sphere and cylinder, or half the short axis of the
-  ellipse, CB is half the long axis of the ellipse, and BA equals CS,
-  the distance of the focus from the center of the ellipse.  The ratio
-  CS/CB (or BA/CB) is the eccentricity, or &epsilon;, of the ellipse.
-  As &epsilon; varies from 0 to 1, the ellipse varies from a circle to
-  an infinitely elongated cigar.</p>
-
-[Picture labels S, rolls to top view of slice, then triangle CAB fades
- in.  A copy of this triangle rotates and flips to show CS=AB -
- perhaps rolling a bit to turn the flip into a continuous rotation
- about CA.]
-
-<p class="justified">Choose any point on the ellipse P.  SP is tangent
-  to the sphere at S.  Draw DP along the surface of the cylinder
-  parallel to its axis, with D on the circle where the sphere touches
-  the cylinder.  Then DP has the same length as SP, because all
-  tangents to a sphere drawn from a point outside the sphere have the
-  same length.  Slide a copy of the tangent circle down the cylinder
-  until the focus S lies in the plane of this new circle, and extend
-  DP to reach the new circle at E.  Draw right triangle GED with G in
-  the cutting plane and GED perpendicular to the cutting plane.  Note
-  that triangle GEP is always the same shape as CAB - only its size
-  changes as P moves around the ellipse.  Therefore PE/GP equals the
-  eccentricity &epsilon;.  In other words, PE equals &epsilon;GP - a
-  fixed fraction of GP.</p>
-
-[Picture mutates to show construction of DP, highlighting SP and DP in
- the same color, and letting P orbit the ellipse once to show SP=DP.
- Show second circle moving along cylinder, and intersection line of
- its plane with cutting plane, stopping when that intersection line
- reaches S.  Add point G on that line and extend DP to E to form right
- triangle GED.  Again, let P orbit once showing constancy of DE.
- Finally, roll cylinder to top view to show GEP is same shape as CAB.]
-
-<p class="justified">Now the length of DE is just the distance between
-  the two circles, no matter what P you choose.  Since DP equals SP,
-  the sum SP+PE must remain constant (equal to DE) as P moves around
-  the ellipse.  Note that you need to regard PE as an algebraic
-  quantity with a sign, positive when P is between D and E, but
-  negative when E is between D and P.  This relationship provides a
-  second way to define the ellipse: The locus of all points P such
-  that SP+&epsilon;GP equals a constant.  If you write &epsilon;GP for
-  PE here, then unlike the sliced cylinder definition of an ellipse,
-  this definition doesn't involve the third dimension.</p>
-
-[Picture rolls away from top view of slice, then shows how GEP changes
- as P orbits the ellipse, and how the sign of PE changes.  Rotate to
- view ellipse plane.  Finally, let P orbit ellipse to show how
- SP+&epsilon;GP remains constant?]
-
-<p class="justified">You can slide a second sphere into the opposite
-  end of the cylinder, defining a second focus, call it F.  As you did
-  for the first focus, connect an arbitrary point P on the ellipse to
-  point H on the circle where the second sphere touches the cylinder.
-  Now FP equals HP, just as before you found SP and DP equal.  But
-  DP+PH=DH, which is always the distance between the centers of the
-  two spheres.  DH equals the long axis of the ellipse, twice CB.
-  Thus the ellipse is the set of points P for which SP+FP=DH, that is,
-  for which the sum of the distances from its two foci is a fixed
-  constant equal to the long axis of the ellipse.  Again, this is a
-  purely two dimensional definition.</p>
-
-[Picture rotates back to 3D view.  Second sphere appears and slides to
- second focus.  Circle plane containng S slides to position where
- second sphere touches cylinder.  HP and FP appear in same color,
- contrasting with SP and DP to show equal length pairs.  P orbits
- ellipse once to show DH stays constant length.  Roll to top view to
- show DH equals long axis of ellipse.]
-
-<p class="justified">In the plane of the ellipse, you can extend SP to
-  a point Q, where PQ equals FP.  As P moves around the ellipse, Q
-  moves around a circle, since SQ=SP+PF remains constant.  Relative to
-  point F, SQ is an eccentric circle.  Its eccentricity - offset of
-  its center S from F as a fraction of its radius - is FS/SQ.  Notice
-  that FS/SQ equals &epsilon;, the same as the eccentricity of the
+<p class="justified">Because the tangent MP is perpendicular to OQ, if
+  you rotate OQS ninety degrees counterclockwise, then OQ will be
+  parallel to the tangent of the ellipse at P.  That is, OQ now points
+  in the direction of the velocity vector at P.  Furthermore, in this
+  new diagram, SQ will always be ninety degrees ahead of the planet
+  radius vector SP.  Replacing the sides of OQS by velocity vectors,
+  you see that the velocity OQ of the planet moves around an eccentric
+  circle of radius SQ, displaced from zero velocity O by the fixed
+  vector OS perpendicular to the major axis of the ellipse.  And the
+  eccentricity of this circle is the same as the eccentricity of the
   ellipse.</p>
 
-[Picture rotates back to ellipse plane, then copy of FP rotates around
- P to Q.  P orbits the ellipse, tracing the circle SQ.  P pauses when
- FP vertical to show circle and ellipse have same eccentricity.]
+<p class="justified">So far, you have shown that if the trajectory in
+  velocity space is an eccentric circle, and the radius vector SQ in
+  velocity space always leads the radius vector SP in ordinary space
+  by ninety degrees, then the point P indeed moves around an ellipse
+  with S at one focus.  To complete the proof, you still need to
+  demonstrate that SP sweeps over equal areas in equal times.</p>
 
-<h2>Relation between eccentric circle and ellipse</h2>
+<h2>Equal areas in equal times</h2>
 
-<p class="justified">You also need to know how to construct the
-  tangent to an ellipse.  (A planet's velocity is tangent to its
-  ellipse!)  Draw the midpoint M of FQ, and consider a point N on the
-  line MP, the perpendicular bisector of FQ.  When N is at P, it is on
-  the ellipse, so that SN+NF=DH.  At any other point, SN+NF=SN+NQ must
-  be larger, since SPQ is a straight line.  Thus, every other point N
-  on MP is outside of the ellipse, so that MP must be tangent to the
-  ellipse at P, since it intersects the ellipse only at the one point
-  P.</p>
+<p class="justified">Acceleration is to velocity what velocity is to
+  position - its rate of change.  Therefore, the acceleration vector
+  of a planet is always tangent to its velocity space trajectory.  In
+  this case, the velocity space trajectory is simply a circle, and the
+  tangent to a circle is perpendicular to its radius, SQ.  But that
+  means the acceleration vector of the planet at P always points in
+  exactly the opposite direction as its radius vector SP - directly
+  toward the Sun.  Accelerating directly toward or away from a fixed
+  center turns out to be equivalent to Kepler's equal area law; today
+  the law is called conservation of angular momentum.</p>
 
-[Picture adds M and line through MP, then N on MP and bent line SNQ,
- as well as FN. N slides back and forth over P showing that FN+SN
- always greater than FP+SP, so N outside ellipse.]
+<p class="justified">Absent any forces, a body moves in a straight
+  line at a constant speed - Newton's first law of motion.  You can
+  easily see that if the planet just flew past the Sun in a straight
+  line at constant speed, it would sweep out equal areas in equal
+  times: The areas are all triangles with a common height (the minimum
+  Sun-planet distance) and equal bases (since the speed is
+  constant).</p>
 
-<p class="justified">Extend QS to I such that FIQ is a right angle,
-  making IQ the projection of FQ onto SQ.  Notice that the ratio IS/SQ
-  is the product of IS/FS and &epsilon;=FS/SQ.  Triangles SPG and FSI
-  are the same shape, so that IS/FS equals GP/SP, and the ratio IS/SQ
-  equals &epsilon;GP/SP.  Remember that SP+&epsilon;GP is the same for
-  every point P, which means that SP times (1+&epsilon;GP/SP) is
-  constant, independent of P.  But the length of IQ is SQ+IS, which is
-  the constant length SQ times (1+&epsilon;GP/SP).  Since IQ varies in
-  direct proportion to (1+&epsilon;GP/SP) as P moves around the
-  ellipse, and SP varies inversely as this same quantity, the product
-  of SP and IQ remains unchanged as P moves.</p>
+<p class="justified">Now suppose the velocity of the planet suddenly
+  jumped to a new speed and direction.  When would such a jump leave
+  the areas swept out in equal times unchanged?  The constant base of
+  of the triangle is now the sun-planet vector at the moment of the
+  jump, while the height of the triangle is the component of the
+  velocity vector perpendicular to that base.  For the area to remain
+  unchanged, only the component of velocity parallel to the Sun-planet
+  line can change.  In other words, the change in velocity across the
+  jump must point directly toward or away from the Sun.</p>
 
-[Picture removes N, fades M and line MP.  Adds I and highlights
- SPG and FSI, highlighting IS/FS and GP/SP.  No obvious way to picture
- the remainder of this argument, but should probably have P orbit the
- ellipse while highlighting IS+SQ and EP+SP to indicate they are
- split in the same ratio.]
+<p class="justified">Breaking the actual continuous acceleration into
+  a large number of tiny jumps in velocity, just as you broke the
+  continuous change in position into steps for animation, you see that
+  Kepler's law that equal areas are swept out in equal times will hold
+  if, and only if, the planet accelerates directly toward (or away
+  from) the Sun.  You have completed the proof that Kepler's first two
+  laws of planetary motion mean that the trajectory of a planet in
+  velocity space is an eccentric circle with the same eccentricity as
+  its ellipse, rotated ninety degrees, so that its radius in velocity
+  space is always ninety degrees ahead of its radius in ordinary
+  space.</p>
 
-<p class="justified">Now rotate FIQ ninety degrees around S.  FQ is
-  now parallel to the ellipse tangent at P, so PJ, a translated copy
-  of FQ, will be tangent to the ellipse at P.  Let SK be a second
-  translated copy of FQ.  Then SPJK is a parallelogram with base SP
-  and height IQ, so its area is the invariant product SP times IQ.
-  Therefore the area of SPJK does not change as P moves around the
-  ellipse!  Notice that you can apply an arbitrary scale factor to
-  triangle FIQ without changing the fact that the area of SPJK is
-  independent of P.</p>
+<p class="justified">You now know the trajectories of a planet in both
+  ordinary and velocity space.  However, Newton's program is to
+  eliminate all trajectories in favor of instantaneous rates of
+  change.  To do that, you need not only the direction of the
+  acceleration, but also its magnitude.</p>
 
-[Picture rotates FIQ, shows the copies of FQ translating to P and S -
- the copy that translates to S also translates a copy of IQ, to show
- that IQ is the height of SPJK.  Highlight area, and let P move once
- around the ellipse.  Lastly, scale FIQ to smaller size and orbit again.]
+<h2>Inverse square law</h2>
 
-<h2>Kepler's First Law</h2>
+<p class="justified">The trajectories in position and velocity space
+  are coupled by the fact that the two radius vectors SP and SQ are
+  always exactly ninety degrees apart.  Thus, even though they speed
+  up and slow down as the planet moves around its orbit, their
+  instantaneous angular speeds are always equal.  Call that varying
+  but common angular speed &omega;.</p>
 
-<p class="justified">If FQ (or PJ) were the velocity vector of the
-  planet at P, then the rate of change of area in the instantaneous
-  version of Kepler's Second Law would be the area of triangle SPJ,
-  which is just half the constant area SPJK.  Hence, not only is FQ
-  tangent to the ellipse at P, but its length changes in exactly the
-  right way to satisfy the equal areas in equal times law.  Thus,
-  you've demonstrated that the velocity vector of a planet P traces an
-  eccentric circle with eccentricity equal to the eccentricity of its
-  ellipse, but rotated ninety degrees!</p>
+<p class="justified">Consider first the motion of the planet around
+  the Sun in ordinary space.  The planet's velocity has both a radial
+  component, directly toward or away from the Sun, and a transverse
+  component, perpendicular to that.  The angular speed of the planet
+  around the Sun is independent of its radial velocity, and directly
+  proportional to its transverse velocity.  In fact, if you measure
+  the angular speed in radians per unit time, the transverse velocity
+  is simply the product &omega;r, where r is SP, the instantaneous
+  distance of the planet from the Sun.</p>
 
-[Picture separates FSQ and velocity circle from SP and ellipse, then
- adds a small copy of FSQ with F at P.  SP and all three sides of FSQ
- are now drawn as vector arrows.  Letter labels fade.  P orbits ellipse
- a couple of times.  Then eccentricity changes for another couple of
- orbits, after which eccentricity returns to original.]
+<p class="justified">Now the rate the radius sweeps out area
+  is <em>also</em> directly proportional to the transverse velocity
+  &omega;r, and independent of the radial velocity.  In fact, the
+  transverse velocity is the rate of change of the height of the
+  triangle with the radius vector r as its base.  Thus, the rate of
+  change of area swept out by the radius is half of the product of r
+  and the transverse velocity &omega;r, or half of &omega;r&sup2;.</p>
 
-<p class="justified">To complete Newton's program, you need only find
-  the force law, that is, the acceleration.  Since the radius of the
-  velocity circle is unchanging with time, the velocity change is
-  always tangent to that circle, ninety degrees ahead of SQ, which
-  itself has been rotated to be ninety degrees ahead of SP.  Thus the
-  direction of the acceleration is always exactly opposite SP, that
-  is, directly toward the Sun, as you had already deduced.</p>
+<p class="justified">Thus, calling twice the rate the planet's radius
+  sweeps out area L (a symbol used for angular momentum), you have
+  L&nbsp;=&nbsp;&omega;r&sup2;.  But you know from Kepler's second law
+  that L remains constant as the planet orbits.  Therefore, the
+  angular speed of the planet around the Sun, &omega;, varies
+  inversely as the square of its distance from the Sun,
+  &omega;&nbsp;=&nbsp;L/r&sup2;.</p>
 
-[Picture adds acceleration arrow to tip of velocity on velocity diagram,
- and possibly in the position diagram as well in a common color to
- show how it remains exactly opposite the radius vector SP.]
+<p class="justified">Recall that the angular speed of the planet
+  around the Sun &omega; is also the angular speed of the velocity
+  radius SQ around its circular trajectory in velocity space.  Call
+  the length of the velocity radius u.  Since the acceleration is
+  entirely transverse to SQ, its magnitude g is simply &omega;u, the
+  velocity space analog of the formula for transverse velocity
+  &omega;r.  Since the velocity radius u is constant, and &omega;
+  varies inversely as the square of the distance r, the acceleration g
+  must also vary inversely as the square of the distance.  In fact,
+  g&nbsp;=&nbsp;uL/r&sup2;.</p>
 
-<p class="justified">As for the magnitude of the acceleration, it is
-  the instantaneous angular speed (in radians per unit time) of Q
-  around the velocity circle, times the radius SQ of the velocity
-  circle.  Since SQ is always ninety degress from SP, the angular
-  speed of Q around S is identical to the angular speed of P around S.
-  But the angular speed of P around S times the distance SP is the
-  transverse velocity of P, and the transverse velocity times SP is
-  twice the rate SP sweeps out area.  Hence the rate area is being
-  swept out, which is a constant, is (half) the angular speed times
-  the square of SP.  In other words, the instantaneous angular speed
-  of a planet varies inversely as the square of SP.  Since
-  acceleration is the constant SQ times this angular speed, you have
-  the force law:</p>
+<p class="justified">You have proven that if a planet accelerates
+  directly toward the Sun at a rate which varies inversely as the
+  square of its distance from the Sun, then it will automatically obey
+  Kepler's first two laws of planetary motion.  The trajectories in
+  both velocity and ordinary space emerge from this inverse square law
+  by taking a large number of very small steps forward in time
+  starting from the current position and velocity of the planet: In
+  Newton's reformulation, the trajectories are secondary; what you
+  need to study are the relationships between instantaneous position,
+  velocity, and acceleration.</p>
 
-[Indicate angular speed in both diagrams, with P orbiting ellipse.]
-
-<p class="justified">The acceleration of a planet is always directly
-  toward the Sun with magnitude inversely proportional to the square
-  of its distance from the Sun.  If the acceleration of a planet obeys
-  this inverse square law, then it will move around an ellipse with
-  the Sun at one focus according to the equal area law.  Its velocity
-  vector will move around an eccentric circle with the same
-  eccentricity as its ellipse, but rotated ninety degrees.  You have
-  completed Newton's program, describing orbits in terms of their
-  instantaneous position and velocity, plus a force law.</p>
-
-[Animation making it obvious that angular speed is varying inversely
- with distance?]
-
-<h2>Kepler's Third Law</h2>
+<h2>Kepler's third law</h2>
 
 <p class="justified">So far, all you know is that each planet
   accelerates toward the Sun at a rate inversely proportional to the
-  square of its distance.  The constant of proportionality in this
-  inverse square law might still be different from one planet to the
-  next.  But notice that the dimensions of this constant of
-  proportionality are acceleration times length squared, or length
-  cubed divided by time squared - exactly the same dimensions as the
-  constant of proportionality in Kepler's cube-square law.  Does a
-  single inverse square law explain the accelerations of all the
-  planets?</p>
+  square of its distance, g&nbsp;=&nbsp;uL/r&sup2;.  The constant of
+  proportionality in this inverse square law might still be different
+  from one planet to the next.  But notice that the dimensions of this
+  constant of proportionality are acceleration times length squared,
+  or length cubed divided by time squared - exactly the same
+  dimensions as the constant of proportionality in Kepler's
+  cube-square law.</p>
 
 <p class="justified">Since the ellipse is just a circle elongated on
-  one axis, its area is A=&#x1D745;ab (the stretched
-  &#x1D745;r&sup2;), where a and b are its long and short semi-axes
-  (that is, measured from the center like the radius of a circle).  If
-  T is the period of the planet, then the constant area swept out per
-  unit time is A/T, and you know the constant of proportionality in
-  the inverse square law for the angular speed is just twice this, or
-  2&#x1D745;ab/T.  If v is the constant radius of the eccentric
-  velocity circle, then the constant of proportionality in the inverse
-  square law for the acceleration is v times 2&#x1D745;ab/T.</p>
+  one axis, its area is &#x1D745;ab (the stretched &#x1D745;r&sup2;),
+  where a and b are its major and minor semi-axes (that is, measured
+  from the center like the radius of a circle).  Since the constant L
+  is twice the area swept out per unit time,
+  L&nbsp;=&nbsp;2&#x1D745;ab/T, where T is the period of the
+  planet.</p>
 
-[Show area change by stretching rectangle with inscribed circle?]
+<p class="justified">You can derive an expression for the velocity
+  circle radius u from the rate area is being swept out at two
+  specific points of its orbit: At perihelion, when the planet is
+  closest to the Sun, L&nbsp;=&nbsp;(a-c)(u+w), where c is the
+  distance from the center of the ellipse to one focus, and w is the
+  displacement of the center of the velocity circle from zero velocity
+  (OS).  Similarly, at aphelion, when the planet is farthest from the
+  Sun, L&nbsp;=&nbsp;(a+c)(u-w).  Eliminating w from these two
+  formulas results in u&nbsp;=&nbsp;La/(a&sup2;-c&sup2;).  The
+  denominator is b&sup2;, so u&nbsp;=&nbsp;La/b&sup2;.</p>
 
-<p class="justified">But twice the area rate 2&#x1D745;ab/T is also
-  the transverse velocity times the planet radius SP.  Choose the
-  instant when SP is perpendicular to the long axis of the ellipse
-  because at that moment the transverse velocity equals the constant
-  radius of the eccentric velocity circle, call it v.  Going all the
-  way back to the diagrams you drew of the ellipse as a cylinder
-  slice, at this moment the planet radius SP is b&sup2;/a.  Hence,
-  vb&sup2;/a = 2&#x1D745;ab/T, or v = 2&#x1D745;a&sup2;/(Tb).</p>
+<p class="justified">When you combine these two expressions for L and
+  u, you find uL&nbsp;=&nbsp;4&#x1D745;&sup2;a&sup3;/T&sup2;.  But
+  Kepler's third law states that a&sup3;/T&sup2; is the same for all
+  the planets.  Therefore, in fact, a single inverse square law for
+  the acceleration, g&nbsp;=&nbsp;uL/r&sup2;, applies to every
+  planet.</p>
 
-[Picture shows this position of SP and v, rotate in 3D ending at top
- view of slice to show DE is b2/a.]
+<p class="justified">Kepler needed a separate third law to describe
+  the connection among the orbital parameters of all the planets.  His
+  description of this connection seems to create another puzzle - why
+  the semi-major axis a and not some other dimension like the minor
+  axis b or the perimenter of the ellipse?  And why the cube of the
+  distance and square of the period?</p>
 
-<p class="justified">Putting these two formulas together, the constant
-  of proportionality in the inverse square law for acceleration is
-  4&#x1D745;&sup2;a&sup3;/T&sup2;.  But Kepler's Third Law is that
-  a&sup3;/T&sup2; is the same for every planet, so the constant of
-  proportionality in Newton's inverse square law for the acceleration
-  is the same for every planet!</p>
+<p class="justified">Contrast this with Newton's description of the
+  connection among the orbits of the planets: The Sun causes planets
+  to accelerate directly toward it at a rate inversely proportional to
+  their distance from it.  There is only a single puzzle - why this
+  inverse square law?  Newton acknowledged he had no clue about this
+  final mystery: "Hypotheses non fingo," he said.</p>
 
-<p class="justified">Thus, all three of Kepler's laws follow from the
-  single statement that a planet accelerates directly toward the Sun
-  at a rate inversely proportional to the square of its distance from
-  the Sun.</p>
+<h2>Touching the solar system</h2>
+
+<p class="justified">The same year Kepler published his first two
+  laws, 1609, Galileo invented the telescope.  His first discoveries
+  were the phases of Venus and the four largest moons of Jupiter.  For
+  the first time, the planets were revealed as tiny globes lit by the
+  Sun rather than simply points of light in their own right.  By
+  Newton's time over half a century later, astronomers had studied
+  Jupiter's moons in considerable detail.  They learned that the four
+  moons orbited Jupiter according to Kepler's laws, except with a
+  value of a&sup3;/T&sup2; about a thousand times smaller than for the
+  planets orbiting the Sun.</p>
+
+<p class="justified">Since the Earth has only one moon, you cannot
+  check Kepler's cube-square law directly.  But Newton devised a
+  brilliant indirect test: He noticed that the downward curvature of
+  the trajectory of a cannonball fired horizontally at high enough
+  speed would match the curvature of the Earth.  If not for air
+  resistance, it would continue to "fall" all the way around the Earth
+  in a circular orbit.  If a&sup3;/T&sup2; is the same for this
+  cannonball as for the Moon, then things fall toward the Earth,
+  Jupiter, and the Sun with an acceleration inversely proportional to
+  the square of the distance.  The only difference is the constant
+  of proportionality.</p>
+
+<p class="justified">You know the downward acceleration of the
+  cannonball - Galileo first measured its value to be
+  9.8&nbsp;m/s&sup2;, no matter what its horizontal speed.  The
+  ancient Greeks knew the distance to the Moon is 60 times the radius
+  of the Earth, and that the Earth's radius is 6380&nbsp;km.  You have
+  already worked out the velocity and acceleration for a circular
+  orbit: v&nbsp;=&nbsp;&omega;r and
+  g&nbsp;=&nbsp;&omega;v&nbsp;=&nbsp;&omega;&sup2;r.  The period T of
+  the Moon with respect to the stars 27.3 days, and
+  &omega;&nbsp;=&nbsp;2&#x1D745;/T.  Thus you can work out the
+  downward acceleration of the Moon in its orbit to be
+  0.00272&nbsp;m/s&sup2;.  If the inverse square law holds between the
+  cannonball and the Moon, this should be 60&sup2;&nbsp;=&nbsp;3600
+  times less than 9.8&nbsp;m/s&sup2;, and indeed they "answer pretty
+  nearly" in Newton's words.</p>
+
+<p class="justified">Newton's reasoning here may well be the greatest
+  advance in the history of science: The familiar force of gravity
+  that pulls cannonballs downward near the surface of the Earth is the
+  same force that holds the Moon in orbit around us.  And furthermore,
+  the connection between the trajectories of cannonballs and of the
+  Moon is none other than Kepler's laws for the motion of planets
+  around the Sun, or of the Galilean moons around Jupiter.  The
+  millenia of labor poured into understanding the motion of the
+  planets has brought Newton right back to the one force we all feel
+  from birth - gravity.</p>
+
+<p class="justified">To be sure, this new conception of gravity has
+  some completely unsuspected features.  Since we all live at nearly
+  the same distance from Earth's center, the downward acceleration of
+  gravity seems independent of where you are.  But you have learned
+  that if you move far away from Earth, gravity's acceleration falls
+  off inversely with the square of your distance.  More importantly,
+  other large objects besides Earth - the Sun and Jupiter - also
+  attract things toward themselves by an inverse square law.  Gravity
+  may be the familiar force you've always known, but it does far more
+  than just pull you down to Earth.  Gravity binds the moons to their
+  planets and the planets to the Sun.</p>
 
 </div>
 
