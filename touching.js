@@ -1,12 +1,18 @@
-import {loadTextureFiles, PerspectiveScene, TextureCanvas, setColorMultiplier,
-        Vector3, Matrix4} from './wrap3.js';
-import {Animation, Transition} from './animation.js';
+import {Application, Container, Graphics, Text, TextStyle} from 'pixi.js';
 
 /* ------------------------------------------------------------------------ */
 
 const theText = document.querySelector(".textcolumn");
 const paragraphs = Array.from(theText.querySelectorAll("p"));
 const HELP_PANEL = document.getElementById("help-panel");
+
+const canvas = document.getElementById("figure");
+const app = new Application();
+await app.init({canvas: canvas, resizeTo: canvas.parentElement,
+                background: 0xd0c3a4, antialias: true,
+                autoDensity: true,  // makes renderer view units CSS pixels
+                resolution: window.devicePixelRatio || 1});
+// PIXI.Text has independent resolution option
 
 /* ------------------------------------------------------------------------ */
 /*
@@ -61,7 +67,8 @@ class ScrollPosition {
       callback(this.place());
     }, {passive: true});
     theText.addEventListener("scrollend", () => {
-      if (onend) onend();
+      // every wheel event calls this, but not every scrollbar drag
+      if (onend) onend(this.place());
     });
     theText.addEventListener("wheel", e => {
       e.preventDefault();
@@ -205,343 +212,274 @@ class ScrollPosition {
 }
 
 /* ------------------------------------------------------------------------ */
-
-const scene3d = new PerspectiveScene("figure", -30, 0, 0.01, 12000);
-
-scene3d.onContextLost(() => {
-  // if (skyAnimator.isPaused) return;
-  // skyAnimater.pause();
-  // return () => { skyAnimator.play(); }  // resume when context restored
-});
-
-window.scene3d = scene3d;
-
-const controls = scene3d.orbitControls();
-controls.enabled = true;
-
-scene3d.setEnvironment();
-
-const topObjects = [];
-function topObjectsInvisible() {
-  topObjects.forEach(obj => {
-    obj.visible = false;
-  });
-}
-
-const renderHooks = [];
-function renderScene() {
-  renderHooks.forEach(f => f());
-  scene3d.render();
-}
-
-function makeCylinder(radius, length, nph, nlen, color, opacity) {
-  const grp = scene3d.group();
-  const matf = scene3d.createPhysical({side: 0, color: color,
-                                       clearcoat: 0.5, clearcoatRoughness: 0.3,
-                                       transparent: true, opacity: opacity});
-  const matb = scene3d.createPhysical({side: 1, color: color,
-                                       clearcoat: 0.5, clearcoatRoughness: 0.3,
-                                       transparent: true, opacity: opacity});
-  const cylb = scene3d.cylinder([radius, radius, length, nph, nlen, true],
-                                matb, grp);
-  cylb.renderOrder = -2;  // draw inner surface first
-  const cylf = scene3d.cylinder([radius, radius, length, nph, nlen, true],
-                                matf, grp);
-  cylf.renderOrder = 2;  // draw outside surface last
-  grp.rotateZ(Math.PI/2);
-  return grp;
-}
-const cyl = makeCylinder(1, 4, 60, 5, 0xaaaaff, 0.4);
-topObjects.push(cyl);
-
-function makeSphere(radius, nph, nth, color, opacity) {
-  const grp = scene3d.group();
-  // Note: back side is not drawn, so opacity is only single pass.
-  let mats = scene3d.createPhysical({side: 0, color: color,
-                                     clearcoat: 0.5, clearcoatRoughness: 0.3,
-                                     transparent: true, opacity: opacity});
-  let sph = scene3d.sphere([radius, nph, nth], mats, grp);
-  sph.material.depthWrite = false;  // otherwise clips focus dots
-  sph.rotateZ(Math.PI/2);  // align with cylinder orientation
-  sph.renderOrder = 0;  // render between inside and outside of cylinder
-  const styk = scene3d.createLineStyle({color: 0x000000, linewidth: 2});
-  const angle = new Array(nph+1).fill(2*Math.PI/nph).map((v, i) => i*v);
-  const points = angle.map(v =>
-    [0, 1.001*radius*Math.sin(v), -1.001*radius*Math.cos(v)]);
-  const waist = scene3d.polyline(points, styk, grp);
-  return grp;
-}
-
-function hideWaist(grp, hide) {
-  grp.children[1].visible = !hide;
-}
-
-const sph1 = makeSphere(1, 60, 30, 0x99bbff, 0.4);
-const sph2 = makeSphere(1, 60, 30, 0x99bbff, 0.4);
-topObjects.push(sph1, sph2);
-
-function circleSprite(radius, color, scene, parent) {
-  const txcanvas = new TextureCanvas();
-  const ctx = txcanvas.context;
-  txcanvas.width = 2*radius;
-  txcanvas.height = 2*radius;
-  ctx.beginPath();
-  ctx.arc(radius, radius, radius, 0, 2*Math.PI, false);
-  const gradient = ctx.createRadialGradient(radius, radius, 0.75*radius,
-                                            radius, radius, radius);
-  gradient.addColorStop(0, color);
-  gradient.addColorStop(0.7, standardColor(color, 0.75));
-  gradient.addColorStop(1, standardColor(color, 0.25));
-  ctx.fillStyle = gradient;
-  ctx.fill();
-  return txcanvas.addTo(scene, 0.5, 0.5, parent);
-}
-
-// https://stackoverflow.com/a/47355187
-function standardColor(str, mult) {
-  _color_context.fillStyle = str;
-  let color = _color_context.fillStyle;  // "#rrggbb" or "rgba(r, g, b, a/255)"
-  if (mult !== undefined && color.length == 7) {  // assume #rrggbb
-    color = parseInt(color.slice(1), 16);
-    let [r, g, b] = [color >> 16, color >> 8, color].map(v => v & 0xff)
-        .map(v => v*mult).map(v => (v < 0)? 0 : v)
-        .map(v => (v > 255)? 255 : parseInt(v));
-    color = "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
-  }
-  return color;
-}
-
-const _color_context = document.createElement('canvas').getContext('2d');
-
-/* Arrow is a group comprising a fat line and a sprite head.
- * (An optional second sprite can be at the tail?)
- * Arrow canvas is 58x58 pixels
- *   tip (58, 29), sides (9, 8) and (9, 50), center (29, 29), radius 29
- *   head length 49
- * This texture canvas needs to be big enough to rotate the arrow around
- * its center to any orientation for material.map.rotation to work.
- * Would like to shorten the line so that the tip of the arrow is half
- * of the line thickness ahead of the point, but thickness and head length
- * are specified in pixels, and the relationship between pixels and world
- * coordinates changes with the camera.  This also has to be taken into
- * account to set the head orientation, which means the line endpoint
- * should be adjusted at that time as well.
+/* Two top level containers hold all the other objects.  One is the
+   position space container, and the second is the velocity space container.
+   These always have the origin at the center and an x coordinate
+   running from -220 to 220.  They rescale whenever the stage size changes
+   (e.g.- on window resize).  They can also change dynamically to either
+   overlap or move to non-overalpping positions.  (Note that the container
+   coordinates must have a scale of several hundred as this affects the
+   number of points chosen for the Graphics.ellipse object.)
  */
-function makeArrow(points, color, thick, head, parent) {
-  const grp = scene3d.group(parent);
-  const data = grp.userData;
-  const sty = scene3d.createLineStyle({color: color, linewidth: thick});
-  data.points = points.map(p => new Vector3(...p));
-  const line = scene3d.polyline(points, sty, grp);
-  const txcanvas = new TextureCanvas(head / 49);  // head length is in pixels
-  const ctx = txcanvas.context;
-  txcanvas.width = txcanvas.height = 58;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(58, 29);
-  ctx.lineTo(9, 50);
-  ctx.lineTo(9, 8);
-  ctx.fill();
-  const sprite = txcanvas.addTo(scene3d, 0.5, 0.5, grp);
-  sprite.position.set(...points[points.length-1]);
-  sprite.material.map.center.set(0.5, 0.5);
-  sprite.renderOrder = 1;  // and drawn after 
-  // When arrowhead visible, final endpoint of line and center of head
-  // will be adjusted backwards so that tip of arrow (rather than center)
-  // is just half of linewidth beyond true endpoint.
-  data.ds = head - thick/2;  // adjustment in pixels (why not head/2???)
-  _arrows.push(grp);
-  return grp;
-}
-function moveArrow(arrow, points) {
-  arrow.userData.points = points.map(p => new Vector3(...p));
-  const [line, head] = arrow.children;
-  scene3d.movePoints(line, points);
-  head.position.set(...points[points.length-1]);
-}
-function hideArrowhead(arrow, yes=true) {
-  const [line, head] = arrow.children;
-  if (head.visible == !yes) return;
-  if (yes) {
-    const points = arrow.userData.points.map(({x, y, z}) => [x, y, z]);
-    scene3d.movePoints(line, points);
-    head.position.set(...points[points.length-1]);
-  }
-  head.visible = !yes;
-}
-const _arrows = [];
-renderHooks.push(() => {
-  _arrows.forEach(arrow => {
-    if (!arrow.visible) return;
-    const data = arrow.userData;
-    const [line, head] = arrow.children;
-    if (!head.visible) return;
-    // First adjust orientation of arrowhead to match line as displayed.
-    const camera = scene3d.camera;
-    camera.updateMatrixWorld();  // otherwise project(camera) wrong
-    const [pt0, pt1] = data.points.slice(-2);
-    _endpt0.copy(pt0).project(camera);
-    _endpt1.copy(pt1).project(camera);
-    _endpt1.sub(_endpt0);
-    let {x, y, z} = _endpt1;
-    const canvas = scene3d.canvas;
-    [x, y] = [x*canvas.width, y*canvas.height];  // pixel coordinates
-    // ECMA standard guarantees atan2(0, 0) == 0.
-    head.material.map.rotation = Math.atan2(y, x);
-    // Next adjust position of endpoint1 of line and position of head
-    // so that tip of arrow is just one half of line thickness beyond true
-    // endpoint.  The line endpoint becomes the center of the head.
-    const points = data.points.map(({x, y, z}) => [x, y, z]);
-    let frac = 1 - data.ds/Math.sqrt(x**2 + y**2);
-    _endpt0.copy(pt0);
-    _endpt1.copy(pt1).sub(_endpt0).multiplyScalar(frac).add(_endpt0);
-    ({x, y, z} = _endpt1);
-    points[points.length-1] = [x, y, z];
-    scene3d.movePoints(line, points);
-    head.position.set(...points[points.length-1]);
-    // For very short arrows, the line is not visible at all.
-    if (points.length == 2) line.visible = frac > 0;
-  });
-});
-const _endpt0 = new Vector3();
-const _endpt1 = new Vector3();
 
-function makeEllipse(a, b, nph, color, opacity) {
-  const grp = scene3d.group();
-  const angle = new Array(nph+1).fill(2*Math.PI/nph).map((v, i) => i*v);
-  let points = angle.map(v => [a*Math.cos(v), b*Math.sin(v), 0]);
-  const indices = new Array(nph).fill(0).map((v, i) =>
-    [nph, i,  (i<nph-1)? i+1 : 0]);
-  points[nph] = [0, 0, 0];
-  const surf = scene3d.mesh(points, indices, [color, opacity], grp);
-  surf.material.depthWrite = false;  // avoid clipping focus dots
-  surf.renderOrder = 1;
-  points[nph] = points[0];
-  points = points.map(([x, y, z]) => [1.001*x, 1.001*y, 1.001*z]);
-  const styk = scene3d.createLineStyle({color: 0x000000, linewidth: 2});
-  const waist = scene3d.polyline(points, styk, grp);
-  const data = grp.userData;
-  data.a = a;
-  data.b = b;
-  data.c = Math.sqrt(a**2 - b**2);
-  let foc1 = circleSprite(3, "#000000", scene3d, grp);
-  foc1.position.set(data.c, 0, 0);
-  let foc2 = circleSprite(3, "#000000", scene3d, grp);
-  foc2.position.set(-data.c, 0, 0);
-  data.eps = data.c / data.a;
-  data.ang = Math.atan2(data.b, data.c);
-  data.matrix0 = new Matrix4().copy(grp.matrix);
-  grp.rotateY(-data.ang);
-  grp.updateMatrix();
-  data.matrix1 = new Matrix4().copy(grp.matrix);
-  grp.setRotationFromMatrix(data.matrix0);
-  return grp;
-}
-
-function showFoci(ellipse, mask) {
-  const children = ellipse.children;
-  const foc1 = children[2];
-  const foc2 = children[3];
-  foc1.visible = (mask & 1) != 0;
-  foc2.visible = (mask & 2) != 0;
-}
-
-function orientEllipse(ellipse, toCylinder) {
-  const data = ellipse.userData;
-  ellipse.setRotationFromMatrix(toCylinder? data.matrix1 : data.matrix0);
-}
-
-class Sector {
-  // Sector consists of a point, a radial line, and a leading shaded area.
-  // Angle of radial line relative to perihelion given by area, not angle,
-  // and darea similarly specifies the extent of the leading shaded area
-  // ahead the radial line.
-  // Actually, all areas are specified as fractions of the total ellipse
-  // area, scaled to run from 0 to 2pi like an angle in radians.
-  //   area parameter = ma = ea - e*sin(ea)
-  //   1st approx:  ea_1 = ma + e*sin(ma)/(1-e*cos(ma))
-  //   n+1sr approx:  ea_(n+1) =
-  //                      ea_n + (ma - (ea_n - e*sin(ea_n)))/(1-e*cos(ea_n))
-  //   point on ellipse is (a*cos(ea), b*sin(ea))
-  constructor(ellipse, n, colp, colr, cola, darea, parent, colv, zoff=0.003) {
-    const [a, b, c, eps] = this.reshape(ellipse);
-    this.n = n;
-    this.darea = darea;
-    this.zoff = zoff;
-    const grp = scene3d.group(parent);
-    topObjects.push(grp);
-    this.grp = grp;
-    let points = new Array(n+1).fill([0, 0, zoff]);
-    let indices = new Array(n-1).fill(0).map((v, i) => [0, i+1, i+2]);
-    this.shade = scene3d.mesh(points, indices, cola, grp);
-    this.line = makeArrow([[0, 0, 2*zoff], [0, 0, 2*zoff]], colr, 2, 16, grp);
-    hideArrowhead(this.line);
-    if (colv) {
-      this.vel = makeArrow([[0, 0, 2*zoff], [0, 0, 2*zoff]], colv, 2, 16, grp);
-      // make maximum velocity amplitude b
-      // cv = eps*rv, vmax = (1+eps)*rv
-      this.av = b / (1 + eps);
-    }
-    this.dotp = circleSprite(3, colp, scene3d, grp);
-    this.dotp.renderOrder = 1;
-    this.dots = circleSprite(3, colp, scene3d, grp);
-    this.dotp.renderOrder = 1;
-    this.dots.position.set(c, 0, 2*zoff);
-    this.update(0);
-    if (colv) this.vel.visible = false;
-  }
-
-  show(all=true, mask=1) {
-    this.grp.visible = all;
-    this.shade.visible = (mask & 1) != 0;
-    if (mask & 2) {
-      hideArrowhead(this.line, false);
-      this.vel.visible = true;
+class Space {
+  constructor(parent, virtualStage) {
+    const space = new Container();
+    parent.addChild(space);
+    this.space = space;
+    if (virtualStage) {
+      this.observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          let w, h;
+          if (entry.contentBoxSize) {
+            const box = entry.contentBoxSize[0];
+            [w, h] = [box.inlineSize, box.blockSize];
+          } else {
+            const box = entry.contentRect;
+            [w, h] = [box.width, box.height];
+          }
+          this.rescale(w, h);
+        }
+      });
+      this.observer.observe(canvas.parentElement);
+      this.center = [0.5, 0.5];
+      this.rescale();
     } else {
-      hideArrowhead(this.line, true);
-      this.vel.visible = false;
+      this.center = [0, 0];
     }
   }
 
-  update(ma) {
-    const {c, n, darea, zoff} = this;
-    let ea0 = this.eaSolve(ma);
-    let ea1 = this.eaSolve(ma + darea);
-    let {a, b} = this;
-    let dea = (ea1 - ea0) / (n - 1);
-    let points = new Array(n+1).fill([0, 0, zoff]);
-    const pt0 = [c, 0, zoff];
-    points = points.map((p, i) => {
-      if (i < 1) return pt0;
-      return this.position(ea0 + (i-1)*dea);
+  rescale(width, height, scale) {
+    const space = this.space;
+    if (this.observer) {
+      [width, height] = [app.screen.width, app.screen.height];
+    }
+    if (scale !== undefined) {
+      const [x, y] = [width, height];
+      space.position.set(x, y);
+      space.scale.set(scale, scale);
+    } else {
+      const [xcen, ycen] = this.center;
+      const [xmax, ymax] = [xcen*width, ycen*height];
+      space.position.set(xmax, ymax);
+      const sc = ((xmax < ymax)? xmax : ymax) / 250;
+      space.scale.set(sc, sc);
+    }
+  }
+
+  add(...children) {
+    this.space.addChild(...children);
+  }
+
+  removeChildAt(...indices) {
+    for (let i of indices) {
+      this.space.removeChildAt(i);
+    }
+  }
+
+  childAt(i) {
+    return this.space.getChildAt(i);
+  }
+
+  get visible() {
+    return this.space.visible;
+  }
+
+  set visible(on) {
+    this.space.visible = on;
+  }
+}
+
+const virtualStage = new Space(app.stage, true);
+const stage = virtualStage.space;
+const positionSpace = new Space(stage);
+
+class Arrow {
+  constructor(parent, style, lwhead, x0, y0, x1, y1) {
+    const lineStyle = {...style};
+    if (lwhead === undefined) lwhead = [2, 4, true];
+    let [lhead, whead, widthScale] = lwhead;  // head length, half width
+    let {width, color} = lineStyle;
+    if (width === undefined) width = 1;
+    if (color === undefined) color = "black";
+    if (widthScale) {  // head dimensions optionally scaled by width
+      lhead *= width;
+      whead *= width;
+    }
+    if (y1 === undefined) {
+      x0 = y0 = 0;
+      x1 = 100;
+      y1 = 0;
+    }
+    this.lhead = lhead;
+    this.whead = whead;
+    const both = new Container();
+    both.addChild(new Graphics(), new Graphics());
+    parent.addChild(both);
+    this.both = both;
+    both.position.set(x0, y0);  // position of arrow is its tail
+    const line = both.getChildAt(0);
+    const head = both.getChildAt(1);
+    this.line = line;
+    this.head = head;
+
+    x1 -= x0;
+    y1 -= y0;
+    this.dxy = [x1, y1];
+    let dr = Math.sqrt(x1**2 + y1**2);
+    if (dr == 0) dr = x1 = 0.001;
+    const [ex, ey] = [x1/dr, y1/dr];
+    [x0, y0] = [x1 - lhead*ex, y1 - lhead*ey];  // center of base of head
+    const [hx, hy] = [-whead*ey, whead*ex];
+    head.moveTo(x1, y1).lineTo(x0+hx, y0+hy).lineTo(x0-hx, y0-hy)
+      .closePath().fill(color);
+    if (dr <= lhead) [x0, y0] = [-0.001*ex, -0.001*ey];
+    line.moveTo(0, 0).lineTo(x0, y0).stroke(lineStyle);
+  }
+
+  get position() {  // tail position, with set method
+    return this.both.position;
+  }
+
+  get visible() {
+    return this.both.visible;
+  }
+
+  set visible(v) {
+    this.both.visible = v;
+  }
+
+  get alpha() {
+    return this.both.alpha;
+  }
+
+  set alpha(a) {
+    this.both.alpha = a;
+  }
+
+  headVisible(v=true) {
+    if (v != this.head.visible) {
+      this.head.visible = v;
+      this.modify(...this.dxy);
+    }
+  }
+
+  modify(dx, dy) {
+    const {line, head, lhead, whead} = this;
+    this.dxy = [dx, dy];
+    if (this.head.visible) {
+      let dr = Math.sqrt(dx**2 + dy**2);
+      if (dr == 0) dr = dx1 = 0.001;
+      const [ex, ey] = [dx/dr, dy/dr];
+      let [x0, y0] = [dx - lhead*ex, dy - lhead*ey];  // center of base
+      const [hx, hy] = [-whead*ey, whead*ex];
+      head.clear().moveTo(dx, dy).lineTo(x0+hx, y0+hy).lineTo(x0-hx, y0-hy)
+        .closePath().fill();
+      if (dr <= lhead) [x0, y0] = [-0.001*ex, -0.001*ey];
+      line.clear().moveTo(0, 0).lineTo(x0, y0).stroke();
+    } else {
+      line.clear().moveTo(0, 0).lineTo(dx, dy).stroke();
+    }
+  }
+}
+
+class EllipsePlus {
+  constructor(x, y, a, b, fill, stroke, dotSize, dotStyle, dma, sectStyle) {
+    this.x = x;
+    this.y = y;
+    this.a = a;
+    this.b = b;
+    const c = Math.sqrt(a**2 - b**2);
+    this.c = c;
+    this.dma = dma;
+    const ellipse = new Graphics().ellipse(0, 0, a, b)
+          .fill(fill).stroke(stroke);
+    this.ellipse = ellipse;
+    // if object argument to stroke(), but not setStrokeStyle()?
+    // type LineCap = 'butt' | 'round' | 'square'
+    // type LineJoin = 'bevel' | 'round' | 'miter'
+    const foc0 = new Graphics().circle(c, 0, dotSize).fill(dotStyle);
+    const foc1 = new Graphics().circle(-c, 0, dotSize).fill(dotStyle);
+    const planet = new Graphics().circle(0, 0, dotSize).fill(dotStyle);
+    planet.x = a;
+    const [xx, yy, y0, xm, ym, xs, ys] = this.arcSolve(0);
+    const sector = new Graphics().moveTo(xs, ys).lineTo(c, 0).lineTo(xx, y0)
+      .arcTo(xm, ym, xs, ys, a).fill(sectStyle);
+    sector.scale.set(1, b/a);
+    positionSpace.add(ellipse, foc0, foc1, planet, sector);
+    const radius = new Arrow(positionSpace.space, stroke, [14, 7],
+                             c, 0, a, 0);
+    const vStroke = {...stroke};
+    const vScale = 0.4;  // very nice with dma = pi/10
+    this.vScale = vScale;
+    vStroke.color = "#0000bb";
+    const velocity = new Arrow(positionSpace.space, vStroke, [14, 7],
+                               a, 0, a, -vScale*(a+c));
+    const aStroke = {...stroke};
+    aStroke.color = "#651a1a";
+    const aScale = 0.2;  // very nice with dma = pi/10
+    this.aScale = aScale;
+    const accel = new Arrow(positionSpace.space, aStroke, [14, 7],
+                            a, -vScale*(a+c),
+                            a-aScale*c*(a/(a-c))**2, -vScale*(a+c), 0);
+    this.focus = [foc0, foc1];
+    this.planet = planet;
+    this.sector = sector;
+    this.radius = radius;
+    this.velocity = velocity;
+    this.accel = accel;
+    this.ma = 0;
+    foc1.visible = false;
+    radius.visible = false;
+    velocity.visible = false;
+    accel.visible = false;
+
+    const style = new TextStyle({
+      fontFamily: "Arial", fontSize: 18, fontWeight: "normal",
     });
-    scene3d.meshMovePoints(this.shade, points);
-    points = points.map(([x, y, z]) => [x, y, 2*z]);
-    const pt1 = points[1];
-    moveArrow(this.line, [pt0, pt1]);
-    this.dotp.position.set(...pt1);
-    if (this.vel && this.vel.visible) {
-      let [vx, vy, vz] = this.velocity(ea0);
-      moveArrow(this.vel, [[0, 0, vz], [vx, vy, vz]]);
-      this.vel.position.set(...pt1);
-    }
+    const sLabel = new Text({text: "S", style});
+    sLabel.anchor.set(0.5, 0.5);
+    const offset = 16;
+    this.labelOffset = offset;
+    sLabel.position.set(c, offset);
+    const pLabel = new Text({text: "P", style});
+    pLabel.anchor.set(0.5, 0.5);
+    pLabel.position.set(a+offset, 0);
+    positionSpace.add(sLabel, pLabel);
+    this.label = [sLabel, pLabel];
   }
 
-  position(ea, dbl=1) {
-    let {a, b, zoff} = this;
-    return [a*Math.cos(ea), b*Math.sin(ea), dbl*zoff];
+  // move planet to new place on ellipse, specified by mean anomaly (radians)
+  pMove(ma) {
+    const [x, y, y0, xm, ym, xs, ys] = this.arcSolve(ma);
+    const {a, c, vScale, aScale} = this;
+    this.planet.position.set(x, y);
+    this.radius.modify(x-c, y);
+    this.velocity.position.set(x, y);
+    const vr = a / Math.sqrt((x-c)**2 + y**2);
+    const [vx, vy] = [vScale*vr*y, vScale*(vr*(c-x) - c)];
+    this.velocity.modify(vx, vy);
+    this.accel.position.set(x+vx, y+vy);
+    const ar = aScale * vr**2;
+    this.accel.modify(ar*(c-x), -ar*y);
+    const factor = 1 + this.labelOffset/Math.sqrt(x**2 + y**2);
+    this.label[1].position.set(factor*x, factor*y);
+    this.sector.clear().moveTo(xs, ys).lineTo(c, 0).lineTo(x, y0)
+      .arcTo(xm, ym, xs, ys, a).fill();
+    ellipse.ma = ma % twoPi;
   }
 
-  velocity(ea, dbl=1) {
-    let {a, b, c, av, zoff} = this;
-    let [vx, vy] = [-b*Math.sin(ea), a*Math.cos(ea) - c];
-    const cv = c * av / a;
-    av /= Math.sqrt(vx**2 + vy**2);
-    return [av*vx, av*vy + cv, dbl*zoff];
+  setAlphas(kepler, newton) {
+    if (newton === undefined) newton = 1 - kepler;
+    let {ellipse, sector, radius, velocity, accel} = this;
+    ellipse.visible = sector.visible = (kepler != 0);
+    radius.visible = velocity.visible = accel.visible = (newton != 0);
+    ellipse.alpha = sector.alpha = (kepler == 0)? 1 : kepler;
+    radius.alpha = velocity.alpha = accel.alpha = (newton == 0)? 1 : newton;
   }
 
   eaSolve(ma, tol=1.e-6) {
-    const eps = this.eps, sin = Math.sin, cos = Math.cos, abs = Math.abs;
+    const eps = this.c/this.a, sin = Math.sin, cos = Math.cos, abs = Math.abs;
     let ea = ma, dma;
     let npass = 0;
     while (npass < 10) {  // Use Newton iteration to solve Kepler's equation.
@@ -553,67 +491,315 @@ class Sector {
     return ea;
   }
 
-  reshape(ellipse, b, c) {
-    let a = ellipse, eps;
-    if (b !== undefined) {
-      if (c === undefined) c = Math.sqrt(a**2 - b**2);
-      eps = c / a;
-    } else {
-      ({a, b, c, eps} = ellipse.userData);  // javascript syntax needs ()
-    }
-    [this.a, this.b, this.c, this.eps] = [a, b, c, eps];
-    return [a, b, c, eps];
+  arcSolve(ma) {
+    const {a, b, dma} = this;
+    const ea = this.eaSolve(ma);
+    let [x, y] = [a*Math.cos(ea), a*Math.sin(ea)];
+    const eas = this.eaSolve(ma + dma);
+    let [xs, ys] = [a*Math.cos(eas), a*Math.sin(eas)];
+    // (-y, x) is 90 degrees ahead of (x, y)
+    const ttho2 = (ys*x - xs*y)/(a**2 + xs*x + ys*y);  // sin(th)/(1+cos(th))
+    let [xm, ym] = [x - ttho2*y, y + ttho2*x];
+    return [x, -y*b/a, -y, xm, -ym, xs, -ys];
   }
 }
 
-const ellipse_a = 1.3;
-const ellipse = makeEllipse(ellipse_a, 1, 120, 0xffffff, 0.4);
-topObjects.push(ellipse);
-const sector = new Sector(ellipse, 20, "#000000", 0x000000, 0xbbbbbb, 0.35,
-                          undefined, "#0000ff");
-sph1.position.set(-ellipse_a, 0, 0);
-sph2.position.set(ellipse_a, 0, 0);
+const twoPi = 2*Math.PI;
 
-// scene3d.camera.position.set(-4, 1, 10);
-scene3d.camera.position.set(0, 0, 8);
-scene3d.camera.up.set(0, 1, 0);
-scene3d.camera.lookAt(0, 0, 0);
-
-topObjectsInvisible();
-
-ellipse.visible = true;
-showFoci(ellipse, 1);
-orientEllipse(ellipse, false);
-sector.show(true, 3);
-sector.update(-Math.PI/6);
-renderScene();
-window.sector = sector;
-
-const animator = new Transition();
+// #d0c3a4 is hsl(42, 32%, 73%)
+// #c1b497 is hsl(41, 25%, 67%)
+// #d9cfba is hsl(41, 29%, 79%)
+// #073642 is hsl(192, 81%, 14%)
+const ellipse = new EllipsePlus(0, 0, 200, 160, "#d9cfba",
+                                {color: "#073642", width: 2, cap: "round"},
+                                3.5, "#073642", Math.PI/10, "#8884");
 
 /* ------------------------------------------------------------------------ */
 
-function setup0() {
-  topObjectsInvisible();
-  ellipse.visible = true;
-  sector.show();
-  sector.newton(false);
-  showFoci(ellipse, 1);
-  orientEllipse(ellipse, false);
-  maNow = maNow % (2*Math.PI);
-  if (maNow < 0) maNow += 2*Math.PI;
-  sector.update(maNow);
-  renderScene();
+app.ticker.autoStart = false;
+
+class GraphicsState {
+  constructor(msJump, dgoal=3) {
+    this.msJump = msJump;  // delay time for jump transitions
+    this.dgoal = dgoal;  // max number of pending transitions
+    this.place = null;
+    this.triggers = [];
+    this.transitions = [];
+    this.animators = [];
+    this.current = 0;
+    this.goal = null;
+    this.t = 0;  // t is elapsed time for current transition
+    app.ticker.add(this.stepper, this);
+    app.ticker.stop();  // need this even though autoStart false?
+  }
+
+  scrollTo(place) {
+    if (this.place === null) {
+      // called from ScrollPosition constructor, transition lists not built yet
+      this.place = place;
+      return;
+    }
+    let {triggers, transitions, animators, current, goal, t} = this;
+    let i = current;
+    // find i such that triggers[i] <= place < triggers[i+1]
+    while (triggers[i] > place) {
+      i -= 1;
+    }
+    if (i == current) {
+      const imax = triggers.length - 1;
+      while (i < imax && place >= triggers[i + 1]) {
+        i += 1;
+      }
+    }
+    // triggers[i] <= place < triggers[i+1]
+    if (goal === null) {
+      // initializing from call just after transition lists built
+      this.goal = this.current = i;
+      for (let j = 0; j <= i; j += 1) {
+        // On first pass, call all transitions in order, so that any
+        // one transition simply needs to alter the drawing to change
+        // between its initial and final states.
+        transitions[j].finish(false);
+      }
+      app.renderer.render(app.stage);
+      return;
+    }
+    if (i == goal) return;  // place does not cross a trigger
+    // scroll has crossed a trigger boundary
+    const animator = (goal == current) && animators[current];
+    if (animator && animator.started) {
+      animator.cancel();  // immediately cancel any animation
+    }
+    // ensure no more than dgoal transitions pending
+    const dgoal = this.dgoal;
+    let transition = transitions[current];
+    while (i > current + dgoal) {
+      transition.finish(false);
+      current += 1;
+      transition = transitions[current];
+    }
+    while (i < current - dgoal) {
+      transition.finish(true);
+      current -= 1;
+      transition = transitions[current];
+    }
+    // set current and goal, then start the ticker
+    const down = (i < current);
+    if (!down) current += 1;
+    transitions[current].start(down);
+    this.current = current;
+    this.goal = i;
+    if (!app.ticker.started) app.ticker.start();
+  }
+
+  // stepper is called by ticker, which is started by scrollTo
+  // current is transition which is happening now or most recently completed
+  //   "completed" means state is at current transition(1)
+  // goal is the transition such that transition(1) state corresponds
+  //   to the current place (most recent scrollTo)
+  stepper(ticker) {
+    let {animators, transitions, current, goal, t} = this;
+    let animator = (current == goal)? animators[current] : null;
+    let dms = ticker.deltaMS;
+    if (dms == 0) return;
+    if (animator && animator.started) {
+      if (!animators[current].step(dms)) {  // animation ended
+        ticker.stop();
+      }
+      return;
+    }
+    const down = (goal < current);
+    const transition = transitions[current];
+    if (down) dms = -dms;
+    this.t = t + dms;
+    if (!transition.step(dms)) {  // transition finished
+      if (down) {
+        current -= 1;
+        this.current = current;
+        if (goal < current) {
+          transitions[current].start(true);
+        } else {  // all transitions done, start animator or stop ticker
+          animator = animators[current];
+          if (animator) animator.start();
+          else ticker.stop();
+        }
+      } else {
+        if (goal > current) {
+          current += 1;
+          this.current = current;
+          transitions[current].start(false);
+        } else {  // all transitions done, start animator or stop ticker
+          animator = animators[current];
+          if (animator) animator.start();
+          else ticker.stop();
+        }
+      }
+    }
+  }
+
+  append(stepper) {
+    if (stepper instanceof Animator) {
+      this.animators[this.transitions.length - 1] = stepper;
+    } else {
+      this.triggers.push(stepper.trigger);
+      this.transitions.push(stepper);
+    }
+  }
+
+  appendJump(trigger, updateScene) {
+    const inow = this.transitions.length - 1;
+    const revertScene = (inow < 0)? updateScene : this.transitions[inow].update;
+    let prev;
+    this.append(new Transition(trigger, this.msJump, (frac) => {
+      frac -= 0.5;
+      if (frac * prev <= 0) {
+        if (frac < 0) revertScene(1);
+        else updateScene(1);
+      }
+      prev = frac;
+    }));
+  }
 }
 
-let maNow = 0;
-let autoplay = false;
-let prevPlace = 1000;
+class Transition {
+  constructor(trigger, dts, updateScene) {
+    this.trigger = trigger;  // place at which this transition triggers
+    this.update = updateScene;  // argument is frac = interp(t, ...dts)
+    let [dti, dt, dtf] = (dts.length === undefined)? [dts] : dts;
+    if (dt === undefined) [dti, dt, dtf] = [0, dti, 0];
+    if (dtf === undefined) dtf = 0;
+    this.dts = [dti, dt, dtf];
+    this.dt0 = dti + dt + dtf;
+    this.t = 0;
+  }
+
+  start(down) {
+    this.t = down? this.dt0 : 0;
+    this.update(down? 1 : 0);
+  }
+
+  finish(down) {
+    this.t = down? 0 : this.dt0;
+    this.update(down? 0 : 1);
+  }
+
+  step(dms) {
+    let {t, dt0, dts, update} = this;
+    t += dms;
+    update(interp(t, ...dts));
+    let more = (dms < 0)? (t > 0) : (t < dt0);
+    if (dms < 0) this.t = more? t : 0;
+    else this.t = more? t : dt0;
+    return more;
+  }
+}
+
+class Animator {
+  constructor(dts, updateScene, delay=0) {
+    this.update = updateScene;  // argument is frac = interp(t, ...dts)
+    let [dti, dt, dtf] = (dts.length === undefined)? [dts] : dts;
+    if (dt === undefined) [dti, dt, dtf] = [0, dti, 0];
+    if (dtf === undefined) dtf = 0;
+    this.dts = [dti, dt, dtf];
+    this.delay = delay;
+    this.t = 0;
+    this.started = false;
+  }
+
+  cancel() {
+    this.update(1);  // final step
+    this.started = false;
+  }
+
+  start(noDelay) {
+    this.t = noDelay? this.delay : 0;
+    this.started = true;
+  }
+
+  step(dms) {
+    if (!this.started) return false;
+    const t = this.t - this.delay;
+    this.t += dms;
+    if (t < 0) return true;
+    const frac = interp(t, ...this.dts);
+    const more = (frac < 1);
+    this.update(frac);
+    this.started = more
+    return more;
+  }
+}
+
+function interp(t, dti, dt, dtf) {
+  if (t <= 0) return 0;
+  if (dti || dtf) {
+    const dt1 = dti + dt;
+    const dt2 = dt1 + dtf;
+    if (t >= dt2) return 1;
+    // dfdt = gi * t, then gi*dti, then gf*(dt2 - t)
+    //    v = gi*dti = gf*dt1
+    // df = 0.5*v*dti, then v*dt, then 0.5*v*dtf
+    //    1 = 0.5*v*dti + v*dt + 0.5*v*dtf
+    //    2 = v*(dti + 2*dt + dtf)
+    const v = 2/(dt2 + dt);
+    if (t < dti) return 0.5*v*t**2 / dti;  // impossible if dti == 0
+    if (t <= dt1) return v*(t - 0.5*dti);
+    // impossible if dtf == 0
+    return 1 - 0.5*v*(dt2 - t)**2 / dtf;
+  } else {
+    return (t >= dt)? 1 : t / dt;
+  }
+}
+
+const graphics = new GraphicsState(500);
+
 const scrollPos = new ScrollPosition((place) => {
-  const prev = prevPlace;
-  prevPlace = place;
-}, () => {
+  if (place < 0.5) HELP_PANEL.classList.remove("hidden");
+  else HELP_PANEL.classList.add("hidden");
+  graphics.scrollTo(place);
 });
+
+/* ------------------------------------------------------------------------ */
+
+graphics.appendJump(0, (frac) => {  // transition 0
+  ellipse.setAlphas(1, 0);
+  ellipse.pMove(0);
+});
+
+graphics.append(new Transition(  // transition 1
+  1, [250, 500, 250], (frac) => {
+    ellipse.setAlphas(1, 0);
+    ellipse.pMove(0.3*frac);
+  }));
+
+const demoOrbits = new Animator([500, 7000, 500], (frac) => {
+  ellipse.pMove(0.3 + 2*twoPi*frac);
+}, 1000);
+
+graphics.append(demoOrbits);
+
+graphics.append(new Transition(  // transition 2
+  2, [250, 1500, 250], (frac) => {
+    ellipse.setAlphas(1-frac**2, frac**2);
+    ellipse.pMove(0.3);
+  }));
+
+graphics.append(demoOrbits);
+
+graphics.append(new Transition(  // transition 3
+  3, [500, 3500, 500], (frac) => {
+    ellipse.setAlphas(0, 1);
+    ellipse.ellipse.visible = ellipse.sector.visible = true;
+    ellipse.ellipse.alpha = ellipse.sector.alpha = frac**2;
+    ellipse.pMove(0.3 + twoPi*frac);
+  }));
+
+graphics.append(demoOrbits);
+
+graphics.scrollTo(graphics.place);
+
+window.app = app;
+window.graphics = graphics;
+window.ellipse = ellipse;
 
 /* ------------------------------------------------------------------------ */
 

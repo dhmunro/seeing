@@ -341,7 +341,7 @@ export class Transition extends Animation {
       // so it plays backwards to its initial state.
       // Exception is if last pair has never played, then call actions
       // once for initial state and pop them off of queue.
-      const playing = !this.isPaused;
+      let playing = !this.isPaused;
       this.stop();  // reset ms to 0 on next callback
       const ms = interps[0].ms;  // most recent argument, current position
       if (interps[0].ms0 >= 0) {
