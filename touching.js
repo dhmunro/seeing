@@ -293,6 +293,7 @@ class Space {
 const virtualStage = new Space(app.stage, true);
 const stage = virtualStage.space;
 const positionSpace = new Space(stage);
+const velocitySpace = new Space(stage);
 
 class Arrow {
   constructor(parent, style, lwhead, x0, y0, x1, y1) {
@@ -359,6 +360,7 @@ class Arrow {
 
   headVisible(v=true) {
     if (v != this.head.visible) {
+      this.head.alpha = 1;
       this.head.visible = v;
       this.modify(...this.dxy);
     }
@@ -367,15 +369,16 @@ class Arrow {
   modify(dx, dy) {
     const {line, head, lhead, whead} = this;
     this.dxy = [dx, dy];
-    if (this.head.visible) {
+    if (head.visible) {
       let dr = Math.sqrt(dx**2 + dy**2);
-      if (dr == 0) dr = dx1 = 0.001;
+      if (dr == 0) dr = dx = 0.001;
       const [ex, ey] = [dx/dr, dy/dr];
       let [x0, y0] = [dx - lhead*ex, dy - lhead*ey];  // center of base
       const [hx, hy] = [-whead*ey, whead*ex];
       head.clear().moveTo(dx, dy).lineTo(x0+hx, y0+hy).lineTo(x0-hx, y0-hy)
         .closePath().fill();
       if (dr <= lhead) [x0, y0] = [-0.001*ex, -0.001*ey];
+      else if (head.alpha < 1) [x0, y0] = [dx, dy];
       line.clear().moveTo(0, 0).lineTo(x0, y0).stroke();
     } else {
       line.clear().moveTo(0, 0).lineTo(dx, dy).stroke();
@@ -398,26 +401,41 @@ class EllipsePlus {
     // if object argument to stroke(), but not setStrokeStyle()?
     // type LineCap = 'butt' | 'round' | 'square'
     // type LineJoin = 'bevel' | 'round' | 'miter'
+    const vColor = "#0000bb", aColor = "#5c4033", opColor = "#008800";
+    const vStroke = {...stroke};
+    vStroke.color = vColor;
+    const aStroke = {...stroke};
+    aStroke.color = aColor;
+    const opStroke = {...stroke};
+    opStroke.color = opColor;
+    const circle = new Graphics().circle(c, 0, 2*a).stroke(vStroke);
+    const vplanet = new Graphics().circle(0, 0, dotSize).fill(vColor);
+    vplanet.position.set(2*a+c, 0);
+    const lineSQ = new Graphics().moveTo(c, 0).lineTo(2*a+c,0).stroke(vStroke);
+    const lineOP = new Graphics().moveTo(-c, 0).lineTo(a, 0).stroke(opStroke);
+    const linePQ = new Graphics().moveTo(a, 0).lineTo(2*a+c,0).stroke(opStroke);
+    const linePM = new Graphics().moveTo(a, c/2).lineTo(a,-c/2).stroke(vStroke);
     const foc0 = new Graphics().circle(c, 0, dotSize).fill(dotStyle);
-    const foc1 = new Graphics().circle(-c, 0, dotSize).fill(dotStyle);
+    const foc1 = new Graphics().circle(-c, 0, dotSize).fill(vColor);
     const planet = new Graphics().circle(0, 0, dotSize).fill(dotStyle);
     planet.x = a;
     const [xx, yy, y0, xm, ym, xs, ys] = this.arcSolve(0);
     const sector = new Graphics().moveTo(xs, ys).lineTo(c, 0).lineTo(xx, y0)
       .arcTo(xm, ym, xs, ys, a).fill(sectStyle);
     sector.scale.set(1, b/a);
-    positionSpace.add(ellipse, foc0, foc1, planet, sector);
+    positionSpace.add(ellipse, sector, lineOP, linePQ, linePM);
+    velocitySpace.add(lineSQ, circle, foc1, vplanet);
+    const lineOQ = new Arrow(velocitySpace.space, vStroke, [14, 7],
+                             -c, 0, 2*a+c, 0);
+    lineOQ.headVisible(false);
+    positionSpace.add(foc0, planet);
     const radius = new Arrow(positionSpace.space, stroke, [14, 7],
                              c, 0, a, 0);
-    const vStroke = {...stroke};
-    const vScale = 0.4;  // very nice with dma = pi/10
+    const vScale = dma * a/b;  // common dt for vel arrow and shaded sector
     this.vScale = vScale;
-    vStroke.color = "#0000bb";
     const velocity = new Arrow(positionSpace.space, vStroke, [14, 7],
                                a, 0, a, -vScale*(a+c));
-    const aStroke = {...stroke};
-    aStroke.color = "#651a1a";
-    const aScale = 0.2;  // very nice with dma = pi/10
+    const aScale = (vScale*b)**2/(a*c);  // common dt for vel and acc arrows
     this.aScale = aScale;
     const accel = new Arrow(positionSpace.space, aStroke, [14, 7],
                             a, -vScale*(a+c),
@@ -428,25 +446,42 @@ class EllipsePlus {
     this.radius = radius;
     this.velocity = velocity;
     this.accel = accel;
+    this.lineOP = lineOP;
+    this.linePQ = linePQ;
+    this.lineOQ = lineOQ;
+    this.linePM = linePM;
+    this.lineSQ = lineSQ;
+    this.vplanet = vplanet;
     this.ma = 0;
-    foc1.visible = false;
-    radius.visible = false;
-    velocity.visible = false;
-    accel.visible = false;
+    foc1.visible = lineOP.visible = linePQ.visible = vplanet.visible = false;
+    radius.visible = velocity.visible = accel.visible = linePM.visible = false;
+    circle.visible = lineSQ.visible = lineOQ.visible = false;
 
     const style = new TextStyle({
       fontFamily: "Arial", fontSize: 18, fontWeight: "normal",
     });
-    const sLabel = new Text({text: "S", style});
+    const sLabel = new Text({text: "S", style: style});
     sLabel.anchor.set(0.5, 0.5);
     const offset = 16;
     this.labelOffset = offset;
     sLabel.position.set(c, offset);
-    const pLabel = new Text({text: "P", style});
+    const oStyle = style.clone();
+    oStyle.fill = vColor;
+    const oLabel = new Text({text: "O", style: oStyle});
+    oLabel.anchor.set(0.5, 0.5);
+    oLabel.position.set(-c, offset);
+    oLabel.visible = false;
+    const pLabel = new Text({text: "P", style: style});
     pLabel.anchor.set(0.5, 0.5);
     pLabel.position.set(a+offset, 0);
+    positionSpace.add(sLabel, pLabel, oLabel);
+    const qLabel = new Text({text: "Q", style: oStyle});
+    qLabel.anchor.set(0.5, 0.5);
+    qLabel.position.set(2*a+c+offset, 0);
+    qLabel.visible = false;
     positionSpace.add(sLabel, pLabel);
-    this.label = [sLabel, pLabel];
+    velocitySpace.add(oLabel, qLabel);
+    this.label = [sLabel, pLabel, oLabel, qLabel];
   }
 
   // move planet to new place on ellipse, specified by mean anomaly (radians)
@@ -462,20 +497,38 @@ class EllipsePlus {
     this.accel.position.set(x+vx, y+vy);
     const ar = aScale * vr**2;
     this.accel.modify(ar*(c-x), -ar*y);
-    const factor = 1 + this.labelOffset/Math.sqrt(x**2 + y**2);
+    const [qx, qy] = [c + 2*vr*(x-c), 2*vr*y];
+    this.lineOP.clear().moveTo(-c, 0).lineTo(x, y).stroke();
+    this.linePQ.clear().moveTo(x, y).lineTo(qx, qy).stroke();
+    this.lineOQ.modify(qx+c, qy);
+    this.lineSQ.clear().moveTo(c, 0).lineTo(qx, qy).stroke();
+    this.vplanet.position.set(qx, qy);
+    let factor = 1 + this.labelOffset/Math.sqrt(x**2 + y**2);
     this.label[1].position.set(factor*x, factor*y);
+    factor = 1 + this.labelOffset/Math.sqrt(qx**2 + qy**2);
+    this.label[3].position.set(factor*qx, factor*qy);
     this.sector.clear().moveTo(xs, ys).lineTo(c, 0).lineTo(x, y0)
       .arcTo(xm, ym, xs, ys, a).fill();
+    const [mx, my] = [0.5*(qx+c) - c, 0.5*qy];
+    const fq = Math.sqrt((qx+c)**2 + qy**2);
+    const [ex, ey] = [qy/fq, -(qx+c)/fq];  // tangent direction
+    const hang = (y < 0)? c/2 : -c/2;
+    const [t1x, t1y] = [x - ex*hang, y - ey*hang];
+    const [t0x, t0y] = [mx + ex*hang, my + ey*hang];
+    this.linePM.clear().moveTo(t1x, t1y).lineTo(t0x, t0y).stroke();
     ellipse.ma = ma % twoPi;
   }
 
   setAlphas(kepler, newton) {
     if (newton === undefined) newton = 1 - kepler;
-    let {ellipse, sector, radius, velocity, accel} = this;
+    let {ellipse, sector, radius, velocity, accel, focus, lineOP, label} = this;
     ellipse.visible = sector.visible = (kepler != 0);
     radius.visible = velocity.visible = accel.visible = (newton != 0);
     ellipse.alpha = sector.alpha = (kepler == 0)? 1 : kepler;
     radius.alpha = velocity.alpha = accel.alpha = (newton == 0)? 1 : newton;
+    radius.headVisible(true);
+    focus[1].visible = lineOP.visible = label[2].visible = false;
+    focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
   }
 
   eaSolve(ma, tol=1.e-6) {
@@ -513,6 +566,10 @@ const twoPi = 2*Math.PI;
 const ellipse = new EllipsePlus(0, 0, 200, 160, "#d9cfba",
                                 {color: "#073642", width: 2, cap: "round"},
                                 3.5, "#073642", Math.PI/10, "#8884");
+
+// velocitySpace.space.rotation = -Math.PI/2;
+// velocitySpace.rescale(0, 60, 0.5);
+// positionSpace.rescale(-60, 0, 0.5);
 
 /* ------------------------------------------------------------------------ */
 
@@ -562,6 +619,7 @@ class GraphicsState {
         transitions[j].finish(false);
       }
       app.renderer.render(app.stage);
+      if (animators[i]) app.ticker.start();
       return;
     }
     if (i == goal) return;  // place does not cross a trigger
@@ -760,40 +818,63 @@ const scrollPos = new ScrollPosition((place) => {
 
 /* ------------------------------------------------------------------------ */
 
-graphics.appendJump(0, (frac) => {  // transition 0
+graphics.appendJump(0, (frac) => {
   ellipse.setAlphas(1, 0);
   ellipse.pMove(0);
 });
+// 0 state: plain ellipse + sector, P at theta=0
 
-graphics.append(new Transition(  // transition 1
+graphics.append(new Transition(
   1, [250, 500, 250], (frac) => {
     ellipse.setAlphas(1, 0);
     ellipse.pMove(0.3*frac);
   }));
-
 const demoOrbits = new Animator([500, 7000, 500], (frac) => {
   ellipse.pMove(0.3 + 2*twoPi*frac);
 }, 1000);
-
 graphics.append(demoOrbits);
+// 1 state: plain ellipse + sector, P at theta=0.3
 
-graphics.append(new Transition(  // transition 2
+graphics.append(new Transition(
   2, [250, 1500, 250], (frac) => {
     ellipse.setAlphas(1-frac**2, frac**2);
     ellipse.pMove(0.3);
   }));
-
 graphics.append(demoOrbits);
+// 2 state: plain r+v+g vectors, P at theta=0.3
 
-graphics.append(new Transition(  // transition 3
+graphics.append(new Transition(
   3, [500, 3500, 500], (frac) => {
     ellipse.setAlphas(0, 1);
     ellipse.ellipse.visible = ellipse.sector.visible = true;
     ellipse.ellipse.alpha = ellipse.sector.alpha = frac**2;
     ellipse.pMove(0.3 + twoPi*frac);
   }));
-
 graphics.append(demoOrbits);
+// 3 state: r+v+g vectors + ellipse + sector, P at theta=0.3
+
+graphics.append(new Transition(
+  5, [250, 1500, 250], (frac) => {
+    ellipse.setAlphas(0, 1);
+    const alpha = (1 - 2*frac)**2;
+    const {radius, velocity, accel, sector, focus, lineOP, label} = ellipse;
+    if (frac < 0.5) {
+      if (frac) ellipse.pMove(0.3);
+      ellipse.ellipse.visible = sector.visible = true;
+      sector.alpha = radius.head.alpha = alpha;
+      velocity.alpha = accel.alpha = alpha;
+    } else {
+      ellipse.ellipse.visible = true;
+      if (radius.head.visible) radius.headVisible(false);
+      velocity.visible = accel.visible = false;
+      focus[1].visible = lineOP.visible = label[2].visible = true;
+      focus[1].alpha = lineOP.alpha = label[2].alpha = (1 - 2*frac)**2;
+    }
+  }));
+graphics.append(new Animator([250, 3500, 250], (frac) => {
+  ellipse.pMove(0.3 + twoPi*frac);
+}, 1000));
+// 4 state: simple SPF diagram, P at theta=0.3
 
 graphics.scrollTo(graphics.place);
 
