@@ -1,4 +1,5 @@
-import {Application, Container, Graphics, Text, TextStyle} from 'pixi.js';
+import {Application, Container, Graphics, Text, TextStyle,
+        Transform} from 'pixi.js';
 
 /* ------------------------------------------------------------------------ */
 
@@ -262,7 +263,8 @@ class Space {
       const [xcen, ycen] = this.center;
       const [xmax, ymax] = [xcen*width, ycen*height];
       space.position.set(xmax, ymax);
-      const sc = ((xmax < ymax)? xmax : ymax) / 250;
+      // Set up virtual stage so that smaller dimension is always 500 units.
+      const sc = ((xmax < ymax)? xmax : ymax) / 500;
       space.scale.set(sc, sc);
     }
   }
@@ -425,19 +427,19 @@ class EllipsePlus {
     sector.scale.set(1, b/a);
     positionSpace.add(ellipse, sector, lineOP, linePQ, linePM);
     velocitySpace.add(lineSQ, circle, foc1, vplanet);
-    const lineOQ = new Arrow(velocitySpace.space, vStroke, [14, 7],
+    const lineOQ = new Arrow(velocitySpace.space, vStroke, [24, 12],
                              -c, 0, 2*a+c, 0);
     lineOQ.headVisible(false);
     positionSpace.add(foc0, planet);
-    const radius = new Arrow(positionSpace.space, stroke, [14, 7],
+    const radius = new Arrow(positionSpace.space, stroke, [24, 12],
                              c, 0, a, 0);
     const vScale = dma * a/b;  // common dt for vel arrow and shaded sector
     this.vScale = vScale;
-    const velocity = new Arrow(positionSpace.space, vStroke, [14, 7],
+    const velocity = new Arrow(positionSpace.space, vStroke, [24, 12],
                                a, 0, a, -vScale*(a+c));
     const aScale = (vScale*b)**2/(a*c);  // common dt for vel and acc arrows
     this.aScale = aScale;
-    const accel = new Arrow(positionSpace.space, aStroke, [14, 7],
+    const accel = new Arrow(positionSpace.space, aStroke, [24, 12],
                             a, -vScale*(a+c),
                             a-aScale*c*(a/(a-c))**2, -vScale*(a+c), 0);
     this.focus = [foc0, foc1];
@@ -458,11 +460,11 @@ class EllipsePlus {
     circle.visible = lineSQ.visible = lineOQ.visible = false;
 
     const style = new TextStyle({
-      fontFamily: "Arial", fontSize: 18, fontWeight: "normal",
+      fontFamily: "Arial", fontSize: 30, fontWeight: "bold",
     });
     const sLabel = new Text({text: "S", style: style});
     sLabel.anchor.set(0.5, 0.5);
-    const offset = 16;
+    const offset = 20;
     this.labelOffset = offset;
     sLabel.position.set(c, offset);
     const oStyle = style.clone();
@@ -482,10 +484,28 @@ class EllipsePlus {
     positionSpace.add(sLabel, pLabel);
     velocitySpace.add(oLabel, qLabel);
     this.label = [sLabel, pLabel, oLabel, qLabel];
+
+    // In v8 there is no obvious way to force the transform matrices
+    // to be updated to their current values without rendering the scene.
+    // Nevertheless, even without the correctly updated transform matrices,
+    // the toGlobal function works properly.
+    const scale = positionSpace.space.toGlobal({x:1, y:0}).x -
+          positionSpace.space.toGlobal({x:0, y:0}).x;
+    this.scale0 = this.pscale = this.vscale = scale;
+  }
+
+  checkScale() {
+    const pscale = positionSpace.space.toGlobal({x:1, y:0}).x -
+          positionSpace.space.toGlobal({x:0, y:0}).x;
+    const vscale = velocitySpace.space.toGlobal({x:1, y:0}).x -
+          velocitySpace.space.toGlobal({x:0, y:0}).x;
+    if (pscale == this.pscale && vscale == this.vscale) return;
+    console.log("new scales", vscale, pscale, this.scale0);
   }
 
   // move planet to new place on ellipse, specified by mean anomaly (radians)
   pMove(ma) {
+    this.checkScale();
     const [x, y, y0, xm, ym, xs, ys] = this.arcSolve(ma);
     const {a, c, vScale, aScale} = this;
     this.planet.position.set(x, y);
@@ -563,9 +583,10 @@ const twoPi = 2*Math.PI;
 // #c1b497 is hsl(41, 25%, 67%)
 // #d9cfba is hsl(41, 29%, 79%)
 // #073642 is hsl(192, 81%, 14%)
-const ellipse = new EllipsePlus(0, 0, 200, 160, "#d9cfba",
-                                {color: "#073642", width: 2, cap: "round"},
-                                3.5, "#073642", Math.PI/10, "#8884");
+const xform = new Transform();
+const ellipse = new EllipsePlus(0, 0, 400, 320, "#d9cfba",
+                                {color: "#073642", width: 3, cap: "round"},
+                                6, "#073642", Math.PI/10, "#8884");
 
 // velocitySpace.space.rotation = -Math.PI/2;
 // velocitySpace.rescale(0, 60, 0.5);
