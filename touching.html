@@ -275,21 +275,26 @@
 <p class="justified">Because the tangent MP is perpendicular to OQ, if
   you rotate OQS ninety degrees counterclockwise, then OQ will be
   parallel to the tangent of the ellipse at P.  That is, OQ now points
-  in the direction of the velocity vector at P.  Furthermore, in this
-  new diagram, SQ will always be ninety degrees ahead of the planet
-  radius vector SP.  Replacing the sides of OQS by velocity vectors,
-  you see that the velocity OQ of the planet moves around an eccentric
-  circle of radius SQ, displaced from zero velocity O by the fixed
-  vector OS perpendicular to the major axis of the ellipse.  And the
+  in the direction of the velocity vector at P.  By construction, SQ
+  is now always ninety degrees ahead of the planet radius vector SP -
+  a fact that comes into play later.  For now, if you interpret the
+  sides of OQS as velocity vectors, you see that the velocity OQ of
+  the planet, tangent to its ellipse, moves around an eccentric circle
+  of radius SQ, displaced from zero velocity O by the fixed vector OS
+  perpendicular to the major axis of the ellipse.  And the
   eccentricity of this circle is the same as the eccentricity of the
   ellipse.</p>
 
-<p class="justified">So far, you have shown that if the trajectory in
-  velocity space is an eccentric circle, and the radius vector SQ in
-  velocity space always leads the radius vector SP in ordinary space
-  by ninety degrees, then the point P indeed moves around an ellipse
-  with S at one focus.  To complete the proof, you still need to
-  demonstrate that SP sweeps over equal areas in equal times.</p>
+<p class="justified">Thus, if the trajectory in velocity space is an
+  eccentric circle, and the radius vector SQ in velocity space always
+  leads the radius vector SP in ordinary space by ninety degrees, then
+  the point P indeed moves around an ellipse (of the same eccentricity
+  as the circle) with S at one focus.  To complete the proof, you
+  still need to demonstrate that SP sweeps over equal areas in equal
+  times.  That is, you have proven that the velocity OQ points in the
+  correct direction - tangent to the ellipse - but you still have to
+  demonstrate that the length of OQ agrees with the speed of the
+  planet according to Kepler's equal area law.</p>
 
 <h2>Equal areas in equal times</h2>
 
@@ -313,7 +318,7 @@
   constant).</p>
 
 <p class="justified">Now suppose the velocity of the planet suddenly
-  jumped to a new speed and direction.  When would such a jump leave
+  jumps to a new speed and direction.  When would such a jump leave
   the areas swept out in equal times unchanged?  The constant base of
   of the triangle is now the sun-planet vector at the moment of the
   jump, while the height of the triangle is the component of the
@@ -327,18 +332,21 @@
   continuous change in position into tiny steps for animation, you see
   that Kepler's law that equal areas are swept out in equal times will
   hold if, and only if, the planet accelerates directly toward (or
-  away from) the Sun.  You have completed the proof that Kepler's
-  first two laws of planetary motion mean that the trajectory of a
-  planet in velocity space is an eccentric circle with the same
+  away from) the Sun.  This observation completes the proof that
+  Kepler's first two laws of planetary motion mean that the trajectory
+  of a planet in velocity space is an eccentric circle with the same
   eccentricity as its ellipse, rotated ninety degrees, so that its
   radius in velocity space is always ninety degrees ahead of its
   radius in ordinary space.</p>
 
 <p class="justified">You now know the trajectories of a planet in both
-  ordinary and velocity space.  However, Newton's program is to
+  ordinary and velocity spaces.  However, Newton's program is to
   eliminate all trajectories in favor of instantaneous rates of
   change.  To do that, you need not only the direction of the
-  acceleration, but also its magnitude.</p>
+  acceleration, but also its magnitude.  In other words, you know that
+  a planet always accelerates directly toward the Sun, and you now
+  want to find how the magnitude of that acceleration changes as it
+  moves around its orbit.</p>
 
 <h2>Inverse square law</h2>
 
@@ -369,22 +377,23 @@
 
 <p class="justified">Calling twice the rate the planet's radius sweeps
   out area L (a symbol used for angular momentum), you have
-  L&nbsp;=&nbsp;&omega;r&sup2;.  But you know from Kepler's second law
-  that L remains constant as the planet orbits.  Therefore, the
-  angular speed of the planet around the Sun, &omega;, varies
-  inversely as the square of its distance from the Sun,
+  L&nbsp;=&nbsp;&omega;r&sup2;.  But Kepler's second law says that L
+  remains constant as the planet orbits.  Therefore, the angular speed
+  of the planet around the Sun, &omega;, varies inversely as the
+  square of its distance from the Sun,
   &omega;&nbsp;=&nbsp;L/r&sup2;.</p>
 
 <p class="justified">Recall that the angular speed of the planet
   around the Sun &omega; is also the angular speed of the velocity
-  radius SQ around its circular trajectory in velocity space.  Call
-  the length of the velocity radius u.  Since the acceleration is
-  entirely transverse to SQ, its magnitude g is simply &omega;u, the
-  velocity space analog of the formula for transverse velocity
-  &omega;r.  Since the velocity radius u is constant, and &omega;
-  varies inversely as the square of the distance r, the acceleration g
-  must also vary inversely as the square of the distance.  In fact,
-  g&nbsp;=&nbsp;uL/r&sup2;.</p>
+  radius SQ around its circular trajectory in velocity space.  Let u
+  denote the length of SQ.  Since the acceleration is entirely
+  transverse to SQ, its magnitude g is simply &omega;u, the velocity
+  space analog of the formula for transverse velocity &omega;r.  Since
+  the velocity radius u is constant, and &omega; varies inversely as
+  the square of the distance r, the acceleration g must also vary
+  inversely as the square of the distance.  In fact,
+  g&nbsp;=&nbsp;uL/r&sup2;, so the constant of proportionality is
+  uL.</p>
 
 <p class="justified">You have proven that if a planet accelerates
   directly toward the Sun at a rate which varies inversely as the
@@ -431,10 +440,12 @@
 
 <p class="justified">When you combine these two expressions for L and
   u, you find uL&nbsp;=&nbsp;4&#x1D745;&sup2;a&sup3;/T&sup2;.
-  Kepler's third law states that a&sup3;/T&sup2; is the same for all
-  the planets.  Therefore, in fact, a single inverse square law for
-  the acceleration, g&nbsp;=&nbsp;uL/r&sup2;, applies to every
-  planet.</p>
+  Kepler's third law states that a&sup3;/T&sup2;, and hence the
+  constant of proportionality uL, is the same for all the planets.
+  (To be clear, u and L individually change from one planet to
+  another, but their product uL is the same for all planets.)
+  Therefore, in fact, a single inverse square law for the
+  acceleration, g&nbsp;=&nbsp;uL/r&sup2;, applies to every planet.</p>
 
 <p class="justified">Kepler needed a separate third law to describe
   the connection among the orbital parameters of all the planets.  His
@@ -491,7 +502,7 @@
   9.8&nbsp;m/s&sup2;, and indeed it does "answer pretty nearly" in
   Newton's words.</p>
 
-<p class="justified">Newton's reasoning here may well be the greatest
+<p class="justified">Newton's reasoning here is arguably the greatest
   breakthrough in the history of science: The familiar force of
   gravity that pulls cannonballs downward near the surface of the
   Earth is the same force that holds the Moon in orbit around us.  And
@@ -556,19 +567,17 @@
 <p class="justified">Note that the gravitational acceleration is
   proportional to the mass of the attracting body.  That is, Kepler's
   cube-square law constant a&sup3;/T&sup2; or Newton's inverse square
-  law constant uL, are proportional to, and therefore measures of, the
-  mass of the central body!  For example, because a&sup3;/T&sup2; is a
-  thousand times smaller for the moons orbiting Jupiter than for the
-  planets orbiting the Sun, Newton deduced that the mass of Jupiter is
-  a thousand times less than the mass of the Sun.  This is how you
-  know the masses of all astronomical objects: If you can see
-  something orbiting an object and measure the size and period of that
-  orbit, you know the mass of the central object compared to the mass
-  of the Sun.  (This technique only works for huge objects, so you
-  know the relative masses of planets with moons, but you don't know
-  the planet's mass in kilograms yet.  A kilogram weight is too small
-  to easily measure the miniscule gravitational force it exerts on
-  other small objects.)</p>
+  law constant uL = GM, are proportional to, and therefore measures
+  of, the mass of the central body!  For example, because
+  a&sup3;/T&sup2; is a thousand times smaller for the moons orbiting
+  Jupiter than for the planets orbiting the Sun, Newton deduced that
+  the mass of Jupiter is a thousand times less than the mass of the
+  Sun.  This is still how we know the masses of all astronomical
+  objects: You need to find something orbiting the object and measure
+  that orbital size and period (or at least how much the object
+  deflects something passing nearby); then, like Newton, you can
+  compute the mass of the central object compared to the mass of the
+  Sun.</p>
 
 </div>
 
