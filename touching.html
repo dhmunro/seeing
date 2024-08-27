@@ -181,9 +181,9 @@
 <p class="justified">Newton demoted the trajectory into a secondary
   feature of any motion, promoting instantaneous position, velocity,
   and acceleration to the primary status.  When a rigid body is free
-  to move, Newton recognized that its velocity remains fixed when no
-  forces act on it.  Pushing on it changes its velocity directly, only
-  indirectly changing its position.  That is, force causes
+  to move, Newton recognized that its velocity remains constant when
+  no forces act on it.  Pushing on it changes its velocity directly,
+  indirectly changing its trajectory.  That is, force causes
   acceleration, a rate of change of velocity.  This separation of
   cause - a force - from effect - an acceleration - turns out to be
   the crucial advantage of Newton's description of motion.</p>
@@ -221,7 +221,7 @@
   to the trajectory - the ellipse in this case.  The magnitude of the
   velocity is the speed of the planet.  The scale of the velocity
   arrow in the drawing is arbitrary - the tip of the arrow is where
-  the planet would have moved after some fixed, but arbitrary, time
+  the planet would have moved after some fixed but arbitrary time,
   had it continued in a straight line at a constant speed.  Instead of
   drawing the tail of the velocity arrow at the planet, you can put it
   at a fixed point - the origin of its own plane.  Each point in this
@@ -231,14 +231,13 @@
 <p class="justified">You know the tip of the radius vector traces an
   ellipse with its tail at one focus.  It looks like the tip of the
   velocity vector traces an eccentric circle, that is, a circle
-  displaced from the tail of the arrow.  With a modern computer, it is
-  not hard to verify this numerically, by taking smaller and smaller
-  steps around the Keplerian ellipse and applying the equal area law
-  between steps.  In fact, you can verify that the eccentricity of the
-  circle in velocity space (the ratio of the displacement of its
-  center from the origin to its radius) is identical to the
-  eccentricity of the ellipse (defined below) in ordinary position
-  space.</p>
+  displaced from the tail of the arrow.  With a modern computer, you
+  can verify this numerically, by taking smaller and smaller steps
+  around the Keplerian ellipse and applying the equal area law between
+  steps.  In fact, you can verify that the eccentricity of the circle
+  in velocity space (the ratio of the displacement of its center from
+  the origin to its radius) is identical to the eccentricity of the
+  ellipse (defined below) in ordinary position space.</p>
 
 <p class="justified">So the trajectory of a planet in velocity space
   is a circle with the same eccentricity as its ellipse in ordinary
@@ -255,8 +254,8 @@
   fixed sum of distances; an ellipse with zero eccentricity is a
   circle.  Notice that the major axis, or largest diameter, of the
   ellipse equals that fixed sum of distances.  The minor axis is the
-  smallest diameter, which is always perpendicular to the major axis,
-  equals the major axis for eccentricity zero and decreases to zero as
+  smallest diameter, always perpendicular to the major axis.  Minor
+  axis equals major axis for eccentricity zero, decreasing to zero as
   the eccentricity increases to one (the largest possible
   eccentricity).</p>
 
@@ -284,7 +283,7 @@
   the ellipse at P.  That is, OQ now points in the direction of the
   velocity vector at P.  By construction, SQ is now always ninety
   degrees ahead of the planet radius vector SP - a fact that comes
-  into play later.  For now, if you interpret the sides of OQS as
+  into play later.  For now, if you interpret the sides of OSQ as
   velocity vectors, you see that the velocity OQ of the planet,
   tangent to its ellipse, moves around an eccentric circle of radius
   SQ, displaced from zero velocity O by the fixed vector OS
@@ -359,10 +358,10 @@
 
 <p class="justified">The trajectories in position and velocity space
   are coupled by the fact that the two radius vectors SP and SQ are
-  always exactly ninety degrees apart.  Thus, even though they speed
-  up and slow down as the planet moves around its orbit, their
-  instantaneous angular speeds are always equal.  Call that varying
-  but common angular speed &omega;.</p>
+  always exactly ninety degrees apart.  Thus, even though P and Q
+  speed up and slow down as they move around S, the instantaneous
+  angular speeds of SP and SQ are always equal.  Call that varying but
+  common angular speed &omega;.</p>
 
 <p class="justified">Consider first the motion of the planet around
   the Sun in ordinary space.  The planet's velocity has both a radial
@@ -442,19 +441,20 @@
   closest to the Sun, L&nbsp;=&nbsp;(a-c)(u+w), where c is the
   distance from the center of the ellipse to one focus, and w is the
   displacement of the center of the velocity circle from zero velocity
-  (OS).  Similarly, at aphelion, when the planet is farthest from the
-  Sun, L&nbsp;=&nbsp;(a+c)(u-w).  Eliminating w from these two
-  formulas results in u&nbsp;=&nbsp;La/(a&sup2;-c&sup2;).  The
-  denominator is b&sup2;, so u&nbsp;=&nbsp;La/b&sup2;.</p>
+  (so w is the length of OS).  Similarly, at aphelion, when the planet
+  is farthest from the Sun, L&nbsp;=&nbsp;(a+c)(u-w).  Eliminating w
+  from these two formulas results in
+  u&nbsp;=&nbsp;La/(a&sup2;-c&sup2;).  The denominator is b&sup2;, so
+  u&nbsp;=&nbsp;La/b&sup2;.</p>
 
-<p class="justified">When you combine these two expressions for L and
-  u, you find uL&nbsp;=&nbsp;4&#x1D745;&sup2;a&sup3;/T&sup2;.
-  Kepler's third law states that a&sup3;/T&sup2;, and hence the
-  constant of proportionality uL, is the same for all the planets.
-  (To be clear, u and L individually differ from planet to planet, but
-  their product uL is the same for all planets.)  Therefore, in fact,
-  a single inverse square law for the acceleration,
-  g&nbsp;=&nbsp;uL/r&sup2;, applies to every planet.</p>
+<p class="justified">Combining these expressions for L and u, you find
+  uL&nbsp;=&nbsp;4&#x1D745;&sup2;a&sup3;/T&sup2;.  Kepler's third law
+  states that a&sup3;/T&sup2;, and hence the constant of
+  proportionality uL, is the same for all the planets.  (To be clear,
+  u and L individually differ from planet to planet, but their product
+  uL is the same for all planets.)  Therefore, in fact, a single
+  inverse square law for the acceleration, g&nbsp;=&nbsp;uL/r&sup2;,
+  applies to every planet.</p>
 
 <p class="justified">Kepler needed a separate third law to describe
   the connection among the orbital parameters of all the planets.  His
@@ -487,18 +487,18 @@
   Jupiter's moons in considerable detail.  They learned that the four
   moons orbited Jupiter according to Kepler's laws, except with a
   value of a&sup3;/T&sup2; about a thousand times smaller than for the
-  planets orbiting the Sun.</p>
+  planets or comets orbiting the Sun.</p>
 
 <p class="justified">Newton devised a brilliant indirect test of
-  Kepler's cube-square law for the case of the Earth: He knew that a
-  cannonball accelerates downward at a rate of 9.8&nbsp;m/s&sup2; (as
-  Galileo measured), independent of how fast it is moving
-  horizontally.  He realized that if its horizontal speed were high
-  enough, its trajectory would follow the curve of Earth's surface,
-  and (absent air resistance) it would continue to fall all the way
-  around the Earth in a circular orbit.  He could use this
-  hypothetical (to him) orbiting cannonball and the Moon to check
-  Kepler's cube-square law for objects orbiting the Earth.</p>
+  Kepler's cube-square law for the case of the Earth: A cannonball
+  accelerates downward at a rate of 9.8&nbsp;m/s&sup2; (as Galileo
+  measured), independent of how fast it is moving horizontally.
+  Newton realized that if its horizontal speed were high enough, the
+  cannonball would follow the curve of Earth's surface, and (absent
+  air resistance) it would continue to fall all the way around the
+  Earth in a circular orbit.  He could use this hypothetical (to him)
+  orbiting cannonball and the Moon to check Kepler's cube-square law
+  for objects orbiting the Earth.</p>
 
 <p class="justified">As you have seen, if objects accelerate toward a
   center at a rate inversely proportional to the square of their
@@ -509,8 +509,9 @@
   sidereal period is about 27.3&nbsp;days.  For a roughly circular
   orbit, you have already worked out the acceleration
   g&nbsp;=&nbsp;&omega;v&nbsp;=&nbsp;&omega;&sup2;r, so the downward
-  acceleration of the Moon works out to be 0.0027&nbsp;m/s&sup2;.  If
-  the inverse square law holds between the cannonball and the Moon,
+  acceleration of the Moon works out to be 0.0027&nbsp;m/s&sup2;
+  (60&times;6830000&times;(2&#x1D745;/(27.3&times;24&times;3600))&sup2).
+  If the inverse square law holds between the cannonball and the Moon,
   this should be 60&sup2;&nbsp;=&nbsp;3600 times less than
   9.8&nbsp;m/s&sup2;, and indeed it does "answer pretty nearly" in
   Newton's words.</p>
