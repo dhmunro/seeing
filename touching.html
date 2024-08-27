@@ -237,13 +237,15 @@
   between steps.  In fact, you can verify that the eccentricity of the
   circle in velocity space (the ratio of the displacement of its
   center from the origin to its radius) is identical to the
-  eccentricity of the ellipse in ordinary position space.</p>
+  eccentricity of the ellipse (defined below) in ordinary position
+  space.</p>
 
 <p class="justified">So the trajectory of a planet in velocity space
   is a circle with the same eccentricity as its ellipse in ordinary
-  space.  The geometrical proof of this fact is very pretty and gives
-  you some important additional insights into the connection between a
-  planet's velocity and its position.  Here it is, in two parts.</p>
+  space.  The geometrical proof of this fact gives you some important
+  additional insights into the connection between a planet's velocity
+  and its position, as well as a glimpse of Newton's mathematical
+  genius.  Here it is, in two parts.</p>
 
 <h2>Tangent to an ellipse</h2>
 
@@ -252,7 +254,11 @@
   Eccentricity is the ratio of the distance between the foci and the
   fixed sum of distances; an ellipse with zero eccentricity is a
   circle.  Notice that the major axis, or largest diameter, of the
-  ellipse equals that fixed sum of distances.</p>
+  ellipse equals that fixed sum of distances.  The minor axis is the
+  smallest diameter, which is always perpendicular to the major axis,
+  equals the major axis for eccentricity zero and decreases to zero as
+  the eccentricity increases to one (the largest possible
+  eccentricity).</p>
 
 <p class="justified">Let S be the Sun at one focus and P be the planet
   on the ellipse.  If O is the other focus, then SP plus PO is a fixed
@@ -273,23 +279,24 @@
   only at one point P, it must be tangent to the ellipse at P.</p>
 
 <p class="justified">Because the tangent MP is perpendicular to OQ, if
-  you rotate OQS ninety degrees counterclockwise, then OQ will be
-  parallel to the tangent of the ellipse at P.  That is, OQ now points
-  in the direction of the velocity vector at P.  By construction, SQ
-  is now always ninety degrees ahead of the planet radius vector SP -
-  a fact that comes into play later.  For now, if you interpret the
-  sides of OQS as velocity vectors, you see that the velocity OQ of
-  the planet, tangent to its ellipse, moves around an eccentric circle
-  of radius SQ, displaced from zero velocity O by the fixed vector OS
+  you rotate OQS ninety degrees counterclockwise (the direction the
+  planet is moving here), then OQ will be parallel to the tangent of
+  the ellipse at P.  That is, OQ now points in the direction of the
+  velocity vector at P.  By construction, SQ is now always ninety
+  degrees ahead of the planet radius vector SP - a fact that comes
+  into play later.  For now, if you interpret the sides of OQS as
+  velocity vectors, you see that the velocity OQ of the planet,
+  tangent to its ellipse, moves around an eccentric circle of radius
+  SQ, displaced from zero velocity O by the fixed vector OS
   perpendicular to the major axis of the ellipse.  And the
   eccentricity of this circle is the same as the eccentricity of the
-  ellipse.</p>
+  ellipse by construction.</p>
 
 <p class="justified">Thus, if the trajectory in velocity space is an
   eccentric circle, and the radius vector SQ in velocity space always
   leads the radius vector SP in ordinary space by ninety degrees, then
   the point P indeed moves around an ellipse (of the same eccentricity
-  as the circle) with S at one focus.  To complete the proof, you
+  as the circle) with S at one focus.  To complete Newton's proof, you
   still need to demonstrate that SP sweeps over equal areas in equal
   times.  That is, you have proven that the velocity OQ points in the
   correct direction - tangent to the ellipse - but you still have to
@@ -331,8 +338,8 @@
   a large number of tiny jumps in velocity, just as you broke the
   continuous change in position into tiny steps for animation, you see
   that Kepler's law that equal areas are swept out in equal times will
-  hold if, and only if, the planet accelerates directly toward (or
-  away from) the Sun.  This observation completes the proof that
+  hold if, and only if, the planet only accelerates directly toward
+  (or away from) the Sun.  This observation completes the proof that
   Kepler's first two laws of planetary motion mean that the trajectory
   of a planet in velocity space is an eccentric circle with the same
   eccentricity as its ellipse, rotated ninety degrees, so that its
@@ -367,31 +374,33 @@
   the product &omega;r, where r is SP, the instantaneous distance of
   the planet from the Sun.</p>
 
-<p class="justified">Now the rate the radius sweeps out area
-  is <em>also</em> directly proportional to the transverse velocity
-  &omega;r, and independent of the radial velocity.  In fact, the
-  transverse velocity is the rate of change of the height of the
-  triangle with the radius vector r as its base.  Thus, the rate of
-  change of area swept out by the radius is half of the product of r
-  and the transverse velocity &omega;r, or half of &omega;r&sup2;.</p>
+<p class="justified">Now the rate the radius sweeps out area is
+  directly proportional to the transverse velocity &omega;r, and
+  independent of the radial velocity.  In fact, the transverse
+  velocity is the rate of change of the height of the triangle with
+  the radius vector r as its base.  Thus, the rate of change of area
+  swept out by the radius is half of the product of r and the
+  transverse velocity &omega;r, or half of &omega;r&sup2;.</p>
 
 <p class="justified">Calling twice the rate the planet's radius sweeps
   out area L (a symbol used for angular momentum), you have
-  L&nbsp;=&nbsp;&omega;r&sup2;.  But Kepler's second law says that L
-  remains constant as the planet orbits.  Therefore, the angular speed
-  of the planet around the Sun, &omega;, varies inversely as the
-  square of its distance from the Sun,
-  &omega;&nbsp;=&nbsp;L/r&sup2;.</p>
+  L&nbsp;=&nbsp;&omega;r&sup2;.  But Kepler's second law says that
+  (half of) L remains constant as the planet orbits.  Therefore, the
+  angular speed of the planet around the Sun, &omega;, varies
+  inversely as the square of its distance from the Sun,
+  &omega;&nbsp;=&nbsp;L/r&sup2;, where the constant L is twice the
+  rate the planet sweeps out area according to Kepler's second
+  law.</p>
 
 <p class="justified">Recall that the angular speed of the planet
   around the Sun &omega; is also the angular speed of the velocity
   radius SQ around its circular trajectory in velocity space.  Let u
-  denote the length of SQ.  Since the acceleration is entirely
-  transverse to SQ, its magnitude g is simply &omega;u, the velocity
-  space analog of the formula for transverse velocity &omega;r.  Since
-  the velocity radius u is constant, and &omega; varies inversely as
-  the square of the distance r, the acceleration g must also vary
-  inversely as the square of the distance.  In fact,
+  denote the constant length of SQ.  Since the acceleration is
+  entirely transverse to SQ, its magnitude g is simply &omega;u, the
+  velocity space analog of the formula for transverse velocity
+  &omega;r.  Since the velocity radius u is constant, and &omega;
+  varies inversely as the square of the distance r, the acceleration g
+  must also vary inversely as the square of the distance.  In fact,
   g&nbsp;=&nbsp;uL/r&sup2;, so the constant of proportionality is
   uL.</p>
 
@@ -399,12 +408,12 @@
   directly toward the Sun at a rate which varies inversely as the
   square of its distance from the Sun, then it will automatically obey
   Kepler's first two laws of planetary motion.  The trajectories in
-  both velocity and ordinary space emerge from this inverse square law
-  by taking a large number of very small steps forward in time
-  starting from the current position and velocity of the planet: In
-  Newton's reformulation, the trajectories are secondary; what you
-  need to study are the relationships between instantaneous position,
-  velocity, and acceleration.</p>
+  both velocity and ordinary space emerge by <em>integrating</em> this
+  inverse square law, that is, by taking a large number of very small
+  steps in time starting from the current position and velocity of the
+  planet.  Again, in Newton's reformulation, the trajectories are
+  secondary; what you need to study are the relationships between
+  instantaneous position, velocity, and acceleration.</p>
 
 <h2>Kepler's third law</h2>
 
@@ -412,12 +421,12 @@
   accelerates toward the Sun at a rate inversely proportional to the
   square of its distance, g&nbsp;=&nbsp;uL/r&sup2;.  The constant of
   proportionality in this inverse square law might still be different
-  from one planet to the next.  But notice that the dimensions of this
-  constant of proportionality are acceleration times length squared,
-  or length cubed divided by time squared - exactly the same
-  dimensions as the constant of proportionality in Kepler's third law:
-  the cube of the major axis of a planet's ellipse is proportional to
-  the square of its orbital period.</p>
+  from one planet to the next.  Recall that L is an area per unit
+  time, so that uL has dimensions of length cubed divided by time
+  squared - exactly the same dimensions as the constant of
+  proportionality in Kepler's third law: the cube of the major axis of
+  a planet's ellipse is proportional to the square of its orbital
+  period.  How is uL related to a&sup3;/T&sup2;?</p>
 
 <p class="justified">Since the ellipse is just a circle elongated on
   one axis, its area is &#x1D745;ab (the stretched &#x1D745;r&sup2;),
@@ -442,10 +451,10 @@
   u, you find uL&nbsp;=&nbsp;4&#x1D745;&sup2;a&sup3;/T&sup2;.
   Kepler's third law states that a&sup3;/T&sup2;, and hence the
   constant of proportionality uL, is the same for all the planets.
-  (To be clear, u and L individually change from one planet to
-  another, but their product uL is the same for all planets.)
-  Therefore, in fact, a single inverse square law for the
-  acceleration, g&nbsp;=&nbsp;uL/r&sup2;, applies to every planet.</p>
+  (To be clear, u and L individually differ from planet to planet, but
+  their product uL is the same for all planets.)  Therefore, in fact,
+  a single inverse square law for the acceleration,
+  g&nbsp;=&nbsp;uL/r&sup2;, applies to every planet.</p>
 
 <p class="justified">Kepler needed a separate third law to describe
   the connection among the orbital parameters of all the planets.  His
@@ -457,9 +466,13 @@
 <p class="justified">Contrast this with Newton's description of the
   connection among the orbits of the planets: The Sun causes planets
   to accelerate directly toward it at a rate inversely proportional to
-  their distance from it.  There is only a single puzzle - why this
-  inverse square law?  Newton acknowledged he had no clue about this
-  final mystery with the quip, "Hypotheses non fingo."</p>
+  their distance from it.  In fact, <em>any</em> object at the same
+  distance from the Sun accelerates toward the Sun at that same rate,
+  because by Newton's time, astronomers knew that comets travel around
+  very eccentric Keplerian orbits, often falling from beyond Jupiter's
+  orbit to within Earth's orbit.  There is only a single puzzle - why
+  this inverse square law?  Newton acknowledged he had no clue about
+  this final mystery with the quip, "Hypotheses non fingo."</p>
 
 <h2>Touching the solar system</h2>
 
