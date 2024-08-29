@@ -1,5 +1,6 @@
-import {Application, Container, Graphics, Text, TextStyle,
-        Transform} from 'pixi.js';
+/* import {Application, Container, Graphics, Text, TextStyle,
+   Transform} from 'pixi.js'; */
+const {Application, Container, Graphics, Text, TextStyle, Transform} = PIXI
 
 /* ------------------------------------------------------------------------ */
 
