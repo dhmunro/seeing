@@ -1,7 +1,7 @@
-import {Application, Container, Graphics, Text, TextStyle,
+import {Application, Container, Graphics, Text,
         Transform} from 'pixi.js';
 
-console.log(Application, Container, Graphics, Text, TextStyle, Transform)
+console.log(Application, Container, Graphics, Text, Transform)
 
 /* ------------------------------------------------------------------------ */
 
