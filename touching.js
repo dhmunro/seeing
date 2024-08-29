@@ -1,5 +1,7 @@
 import {Application, Container, Graphics, Text, TextStyle,
-        Transform} from 'pixi.js';
+        Transform} from 'https://unpkg.com/pixi.js@8.x/dist/pixi.min.js';
+
+
 
 /* ------------------------------------------------------------------------ */
 
