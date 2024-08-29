@@ -1,9 +1,5 @@
-console.log("hello")
-
 import {Application, Container, Graphics, Text, TextStyle,
         Transform} from 'pixi.js';
-
-console.log(Application, Container, Graphics, Text, TextStyle, Transform)
 
 /* ------------------------------------------------------------------------ */
 
