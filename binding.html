@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Binding the Universe</title>
+    <meta name="description"
+          content="From planetary motion to universal gravitation">
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon.png">
+    <!-- pixi.js for debugging, pixi.min.js for production
+         https://unpkg.com/pixi.js@8.x/dist/pixi.min.js
+         https://pixijs.download/release/pixi.min.js
+    <script type="importmap">
+      {
+        "imports": {
+          "pixi.js": "https://unpkg.com/pixi.js@8.x/dist/pixi.min.js"
+        }
+      }
+    </script>
+    -->
+    <script src="https://unpkg.com/pixi.js@8.x/dist/pixi.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+      :root {
+          accent-color: #67f;
+      }
+
+      /* original landscape colors:
+       *   color: beige (#f5f5dc)
+       *   background: #444
+       * solarized palette:
+       *   base2:  #eee8d5  base3:  #fdf6e3
+       *   base00: #657b83  base01: #586e75  base02: #073642  base03: #002b36
+       *   yellow: #b58900
+       * portrait color:
+       *   #aaa (original)  #a0a2a4 (slightly blue)  #b0b09a (slightly yellow)
+       */
+      body {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-gap: 0.5rem;
+          box-sizing: border-box;
+          margin: 0;
+          /* index.html colors:
+           *   portrait mode:  background #002b36  color #c1b497
+           *   landscape mode: background #000000  color #a0a098
+           */
+          background:#c1b497;
+          color: #073642;  /* #002b36; */
+          font-family: 'Merriweather', serif;
+          /* Without a specified height, % units in children are meaningless.
+           * Use min-height so body can grow larger - without it, scrolling
+           * may break;
+          min-height: 100vh;
+           */
+          height: 100vh;
+          overflow: hidden;
+      }
+      h1, h2 {
+          text-align: center;
+      }
+      a {
+          outline-color: #fff4;  /* match buttons (or just transparent) */
+      }
+      a:link {
+          color: black;
+      }
+      a:visited {
+          color: #002b36;
+      }
+      a:focus {
+          text-decoration: none;
+          background: #fff4;
+      }
+      a:hover {
+          text-decoration: none;
+          background: #fff4;  /* match button hover */
+      }
+      a:active {
+          background: #073642;          /* reversed from body text */
+          color: #c1b497;
+      }
+
+      .hidden {
+          display: none !important;
+      }
+      .unselectable {
+          -webkit-user-select: none; /* Safari */
+          -ms-user-select: none; /* IE 10 and IE 11 */
+          user-select: none; /* Standard syntax */
+      }
+      .centered {
+          text-align: center;
+      }
+      .justified {
+          text-align: justify;
+      }
+      .highlighted {
+          background: #d0c3a4;  /* #d0c3a4; */
+          color: #002b36;  /* #073642; */
+      }
+
+      .textcolumn {
+          padding-left: 2em;
+          padding-right: 2em;
+          min-width: 22em;
+          max-width: 52em;
+          margin: 0 auto;
+          overflow-x: hidden;
+          overflow-y: scroll;
+          scrollbar-color: #888;
+          scroll-behavior: smooth;
+      }
+
+      #figure-box {
+          /* without this, scrollbar causes infinite loop of resize events */
+          position: relative;
+          overflow: hidden;
+          background: #d0c3a4;
+      }
+      #figure {
+          background:#d0c3a0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+      }
+      #help-panel {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: #ffe9;
+          padding: 1rem;
+          border-radius: 1rem;
+          width: 15em;
+          font-size: x-large;
+          text-align: center;
+      }
+
+      @media (max-aspect-ratio: 1/1) {
+          body {
+              grid-template-columns: none;
+              grid-template-rows: 1fr 1fr;
+          }
+      }
+      @media screen and (max-width: 720px) {
+          :root {
+              font-size: 12px;
+          }
+      }
+    </style>
+  </head>
+  <body>
+
+<!-- --------------------------------------------------------------------- -->
+
+<div class="textcolumn">
+
+<h1>UNDER CONSTRUCTION</h1>
+<hr/>
+
+<h1>Binding the Universe</h1>
+<h2>From planetary motion to universal gravitation</h2>
+
+<h2>Equal and opposite reaction</h2>
+
+<p class="justified">Newton's third law of motion - for every action
+  there is an equal and opposite reaction - means there is no such
+  thing as an isolated force.  Forces always appear in equal and
+  opposite pairs, so if the Earth pulls you down, you must be pulling
+  the Earth up with equal force.  Similarly, if the Sun pulls the
+  Earth toward it, the Earth must equally pull on the Sun.  But you
+  know that the Earth pulls on both you and the Moon - so perhaps it
+  is not surprising that it pulls on the Sun as well.  The effect of
+  this counter-force would be imperceptible for the same reason your
+  pull on the Earth is imperceptible: The mass of the Sun must be huge
+  compared to the mass of the Earth.</p>
+
+<p class="justified">The force of gravity at the surface of the Earth
+  has the unusual feature that it causes all objects, no matter what
+  size or material, to accelerate downward at the same rate.  Kepler's
+  laws have the same unusual feature - the acceleration is the same
+  for any planet or moon at the same distance from its central body.
+  Apparently, this is a property of gravity in general.  From his
+  second law of motion, F&nbsp;=&nbsp;ma, Newton knew this meant that
+  the force of gravity must be directly proportional to the mass of
+  the object being attracted.  Since the objects must be attracting
+  each other equally, the gravitational force between them must be
+  proportional to <em>both</em> their masses.</p>
+
+<p class="justified">Apparently, Newton reasoned, between any two
+  objects of masses m and M separated by a distance r, there is a
+  gravitational force directly proportional to both masses and
+  inversely proportional to the square of the separation, GMm/r&sup2;
+  - universal gravitation - where G is a universal constant.  In one
+  sense, this is a dramatic simplification - all manner of phenomena
+  are described by this single rule.  In another sense, universal
+  gravitation vastly complicates your world.  Instead of a limited
+  rule like Kepler's laws of planetary motion, Newton tells you that
+  if you really want to understand the solar system, you have to
+  account for the forces between every rock and drop of fluid in the
+  whole thing!  The force between any pair of objects may be simple,
+  but the number of interactions has skyrocketed.</p>
+
+<p class="justified">Note that the gravitational acceleration is
+  proportional to the mass of the attracting body.  That is, Kepler's
+  cube-square law constant a&sup3;/T&sup2; or Newton's inverse square
+  law constant uL = GM, are proportional to, and therefore measures
+  of, the mass of the central body!  For example, because
+  a&sup3;/T&sup2; is a thousand times smaller for the moons orbiting
+  Jupiter than for the planets orbiting the Sun, Newton deduced that
+  the mass of Jupiter is a thousand times less than the mass of the
+  Sun.  And Earth is 330 times less massive than Jupiter.  This is
+  still how we know the masses of all astronomical objects: You need
+  to find something orbiting the object and measure that orbital size
+  and period (or at least how much the object deflects something
+  passing nearby); then, like Newton, you can compute the mass of the
+  central object compared to the mass of the Sun.</p>
+
+</div>
+
+<div id="figure-box">
+  <canvas id="figure"></canvas>
+  <div id="help-panel" class="hidden">
+    Slowly scroll text to advance graphic illustrating highlighted
+    paragraph.
+  </div>
+</div>
+
+<!-- --------------------------------------------------------------------- -->
+
+    <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com
+        License - https://fontawesome.com/license/free
+                  (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+        Copyright 2023 Fonticons, Inc. -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+      <symbol id="fa-xmark" viewBox="0 0 384 512">
+        <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+      </symbol>
+      <symbol id="fa-play" viewBox="0 0 384 512">
+        <path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/>
+      </symbol>
+      <symbol id="fa-chevron-right" viewBox="0 0 320 512">
+        <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
+      </symbol>
+      <symbol id="fa-compress" viewBox="0 0 448 512">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V64zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32H96v64c0 17.7 14.3 32 32 32s32-14.3 32-32V352c0-17.7-14.3-32-32-32H32zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H352V64zM320 320c-17.7 0-32 14.3-32 32v96c0 17.7 14.3 32 32 32s32-14.3 32-32V384h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H320z"/>
+      </symbol>
+      <symbol id="fa-expand" viewBox="0 0 448 512">
+        <path d="M32 32C14.3 32 0 46.3 0 64v96c0 17.7 14.3 32 32 32s32-14.3 32-32V96h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H64V352zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32h64v64c0 17.7 14.3 32 32 32s32-14.3 32-32V64c0-17.7-14.3-32-32-32H320zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H320c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V352z"/>
+      </symbol>
+      <symbol id="fa-pause" viewBox="0 0 320 512">
+        <path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"/>
+      </symbol>
+      <symbol id="fa-circle-info" viewBox="0 0 512 512">
+        <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336h24V272H216c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24H216c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+      </symbol>
+      <symbol id="fa-circle-xmark" viewBox="0 0 512 512">
+        <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
+      </symbol>
+      <symbol id="fa-arrow-rotate-left" viewBox="0 0 512 512">
+        <path d="M125.7 160H176c17.7 0 32 14.3 32 32s-14.3 32-32 32H48c-17.7 0-32-14.3-32-32V64c0-17.7 14.3-32 32-32s32 14.3 32 32v51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"/>
+      </symbol>
+      <symbol id="fa-bars" viewBox="0 0 448 512">
+          <path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/>
+      </symbol>
+      <symbol id="fa-plus" viewBox="0 0 448 512">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/>
+      </symbol>
+    </svg>
+
+<!-- --------------------------------------------------------------------- -->
+
+      <script type="module" src="./touching.js"></script>
+
+  </body>
+</html>
