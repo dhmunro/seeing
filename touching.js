@@ -67,6 +67,7 @@ class ScrollPosition {
     });
     theText.addEventListener("scroll", () => {
       callback(this.place());
+      this.scrollTop = theText.scrollTop;
     }, {passive: true});
     theText.addEventListener("scrollend", () => {
       // every wheel event calls this, but not every scrollbar drag
@@ -249,6 +250,7 @@ class Space {
     } else {
       this.center = [0, 0];
     }
+    this.graphics = null;
   }
 
   rescale(width, height, scale) {
@@ -268,6 +270,7 @@ class Space {
       const sc = ((xmax < ymax)? xmax : ymax) / 500;
       space.scale.set(sc, sc);
     }
+    app.renderer.render(app.stage);
   }
 
   add(...children) {
@@ -612,7 +615,7 @@ class GraphicsState {
     app.ticker.stop();  // need this even though autoStart false?
   }
 
-  scrollTo(place) {
+  scrollTo(place, force=false) {
     if (this.place === null) {
       // called from ScrollPosition constructor, transition lists not built yet
       this.place = place;
@@ -831,6 +834,7 @@ function interp(t, dti, dt, dtf) {
 }
 
 const graphics = new GraphicsState(500);
+positionSpace.graphics = graphics;
 
 const scrollPos = new ScrollPosition((place) => {
   if (place < 0.5) HELP_PANEL.classList.remove("hidden");
@@ -901,6 +905,8 @@ graphics.append(new Animator([250, 3500, 250], (frac) => {
 graphics.scrollTo(graphics.place);
 
 window.app = app;
+window.theText = theText;
+
 window.graphics = graphics;
 window.ellipse = ellipse;
 
