@@ -231,10 +231,9 @@
 </ol>
 
 <p class="justified">The first law is, in a sense, a special case of
-  the second - namely the case of zero force.  However, Einstein
-  recognized that the first law really <em>defines</em> what "straight
-  line" means in space-time, which led him to his principle of
-  equivalence between gravity and acceleration.  The second law is the
+  the second - namely the case of zero force.  However, the first law
+  really <em>defines</em> what "straight line" means in space-time
+  according to Einstein, as you'll see later.  The second law is the
   iconic F&nbsp;=&nbsp;ma, which defines both force and mass in a
   deliberately circular manner.  The third law is what physicists now
   call <em>conservation of momentum</em>.</p>
@@ -284,6 +283,67 @@
 
 <h2>Gravitational field lines</h2>
 
+<p class="justified">Gravity is an acceleration vector at every point
+  in space - the gravitational acceleration a small mass would
+  experience at that point.  According to universal gravitation, to
+  compute this, you have to add the acceleration vectors GM/r&sup2;
+  directed toward every other particle of mass M and distance r in the
+  universe.  Start this program by considering the acceleration
+  produced by just a single idealized point mass - a particle so much
+  smaller than its distance r that you can ignore its dimensions.  The
+  planets are good examples of point masses, since they appear as mere
+  pinpoints of light from anywhere else in the solar system.</p>
+
+<p class="justified">A vector associated with every point in space is
+  called a <em>vector field</em>.  Faraday invented a way to visualize
+  vector fields about a century after Newton's death.  Faraday
+  pictured lines of force filling space - a force field.  He was
+  looking at the lines traced by iron filings on a sheet of paper with
+  a magnet beneath, but the picture works for gravity as well.  The
+  idea is to connect the vectors into (possibly curved) lines - the
+  path you would follow if you kept moving in the direction the
+  vectors point.  So you picture the gravity of a point mass as myriad
+  radial rays converging to the point, like long pins in a tiny
+  pincushion.  Each ray is called a <em>field line</em>.  Notice that
+  a field line is a <em>directed</em> line - like a one-way street.
+  This field picture captures the direction of the acceleration vector
+  everywhere, but at first glance it seems to lose any indication of
+  magnitude - the length of the arrow.</p>
+
+<p class="justified">However, notice that the spacing between the
+  lines decreases as they converge to the point mass.  You can measure
+  their density at a given position along some field line by imagining
+  a small loop around the field line.  The loop will encircle other
+  nearby lines, and you can define the density of field lines at that
+  location to be the number of field lines threading through this tiny
+  loop, divided by the area of the loop.  If you move farther away
+  from the point mass, you need to scale up the diameter of the loop
+  in proportion to the distance for it to encircle a fixed set of
+  field lines, so the loop area scales as the square of the distance
+  from the point mass.  Thus, the number of field lines per unit area
+  scales inversely as the square of the distance!  If you make the
+  total number of lines emanating from the point proportional to its
+  mass, the magnitude of the gravitational acceleration will be
+  proportional to the number of field lines per unit area!</p>
+
+<p class="justified">So far, you assumed the plane of the loop was
+  perpendicular to the field lines.  What happens if the plane of the
+  loop is tilted relative to the field lines?  The number of lines
+  threading the loop will be proportional to the area of the
+  projection of the loop into the plane perpendicular to the field
+  line.  The ratio of that projected area to the loop area when it was
+  oriented normally is exactly the same as the ratio of the component
+  of the acceleration normal to the tilted loop to the full
+  acceleration, which is the component along the field line.
+  Therefore, for any small loop, the <em>component</em> of
+  acceleration normal to the plane of the loop is the number of field
+  lines threading the loop per unit area.  More subtly, you need to
+  choose the sign of the component to be negative if the directed
+  field lines thread the loop in the direction opposite to its
+  normal.</p>
+
+<h2>Field line geometry</h2>
+
 <p class="justified">Newton faced an immediate technical problem with
   this theory of universal gravitation: In the argument that the
   Earth's gravity diminishes as the square of distance between your
@@ -295,7 +355,156 @@
   magma in the whole ball - is individually pulling on you.  When you
   add up all those individual forces in different directions, why
   should you get the same answer as if all that mass were concentrated
-  at the center of the Earth?</p>
+  at the center of the Earth?  Unlike Newton, you can use the field
+  line picture to answer this question.</p>
+
+<p class="justified">Imagine a closed surface of any size (eventually
+  this will be the surface of the Earth).  A point mass at some
+  arbitrary position produces an acceleration which varies varies as
+  you move around to different points on the surface.  The component
+  of that vector normal to the surface (take the inward normal) thus
+  also varies around the surface.  The field picture makes it easy to
+  compute the area-weighted <em>average</em> of this normal component
+  of acceleration over the whole surface: Since the normal
+  acceleration component is the number of lines per unit area
+  threading any small loop on the surface, its area-weighted average
+  is just the total number of field lines piercing the surface divided
+  by the total surface area!  The one caveat is that you have to count
+  each inward piercing line as plus one, and each outward piercing
+  line as minus one, in order to be consistent about the sign of the
+  acceleration relative to the surface.</p>
+
+<p class="justified">There are two cases: First, if the point mass is
+  outside the surface, then each field line pierces the surface twice
+  - once going inward and a second time going outward, so the net
+  number of piercings is zero.  Second, if the point mass is inside
+  the surface, then each field line pierces just once, on its way
+  inward.  (If the surface is not convex, there may be additional
+  pairs of inward and outward piercings for some rays, but such pairs
+  cancel each other.)  Thus, if the point mass is outside the surface,
+  the mean value of the normal component of gravitational acceleration
+  over the whole surface is always zero.  When the point mass is
+  inside the surface, on the other hand, the mean value of the normal
+  acceleration is always the total number of field lines emanating
+  from the point mass, divided by the total surface area.  The average
+  inward acceleration is proportional to the mass inside the closed
+  surface divided by its surface area.</p>
+
+<p class="justified">A second point mass adds its acceleration vector
+  to the acceleration from the first at every point in space.  Because
+  the acceleration vectors simply add, the <em>averages</em> of the
+  inward component of the acceleration also simply add.  Thus, if the
+  new point is inside the surface, the average increases by the new
+  mass divided by the surface area, otherwise the new mass contributes
+  nothing.  Thus, the inverse square law of universal gravitation has
+  the remarkable property that the average value of the inward
+  acceleration over <em>any</em> closed surface is simply proportional
+  the the total mass inside that surface, divided by the surface
+  area.</p>
+
+<p class="justified">For any spherically symmetric object, the
+  acceleration at its surface must point directly inward toward the
+  center, and have the same value at every point of the surface -
+  which is therefore the average inward component of the acceleration.
+  Thus, the gravitational acceleration at the surface depends only on
+  the total mass of the object divided by the surface area.  How the
+  mass is distributed does not matter, as long as it is spherically
+  symmetric (otherwise the acceleration would differ from place to
+  place around the surface).  In particular, the acceleration at the
+  surface is the same as if all the mass were condensed to a single
+  point at its center.  You have resolved Newton's technical problem,
+  and universal gravitation has passed an important consistency
+  test.</p>
+
+<hr/>
+
+<p class="justified">By construction, any of those field lines is
+  parallel to the gravitational acceleration at any location on the
+  line.  Choose the lines to be uniformly distributed in direction.
+  Imagine a series of spherical surfaces centered on the mass point.
+  If you draw a narrow cone, it will intersect any of the spheres in a
+  small circle, and it is clear that the number of rays passing
+  through that circle is the same for all the spheres.  Here's the
+  clever part: The area of any circle is proportional to the square of
+  the radius of its sphere, which means that the <em>density</em> of
+  the field lines - the number of lines per unit area on any sphere -
+  falls inversely as the square of the distance from the mass point at
+  its center.  Therefore, in this gravitational field picture, the
+  direction of the acceleration is the direction of the field line,
+  and the strength of the field is proportional to the density of
+  field lines - meaning the number per unit area transverse to the
+  field direction.  Field lines are a geometrical model of the
+  inversse square law.</p>
+
+<p class="justified">The small circles on the spheres are oriented
+  normal to the radial field lines, so the number of field lines per
+  unit area passing through a circle is proportional to the component
+  of the field normal to the circle.  If the circle were tilted ninety
+  degrees so its plane was vertical, then no field lines would pass
+  through it - and the horizontal component of the field, that is the
+  component normal to a vertical circle, also is zero.  Hence, for
+  both a horizontal and a vertical circle, the number of field lines
+  per unit area passing through the circle is proportional to the
+  component of the field normal to the circle.  By projecting a circle
+  oriented at any intermediate tilt angle into a horizontal plane
+  (tangent to one of the spheres), you can see tha the number of field
+  lines passing through the circle will always be proportional to the
+  component of the field normal to the circle.</p>
+
+<p class="justified">This picture of field lines makes it particularly
+  easy to understand why any spherical mass distribution produces
+  exactly the same gravitational acceleration outside the sphere as if
+  all the mass were concentrated at the center of the sphere.  By the
+  assumed spherical symmetry, you know that the total gravitational
+  acceleration everywhere must be directed toward the center of the
+  sphere.</p>
+
+<p class="justified">Consider the gravitational attraction between you
+  on the surface, and some arbitrary speck of matter inside the
+  sphere.  Imagine the gravitational field lines emanating from that
+  speck.  Remember that the number of field lines per unit area
+  passing through any small patch on the surface of the sphere is
+  proportional to the component of the field normal to the patch, that
+  is, to the component of the field that points straight toward the
+  center.  The radial component naturally varies from location to
+  location on the surface, larger the closer the location is to the
+  speck.  But the <em>average</em> of the radial component of the
+  field is easy to compute - just add up the total number of field
+  lines passing through any set of small patches covering the whole
+  surface of the Earth and divide by the total area of all the
+  patches.  But no matter where the speck is inside the Earth, that is
+  just the total number of field lines divided by the total surface
+  area of the Earth.  That is, the <em>average</em> radial component
+  of the gravitational field over the whole surface of the Earth is
+  always exactly the same, no matter where the speck is located inside
+  the Earth!</p>
+
+<p class="justified">Do you see it?  If you add specks of the same
+  tiny mass anywhere inside the sphere, the average radial component
+  of the gravitational field just increases proportionally to the mass
+  you've added.  Furthermore, you can rearrange the positions of the
+  specks however you like within the sphere without changing the
+  average.  In particlar, the arrangement with all of the specks
+  crammed into the center will produce exactly the same average radial
+  component of the gravitational acceleration at the surface as any
+  other arrangement of mass inside the sphere.  Since any spherically
+  symmetric arrangement of mass produces the same gravitational
+  acceleration at every point on the surface, that common value is
+  clearly the average value, which is the same for any arrangement of
+  mass!</p>
+
+<p class="justified">Newton's theory of universal gravitation, the
+  notion that every individual speck of matter attracts every other,
+  passes this first internal consistency check: Because of the inverse
+  square law, a spherically symmetric body - an idealized Earth - does
+  indeed produce the same gravitational acceleration everywhere
+  outside it, as if all its mass were concentrated at its center.  The
+  picture of gravitational field lines aligned with the direction of
+  acceleration, with the number of lines per unit area representing
+  the magnitude of the acceleration, gives you some powerful insight
+  into the geometrical nature of the inverse square law.</p>
+
+<hr/>
 
 <p class="justified">Obviously it can't be <em>exactly</em> true,
   because the Earth isn't <em>exactly</em> spherical, so it's not
@@ -310,58 +519,6 @@
   the direction of the force is clearly straight downward toward the
   center, and the only question is if its magnitude is the same as if
   all the mass were concentrated at the center.</p>
-
-<p class="justified">One simple way to demonstrate this property is to
-  picture gravitational field lines.  (Faraday invented field lines
-  about a century after Newton's death, so your demonstration will be
-  simpler than Newton's!  Faraday was picturing the lines made by iron
-  filings on a sheet of paper with a magnet beneath, but the picture
-  works just as well for gravity.)  The idea is to connect
-  acceleration vectors into lines.  So you picture the gravity of a
-  point mass as myriad radial rays converging to the point, like long
-  pins in a tiny pincushion.  Each ray is called a <em>field line</em>
-  (notice that a field line is a <em>directed</em> line).</p>
-
-<p class="justified">By construction, any of those field lines is
-  parallel to the gravitational acceleration at any location on the
-  line.  Choose the lines to be uniformly distributed in direction.
-  Imagine a series of spherical surfaces centered on the mass point.
-  If you draw a narrow cone, it will intersect any of the spheres in a
-  circle, and it is clear that the number of rays passing through that
-  circle is the same for all the spheres.  Here's the clever part: The
-  area of any circle is proportional to the square of the radius of
-  its sphere, which means that the <em>density</em> of the field lines
-  - the number of lines per unit area on any sphere - falls inversely
-  as the square of the distance from the mass point at its center.
-  Therefore, in this gravitational field picture, the direction of the
-  acceleration is the direction of the field line, and the strength of
-  the field is proportional to the density of field lines - meaning
-  the number per unit area transverse to the field direction.</p>
-
-<p class="justified">The small circles on the spheres are oriented
-  normal to the radial field lines, so the number of field lines per
-  unit area passing through a circle is proportional to the component
-  of the field normal to the circle.  If the circle were tilted ninety
-  degrees so its plane was vertical, then no field lines would pass
-  through it - and the horizontal component of the field, that is the
-  component normal to a vertical circle, is zero.  Hence, for both a
-  horizontal and a vertical circle, the number of field lines per unit
-  area passing through the circle is proportional to the component of
-  the field normal to the circle.  By considering the area of the
-  projection of the circle onto a horizontal plane (tangent to one of
-  the spheres), you can see that for any intermediate tilt angle of
-  the circle, the number of field lines passing through the circle
-  will always be proportional to the component of the field (that is,
-  the gravitational acceleration or force vector) normal to the
-  circle.</p>
-
-<p class="justified">
-</p>
-
-<p class="justified">
-</p>
-
-<hr/>
 
 <p class="justified">The planets move according to Kepler's laws,
   which are equivalent to a single inverse square law: The planets are
