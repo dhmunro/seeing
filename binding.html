@@ -467,103 +467,127 @@
   is provably unknowable on timescales of a hundred million years
   (called its <em>Lyapunov time</em>).</p>
 
-<h2>Inverse square law, take three</h2>
-
-<p class="justified">You already have two different ways to think
-  about the inverse square law: Either each particle of matter causes
-  everything else to accelerate toward it in proportion to its mass,
-  or the area-averaged inward acceleration over any closed surface is
-  proportional to the total mass inside the surface.  Just as you
-  might want to view a scene from as many perspectives as possible,
-  different ways to describe gravity are very helpful.</p>
-
-<p class="justified">Gravitational potential provides a third
-  important view of gravity.  The acceleration field, central to your
-  first two pictures, is rather complicated - you have to imagine a
-  vector arrow at each point in space.  The idea of potential is to
-  reduce this vector to a single number at each point.  Of course, you
-  still need to be able to reconstruct the acceleration from these
-  numbers; one way to do that is to make the component of the vector
-  in any direction be proportional to the rate of change of the
-  numbers in that direction; in other words, the vector is the
-  gradient.  For an arbitrary vector field, this isn't possible, but
-  for the gravitational field, it is.  Why?</p>
-
-<p class="justified">No need for potential here?  Just to compare mean
-  value of component around loop to mean value of inward
-  component on surface...</p>
-
 <h2>Toward space-time geometry</h2>
 
-<p class="justified">Motion occupies four dimensions: Three spatial
-  coordinates for position in space, plus one time coordinate.  Of
-  course, the time dimension is quite different from the other three,
-  so it is not at all obvious how to combine space and time into
-  anything like geometry.  However, the motion of solid bodies, or
-  even of the tiniest particles of matter, stitches space and time
-  together.  Although the analogy with Euclidean lines in three
-  dimensional space is not complete, a particle of matter does trace a
-  path through space-time called its <em>world-line</em>.  Objects
-  collide if and only if their world-lines intersect in space-time,
-  and the position and time of such a collision is called
+<p class="justified">You need four dimensions to talk about motion:
+  three coordinates to say where and a fourth to say when.  Of course,
+  the time dimension is quite different from the other three, so it is
+  not at all obvious how to combine space and time into anything like
+  geometry.  However, the motion of a solid body, or any tiny particle
+  of matter, stitches space and time together: A particle of matter
+  traces a path through space-time called its <em>world-line</em> - a
+  thread in the time direction connecting points in space at different
+  times.  Bodies collide if and only if their world-lines intersect in
+  space-time, and the position and time of such a collision is called
   an <em>event</em> - the analog of a Euclidean point.</p>
 
 <p class="justified">Newton thought of space-time as slices of
-  constant time stacked like cards in a deck, with the positions of
-  every particle of matter marked by a dot (an event!) on each card.
-  While everyone agrees on what every card looks like, and on the time
-  interval between cards (the thickness of a card), you don't need to
-  square the deck the way it comes out of the box.  You can shear or
-  fan the deck any way you please (as long as you don't change the
-  order of the cards by shuffling).  No matter how you shear the deck,
-  the world-lines of all the particles connect the cards together -
-  you don't have any choice about how to draw world-lines.  You can't
-  reorder the deck, since each card is a snapshot in time, and you can
-  only smoothly shear or twist the cards - any discontinuous jump
-  would break the world lines into two parts.  Motion of material
-  particles is smooth.</p>
+  constant time.  If you consider motion in two dimensions, like a
+  planet in its orbital plane, then these slices - snapshots - are
+  stacked like cards in a deck.  Each card has dots (events!)
+  marking the positions the planets at one time.  Everyone agrees on
+  the relative positions of these dots on each individual card - the
+  ordinary two dimensional plane geometry of a snapshot.  The
+  fundamental question of space-time geometry, however, is how you
+  should stack the cards: What do you mean by "the same point in
+  space" at two <em>different</em> times?  How should you line up the
+  time slices?  You can shear and fan the cards in a deck in countless
+  ways.</p>
 
-<p class="justified">Typically, you decide to stack the deck of
-  constant time slices in order to make one particular body be "at
-  rest".  That is, you tie the origin of your spatial coordinate
-  system to some material object.  For example, ancient astronomers
-  chose the Earth to be fixed in space, while Copernicus (and Kepler)
-  chose the Sun.  You can argue about which choice makes the motion of
-  the planets (the problem at hand for astronomers) simpler - and
-  indeed what constitutes simplicity - but in the end, how you choose
-  to stack the deck is up to you.  In fact, if you allow the
-  orientation of each spatial slice to change, so that your spatial
-  coordinate systems can rotate, then you have even more choices,
-  corresponding to fanning the deck in addition to shearing it.  (For
-  example, you may want to regard your observatory as motionless, in
-  which case your coordinate system will rotate with the Earth.)</p>
+<p class="justified">For example, ancient astronomers like Ptolemy
+  thought of the Earth as a fixed point in space, while after
+  Copernicus astronomers thought of the Sun as fixed in space.  These
+  two viewpoints amount to different ways of stacking the
+  constant-time slices of space-time.  Newton actually needed a third
+  way to stack the deck of time slices in which the Sun is not quite
+  stationary - remember that the gravitational force of each planet
+  causes the Sun to accelerate slightly.  Instead, the center of mass
+  of the whole solar system (computed separately for each time slice)
+  is the fixed point in space for Newton.</p>
 
-<p class="justified">But Newton's laws of motion tell you how bodies
-  move, that is, the shapes of their world-lines in space-time.
-  According to the first law, a body with no net force acting on it
-  moves at a constant speed (possibly zero) in a straight line.  This
-  law very strongly constrains how you are allowed to stack your
-  slices of constant time: You have to stack the deck in such a way
-  that bodies with no net forces acting on them follow straight
-  world-lines through space-time - otherwise Newton's first law of
-  motion won't be obeyed!  A stacking which preserves Newton's first
-  law is called an <em>inertial</em> frame of reference, as
-  distinguished from an <em>accelerated</em> frame of reference.</p>
+<p class="justified">Whatever series of points on successive cards you
+  choose to represent "the same point" at different times - the
+  successive origins of the spatial coordinates on each card - you can
+  connect them to form a world line.  You can think of that world line
+  as your own - you, the observer of the motion.  The world line
+  connecting spatial origins always appears "straight" and
+  "perpendicular" to the cards, but that very same world line appears
+  "curved" if you choose a different world line to define "the same
+  point" at different times.  In the case of the planets, Ptolemy's
+  choice of the Earth as the spatial origin makes the Sun follow an
+  elliptical helical path through space-time, while Mars follows an
+  elaborate epicycle.  On the other hand, Copernicus's choice of the
+  Sun makes both Earth and Mars follow similar elliptical helices.</p>
 
-<p class="justified">From his stack-of-cards perspective of
-  space-time, Newton interpreted his first law to mean that you should
-  stack time slices to make the world-lines of small bodies at a great
-  distance from any masses with significant gravity be straight lines
-  (through space-time as well as through ordinary space).  The bodies
-  comprising the solar system then inherit this stacking from the
-  hypothetical very distant non-gravitating bodies.  Judged by such
-  an "inertial at infinity" stacking, the velocities of planets and
-  moons clearly accelerate, and therefore, according to the first law,
-  must have a net force - the force of gravity - acting upon them.
-  Planets and moons then follow curved - accelerated - paths through
-  space-time, as well as through ordinary space.</p>
+<h2>Newton's laws of motion and space-time</h2>
+
+<p class="justified">Ptolemy and Copernicus choose the world-line of
+  an actual body - the Earth or the Sun - to be "at rest".  But
+  Newton's first law of motion says that only a body experiencing no
+  net force will remain at rest (or move in a straight line at a
+  constant speed).  Since both the Earth and the Sun experience
+  gravitational forces, neither can be at rest according to the first
+  law!  Thus, Newton does not allow you to stack your space-time
+  slices however you please.  Instead, with his first law, Newton
+  forces you to choose the center of mass of the whole solar system -
+  an imaginary point in empty space - to be at rest (or moving with
+  constant velocity).</p>
+
+<p class="justified">The first law drastically restricts your freedom
+  to stack constant time slices of space-time.  A stacking which
+  satisfies the first law is called an <em>inertial reference
+  frame</em>.  Since free bodies must move with constant (possibly
+  zero) velocity according to the first law, you see that all inertial
+  frames move at constant velocity with respect to one another - you
+  can consider any body with no net force acting on it to be at rest,
+  but no others.  That is, once you have identified one inertial
+  frame, you have found them all.  If you stack the deck of time
+  slices such that a body "at rest" has no net force acting on it,
+  then the only other stackings corresponding to inertial frames are
+  simple linear shears - they just add a fixed velocity to your
+  original frame.</p>
+
+<p class="justified">Hence, Newton's first law is really an axiom of
+  space-time geometry.  It defines what you mean by
+  a <em>straight</em> world-line: A world-line is straight if and only
+  if a body moving along it has no net force acting on it.  In the
+  case of gravity, Newton uses this axiom in reverse: Since the
+  planets do not move with constant velocity, there must be a force -
+  gravity - acting upon them.</p>
+
+<p class="justified">Einstein's general theory of relativity amounts
+  to a very sharp critique of this argument.  Einstein accepts the
+  first law as an axiom, but he points out that Newton's gravitational
+  force flagrantly violates the first law of motion!  Imagine that you
+  are standing on a spring scale on the surface of a completely
+  isolated non-spinning planet.  You and the planet are at rest in
+  Newton's inertial frame, but the gravitational force has compressed
+  the spring by your weight.  Einstein points out that the compression
+  of the spring is clear evidence that you are experiencing an upward
+  force equal to your weight.  You can literally feel it pressing
+  against the soles of your feet!  Einstein points out that if you did
+  not know there was a planet under the scale, Newton's first law
+  insists that you cannot remain at rest, since you feel a net upward
+  force.</p>
+
+<p class="justified">The problem with Einstein's argument is so
+  obvious that no one took it seriously until unrelated small cracks
+  began to show in Newtonian mechanics (caused by special relativity):
+  If you choose to stack the deck so your world-line is curved upwards
+  - that is, so that the spatial origin accelerates downward along
+  with freely falling bodies according to the first law - what happens
+  to someone standing on the opposite side of the planet?  Your
+  downwards is their upwards.  The only choice that makes sense
+  globally is Newton's: you are both at rest, and both experience a
+  gravitational acceleration toward the center of the planet you
+  cannot feel, but which exactly cancels the upward force of the
+  spring scale on your feet - the force you do feel.</p>
 
 <h2>Curved space-time</h2>
+
+<p class="justified">Einstein's answer was to abandon Newton's global
+  inertial reference frame.
+</p>
 
 <p class="justified">A non-inertial reference frame often offers the
   simplest framework for talking about a phenomenon.  For example, you
