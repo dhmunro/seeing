@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Touching the Solar System</title>
+    <title>Feeling the Solar System</title>
     <meta name="description"
           content="How Newton recast Kepler's Laws and grounded the heavens">
     <meta charset="utf-8">
@@ -160,86 +160,93 @@
 <h1>UNDER CONSTRUCTION</h1>
 <hr/>
 
-<h1>Touching the Solar System</h1>
-<h2>How Newton recast <a href="index.html">Kepler's Laws</a>
+<h1>Feeling the Solar System</h1>
+<h2>How Newton recast <a href="index.html">Kepler&rsquo;s Laws</a>
   and grounded the heavens</h2>
 
 <p class="justified">Isaac Newton founded modern physics with his
   brilliant analysis of planetary motion.  Both the greatest
   mathematician and the greatest physicist of his age, he began by
-  inventing a new branch of mathematics - the infinitessimal calculus
-  - in order to think about motion in a completely novel way.  This
-  story begins with a full account of how Newton the mathematician
-  converted Kepler's laws of planetary motion into an equivalent
-  inverse square law of acceleration.  This mathematical translation
-  led Newton the physicist to perhaps the greatest "Aha!"  moment in
-  the history of science - the realization that the force of gravity
-  we all feel on Earth extends out to the Moon and beyond, binding the
-  whole solar system together - and ending this part of the story.</p>
+  inventing a new branch of mathematics &mdash; the infinitessimal
+  calculus &mdash; in order to think about motion in a completely
+  novel way.  Our story begins with a full account of how Newton the
+  mathematician converted Kepler&rsquo;s laws of planetary motion into
+  an equivalent inverse square law of acceleration.  This mathematical
+  translation led Newton the physicist to perhaps the greatest
+  &ldquo;Aha!&rdquo; moment in the history of science &mdash; the
+  realization that the force of gravity we all feel on Earth extends
+  out to the Moon and beyond, binding the whole solar system
+  together.</p>
 
-<p class="justified">Kepler's first two laws - the planet moves in an
-  ellipse with the Sun at one focus, such that the line between the
-  Sun and planet sweeps out equal areas in equal times - are a very
-  natural way to think about motion: First you describe the trajectory
-  of an object, then you find a rule for how the object progresses
-  along that trajectory over time.  Newton introduced a completely new
-  way to think about motion.  Instead of the whole trajectory, Newton
-  imagined a series of snapshots very slightly separated in time.
-  This is exactly the way animation works - when you see a sequence of
-  slightly changing snapshots with a brief enough time between frames,
-  it looks exactly the same as a continuous motion.</p>
+<p class="justified">A planet moves in an ellipse with the Sun at one
+  focus, such that the line between the Sun and planet sweeps out
+  equal areas in equal times &mdash; Kepler&rsquo;s first two laws
+  &mdash; are a very natural way to think about motion: First you
+  describe the trajectory of an object, then you find a rule for how
+  the object progresses along that trajectory over time.  Newton
+  introduced a completely new way to think about motion.  Instead of
+  the whole trajectory, Newton imagined a series of snapshots very
+  slightly separated in time.  This is exactly the way animation works
+  &mdash; a rapidly displayed sequence of slightly changing snapshots
+  looks exactly the same as a continuous motion.</p>
 
 <p class="justified">In the jargon of calculus, chopping up motion
   along a trajectory into individual frames is called
   <em>differentiation</em>, and putting animation frames back together
-  to trace a trajectory is called <em>integration</em>.  The idea is
-  to find the rules for stepping from one animation frame to the next
-  frame which lead to tracing out Kepler's ellipse according to the
-  equal area law.  The points on Kepler's ellipse already tell you the
-  position of the planet in each frame.  You need to find its velocity
-  - rate of change of position - to know where the planet will be in
-  the next frame.  You also need its acceleration - rate of change of
-  velocity - to be able to take a second step.  (Unless you change its
-  velocity from one frame to the next, it will just march off in a
-  straight line at a constant speed.)</p>
+  to show a trajectory is called <em>integration</em>.  The idea is to
+  find rules for stepping from one frame to the next so your animation
+  will trace Kepler&rsquo;s ellipse according to his equal area law.
+  The points on Kepler&rsquo;s ellipse already tell you the position
+  of the planet in each frame.  You need to find its velocity &mdash;
+  rate of change of position &mdash; to know where the planet will be
+  in the next frame.  You also need its acceleration &mdash; rate of
+  change of velocity &mdash; to be able to take a second step.
+  (Unless you change its velocity from one frame to the next, it will
+  just march off in a straight line at a constant speed.)</p>
 
 <p class="justified">It seems like you also need the rate of change of
   acceleration to know how to change <em>that</em> in order to step to
   a third frame, and so on forever.  However, something wonderful
-  happens in the case of Kepler's laws, as you will see: The
+  happens in the case of Kepler&rsquo;s laws, as you will see: The
   acceleration of the planet will turn out to be related to its
-  position.  (Something like this has to happen, since the planet's
-  position and velocity at one point determine its Keplerian orbit.)
-  Once you've discovered that relationship, you can break free of the
-  infinite rates of change of rates of change, and step the animation
-  of the planet's position and velocity along indefinitely, computing
-  acceleration from position at each frame.</p>
+  position.  (Something like this has to happen, since the
+  planet&rsquo;s position and velocity at a single point determine its
+  Keplerian orbit.)  Once you&rsquo;ve discovered that relationship,
+  you can break free of the infinite regression of rates of change of
+  rates of change, and step the animation of the planet&rsquo;s
+  position and velocity along indefinitely, computing acceleration
+  from position at each frame.</p>
+
+<p class="justified">Now let&rsquo;s follow along as Newton tackles
+  one of the most difficult and important math problems in history
+  &mdash; then recognizes the implications of his solution to learn
+  something entirely new about our universe.</p>
 
 <h2>Trajectory in velocity space</h2>
 
 <p class="justified">The amount of calculation necessary to carry out
-  Newton's vision of animated motion is very large, unless there are
+  Newton&rsquo;s vision of animated motion is very large, unless there are
   mathematical tricks to bypass most of the labor.  Keplerian orbits
   turn out to be one of those trick cases, as you will see.  First,
   however, with a modern computer like this browser, you can easily
   perform many million calculations per second, and cut straight to
   the answer, with no need for any tricks.  The program which animates
   this ellipse computes a series of small steps in the position of the
-  point on the ellipse using Kepler's equal area rule; by dividing
+  point on the ellipse using Kepler&rsquo;s equal area rule; by dividing
   each of these small displacements by the interframe time, it can
   also draw a good approximation to the instantaneous velocity vector
   at any time.</p>
 
 <p class="justified">The direction of the velocity is always tangent
-  to the trajectory - the ellipse in this case.  The magnitude of the
-  velocity is the speed of the planet.  The scale of the velocity
-  arrow in the drawing is arbitrary - the tip of the arrow is where
-  the planet would have moved after some fixed but arbitrary time,
-  had it continued in a straight line at a constant speed.  Instead of
-  drawing the tail of the velocity arrow at the planet, you can put it
-  at a fixed point - the origin of its own plane.  Each point in this
-  plane represents a velocity rather than a position - a velocity
-  space.</p>
+  to the trajectory &mdash; the ellipse in this case.  The magnitude
+  of the velocity is the speed of the planet.  The scale of the
+  velocity arrow in the drawing is arbitrary &mdash; the tip of the
+  arrow is where the planet would have moved after some fixed but
+  arbitrary time, had it continued in a straight line at a constant
+  speed.  Instead of drawing the tail of the velocity arrow at the
+  planet, you can put it at a fixed point &mdash; the origin of its
+  own plane.  Each point in this plane represents a velocity rather
+  than a position &mdash; a velocity space.</p>
 
 <p class="justified">You know the tip of the radius vector traces an
   ellipse with its tail at one focus.  It looks like the tip of the
@@ -253,26 +260,31 @@
   (defined in a moment) in ordinary position space.</p>
 
 <p class="justified">So the trajectory of a planet in velocity space
-  is a circle with the same eccentricity as its ellipse.  That is,
-  the <em>derivative</em> of a Keplerian ellipse is an eccentric
-  circle.  (Ironically, this is the path Hipparchus and Ptolemy
-  thought the Sun followed around the Earth.)  The geometrical proof
-  of this fact gives you some important additional insights into the
-  connection between a planet's velocity and its position, as well as
-  a glimpse of Newton's mathematical genius.  Here it is, in two
+  is an off-center circle with the same eccentricity as its ellipse.
+  That is, the <em>derivative</em> of a Keplerian ellipse is an
+  eccentric circle.  (Ironically, this is the path Hipparchus and
+  Ptolemy thought the Sun followed around the Earth.)  The geometrical
+  proof of this fact gives you some important additional insights into
+  the connection between a planet&rsquo;s velocity and its position,
+  as well as a glimpse of Newton&rsquo;s mathematical genius.  As far
+  as the math goes, the proof seems like a trick or shortcut for all
+  that calculation.  But the proof allows you to visualize and explore
+  the relationships among the positions and velocities, which you need
+  to understand the physics behind the numbers.  Here it is, in two
   parts.</p>
 
 <h2>Tangent to an ellipse</h2>
 
 <p class="justified">An ellipse is the set of points for which the sum
-  of the distances from two fixed points - its foci - is constant.
-  Eccentricity is the ratio of the distance between the foci and the
-  fixed sum of distances; an ellipse with zero eccentricity is a
-  circle.  Notice that the major axis, or largest diameter, of the
-  ellipse equals that fixed sum of distances.  The minor axis is the
-  smallest diameter, always perpendicular to the major axis.  Minor
-  axis equals major axis for eccentricity zero, decreasing to zero as
-  the eccentricity increases to one (the largest possible
+  of the distances from two fixed points &mdash; its foci &mdash; is
+  constant.  Eccentricity is the ratio of the distance between the
+  foci and the fixed sum of distances; an ellipse with zero
+  eccentricity is a circle (with both foci coinciding at the center).
+  Notice that the major axis, or largest diameter, of the ellipse
+  equals that fixed sum of distances.  The minor axis is the smallest
+  diameter, always perpendicular to the major axis.  Minor axis equals
+  major axis for eccentricity zero, decreasing to zero as the
+  eccentricity increases to one (the largest possible
   eccentricity).</p>
 
 <p class="justified">Let S be the Sun at one focus and P be the planet
@@ -298,9 +310,9 @@
   planet is moving here), then OQ will be parallel to the tangent of
   the ellipse at P.  That is, OQ now points in the direction of the
   velocity vector at P.  By construction, SQ is now always ninety
-  degrees ahead of the planet radius vector SP - a fact that comes
-  into play later.  For now, if you interpret the sides of OSQ as
-  velocity vectors, you see that the velocity OQ of the planet,
+  degrees ahead of the planet radius vector SP &mdash; a fact that
+  comes into play later.  For now, if you interpret the sides of OSQ
+  as velocity vectors, you see that the velocity OQ of the planet,
   tangent to its ellipse, moves around an eccentric circle of radius
   SQ, displaced from zero velocity O by the fixed vector OS
   perpendicular to the major axis of the ellipse.  And the
@@ -311,64 +323,67 @@
   eccentric circle, and the radius vector SQ in velocity space always
   leads the radius vector SP in ordinary space by ninety degrees, then
   the point P indeed moves around an ellipse (of the same eccentricity
-  as the circle) with S at one focus.  To complete Newton's proof, you
-  still need to demonstrate that SP sweeps over equal areas in equal
-  times.  That is, you have proven that the velocity OQ points in the
-  correct direction - tangent to the ellipse - but you still have to
-  demonstrate that the length of OQ agrees with the speed of the
-  planet according to Kepler's equal area law.</p>
+  as the circle) with S at one focus.  To complete Newton&rsquo;s
+  proof, you still need to demonstrate that SP sweeps over equal areas
+  in equal times.  That is, you have proven that the velocity OQ
+  points in the correct direction &mdash; tangent to the ellipse
+  &mdash; but you still have to demonstrate that the length of OQ
+  agrees with the speed of the planet according to Kepler&rsquo;s
+  equal area law.</p>
 
 <h2>Equal areas in equal times</h2>
 
 <p class="justified">Acceleration is to velocity what velocity is to
-  position - its rate of change.  Therefore, the acceleration vector
-  of a planet is always tangent to its velocity space trajectory.  In
-  this case, the velocity space trajectory is simply a circle, and the
-  tangent to a circle is perpendicular to its radius, SQ.  But that
-  means the acceleration vector of the planet at P always points in
-  exactly the opposite direction as its radius vector SP - directly
-  toward the Sun.  Accelerating directly toward or away from a fixed
-  center turns out to be equivalent to Kepler's equal area law, as
-  you will now see.</p>
+  position &mdash; its rate of change.  Therefore, the acceleration
+  vector of a planet is always tangent to its velocity space
+  trajectory.  In this case, the velocity space trajectory is simply a
+  circle, and the tangent to a circle is perpendicular to its radius,
+  SQ.  But that means the acceleration vector of the planet at P
+  always points in exactly the opposite direction as its radius vector
+  SP &mdash; directly toward the Sun.  Accelerating directly toward or
+  away from a fixed center turns out to be equivalent to
+  Kepler&rsquo;s equal area law, as you will now see.</p>
 
 <p class="justified">Absent any forces, a body moves in a straight
-  line at a constant speed - Newton's first law of motion.  You can
-  easily see that if the planet just flew past the Sun in a straight
-  line at constant speed, it would sweep out equal areas in equal
-  times: The areas are all triangles with a common height (the minimum
-  Sun-planet distance) and equal bases (since the speed is
+  line at a constant speed &mdash; Newton&rsquo;s first law of motion.
+  You can easily see that if the planet just flew past the Sun in a
+  straight line at constant speed, it would sweep out equal areas in
+  equal times: The areas are all triangles with a common height (the
+  minimum sun-planet distance) and equal bases (since the speed is
   constant).</p>
 
 <p class="justified">Now suppose the velocity of the planet suddenly
-  jumps to a new speed and direction.  When would such a jump leave
-  the areas swept out in equal times unchanged?  The constant base of
-  of the triangle is now the sun-planet vector at the moment of the
-  jump, while the height of the triangle is the component of the
-  velocity vector perpendicular to that base.  For the area to remain
-  unchanged, only the component of velocity parallel to the Sun-planet
+  jumps to a new speed and direction.  How can such a jump leave the
+  areas swept out in equal times unchanged?  The constant base of of
+  the triangle is now the sun-planet vector at the moment of the jump,
+  while the height of the triangle is the component of the velocity
+  vector perpendicular to that base.  For the area to remain
+  unchanged, only the component of velocity parallel to the sun-planet
   line can change.  In other words, the change in velocity across the
   jump must point directly toward or away from the Sun.</p>
 
 <p class="justified">Breaking the actual continuous acceleration into
   a large number of tiny jumps in velocity, just as you broke the
   continuous change in position into tiny steps for animation, you see
-  that Kepler's law that equal areas are swept out in equal times will
+  that Kepler&rsquo;s law that equal areas are swept out in equal times will
   hold if, and only if, the planet only accelerates directly toward
   (or away from) the Sun.  This observation completes the proof that
-  Kepler's first two laws of planetary motion mean that the trajectory
+  Kepler&rsquo;s first two laws of planetary motion mean that the trajectory
   of a planet in velocity space is an eccentric circle with the same
   eccentricity as its ellipse, rotated ninety degrees, so that its
   radius in velocity space is always ninety degrees ahead of its
   radius in ordinary space.</p>
 
 <p class="justified">You now know the trajectories of a planet in both
-  ordinary and velocity spaces.  However, Newton's program is to
+  ordinary and velocity spaces.  However, Newton&rsquo;s program is to
   eliminate all trajectories in favor of instantaneous rates of
   change.  To do that, you need not only the direction of the
   acceleration, but also its magnitude.  In other words, you know that
   a planet always accelerates directly toward the Sun, and you now
   want to find how the magnitude of that acceleration changes as it
-  moves around its orbit.</p>
+  moves around its orbit.  By working this out, you can break the
+  endless progression of rates of change, instead relating
+  acceleration to position.</p>
 
 <h2>Inverse square law</h2>
 
@@ -380,27 +395,27 @@
   common angular speed &omega;.</p>
 
 <p class="justified">Consider first the motion of the planet around
-  the Sun in ordinary space.  The planet's velocity has both a radial
-  component, directly toward or away from the Sun, and a transverse
-  component, perpendicular to that.  The angular speed of the planet
-  around the Sun is independent of its radial velocity, and directly
-  proportional to its transverse velocity.  In fact, if you measure
-  &omega; in radians per unit time, the transverse velocity is simply
-  the product &omega;r, where r is SP, the instantaneous distance of
-  the planet from the Sun.  Now the transverse velocity is the rate of
-  change of the height of the triangle with the radius vector r as its
-  base.  Thus, the rate of change of area swept out by the radius is
-  half of the product of r and the transverse velocity (&omega;r), or
-  half of &omega;r&sup2;.</p>
+  the Sun in ordinary space.  The planet&rsquo;s velocity has both a
+  radial component, directly toward or away from the Sun, and a
+  transverse component, perpendicular to that.  The angular speed of
+  the planet around the Sun is independent of its radial velocity, and
+  directly proportional to its transverse velocity.  In fact, if you
+  measure &omega; in radians per unit time, the transverse velocity is
+  simply the product &omega;r, where r is SP, the instantaneous
+  distance of the planet from the Sun.  Transverse velocity is the
+  rate of change of the height of the triangle with the radius vector
+  r as its base.  Thus, the rate of change of area swept out by the
+  radius is half of the product of r and the transverse velocity
+  (&omega;r), or half of &omega;r&sup2;.</p>
 
-<p class="justified">Calling twice the rate the planet's radius sweeps
+<p class="justified">Calling twice the rate the planet&rsquo;s radius sweeps
   out area L (a symbol used for angular momentum), you have
-  L&nbsp;=&nbsp;&omega;r&sup2;.  But Kepler's second law says that
+  L&nbsp;=&nbsp;&omega;r&sup2;.  But Kepler&rsquo;s second law says that
   (half of) L remains constant as the planet orbits.  Therefore, the
   angular speed of the planet around the Sun, &omega;, varies
   inversely as the square of its distance from the Sun,
   &omega;&nbsp;=&nbsp;L/r&sup2;, where the constant L is twice the
-  rate the planet sweeps out area according to Kepler's second
+  rate the planet sweeps out area according to Kepler&rsquo;s second
   law.</p>
 
 <p class="justified">Recall that the angular speed of the planet
@@ -418,33 +433,33 @@
 <p class="justified">You have proven that if a planet accelerates
   directly toward the Sun at a rate which varies inversely as the
   square of its distance from the Sun, then it will automatically obey
-  Kepler's first two laws of planetary motion.  The trajectories in
+  Kepler&rsquo;s first two laws of planetary motion.  The trajectories in
   both velocity and ordinary space emerge by <em>integrating</em> this
   inverse square law, that is, by taking a large number of very small
   steps in time starting from the current position and velocity of the
-  planet.  Again, in Newton's reformulation, the trajectories are
+  planet.  Again, in Newton&rsquo;s reformulation, the trajectories are
   secondary; what you need to study are the relationships between
   instantaneous position, velocity, and acceleration.</p>
 
-<h2>Kepler's third law</h2>
+<h2>Kepler&rsquo;s third law</h2>
 
 <p class="justified">So far, all you know is that each planet
   accelerates toward the Sun at a rate inversely proportional to the
   square of its distance, g&nbsp;=&nbsp;uL/r&sup2;.  The constant of
   proportionality in this inverse square law might still differ from
-  one planet to the next.  Recall that L is an area per unit time, so
-  that uL has dimensions of length cubed divided by time squared -
-  exactly the same dimensions as the constant of proportionality in
-  Kepler's third law: the cube of the major axis of a planet's ellipse
-  is proportional to the square of its orbital period.  How is uL
-  related to a&sup3;/T&sup2;?</p>
+  one planet to the next.  Since L is an area per unit time, uL has
+  dimensions of length cubed divided by time squared &mdash; exactly
+  the same dimensions as the constant of proportionality in
+  Kepler&rsquo;s third law: the cube of the major axis of a
+  planet&rsquo;s ellipse is proportional to the square of its orbital
+  period.  How is uL related to a&sup3;/T&sup2;?</p>
 
 <p class="justified">Since the ellipse is just a circle elongated on
-  one axis, its area is &#x1D745;ab (the stretched &#x1D745;r&sup2;),
+  one axis, its area is &pi;ab (the stretched &pi;r&sup2;),
   where a and b are its major and minor semi-axes (that is, measured
   from the center like the radius of a circle).  Since the constant L
   is twice the area swept out per unit time,
-  L&nbsp;=&nbsp;2&#x1D745;ab/T, where T is the period of the
+  L&nbsp;=&nbsp;2&pi;ab/T, where T is the period of the
   planet.</p>
 
 <p class="justified">You can derive an expression for the velocity
@@ -460,7 +475,7 @@
   u&nbsp;=&nbsp;La/b&sup2;.</p>
 
 <p class="justified">Combining these expressions for L and u, you find
-  uL&nbsp;=&nbsp;4&#x1D745;&sup2;a&sup3;/T&sup2;.  Kepler's third law
+  uL&nbsp;=&nbsp;4&pi;&sup2;a&sup3;/T&sup2;.  Kepler&rsquo;s third law
   states that a&sup3;/T&sup2;, and hence the constant of
   proportionality uL, is the same for all the planets.  (To be clear,
   u and L individually differ from planet to planet, but their product
@@ -468,108 +483,110 @@
   inverse square law for the acceleration, g&nbsp;=&nbsp;uL/r&sup2;,
   applies to every planet.</p>
 
-<p class="justified">Thus, with Newton's description, you don't really
-  need a separate rule analogous to Kepler's third law - a single
-  constant automatically connects the orbits of all the planets: The
-  Sun causes planets to accelerate directly toward it at a rate
-  inversely proportional to their distance from it.  In
-  fact, <em>any</em> object at the same distance from the Sun
-  accelerates toward the Sun at that same rate - by Newton's time,
-  astronomers knew that comets travel around very eccentric Keplerian
-  orbits, often falling from beyond Jupiter's orbit to within Earth's
-  orbit.  There is only a single puzzle - why this inverse square law?
-  Newton acknowledged he had no clue about this final mystery with the
-  quip, "Hypotheses non fingo."</p>
+<p class="justified">Thus, with Newton&rsquo;s description, you
+  don&rsquo;t really need a separate rule analogous to Kepler&rsquo;s
+  third law &mdash; a single constant automatically connects the orbits of
+  all the planets: The Sun causes planets to accelerate directly
+  toward it at a rate inversely proportional to their distance from
+  it.  In fact, <em>any</em> object at the same distance from the Sun
+  accelerates toward the Sun at that same rate.  By Newton&rsquo;s
+  time, astronomers knew that comets travel around very eccentric
+  Keplerian orbits, often falling from beyond Jupiter&rsquo;s orbit to
+  within Earth&rsquo;s orbit.  There is only a single puzzle - why
+  this inverse square law?  Newton acknowledged he had no clue about
+  this final mystery with the quip, "Hypotheses non fingo."</p>
 
-<h2>Touching the solar system</h2>
+<h2>Feeling the solar system</h2>
 
 <p class="justified">The same year Kepler published his first two
   laws, 1609, Galileo invented the telescope.  He made several huge
-  discoveries immediately: He saw the disks of the planets - planets
-  are not simply points of light - a sight no one had seen before.
-  Furthermore, the phases of Venus confirmed that planets are globes
-  lit by sunlight, like the Moon.  And most importantly for this story
-  about Newton, Galileo discovered the four largest moons of Jupiter.
-  By Newton's time over half a century later, astronomers had studied
-  Jupiter's moons in considerable detail.  They learned that the four
-  moons orbited Jupiter according to Kepler's laws, except with a
-  value of a&sup3;/T&sup2; about a thousand times smaller than for the
-  planets or comets orbiting the Sun.</p>
+  discoveries immediately: He saw the disks of the planets &mdash;
+  planets are not simply points of light! &mdash; a sight no one had
+  seen before.  Furthermore, the phases of Venus confirmed that
+  planets are globes lit by sunlight, like the Moon.  And most
+  importantly for this story about Newton, Galileo discovered the four
+  largest moons of Jupiter.  By Newton&rsquo;s time over half a
+  century later, astronomers had studied Jupiter&rsquo;s moons in
+  considerable detail.  They learned that the four moons orbited
+  Jupiter according to Kepler&rsquo;s laws, except with a value of
+  a&sup3;/T&sup2; about a thousand times smaller than for the planets
+  or comets orbiting the Sun.</p>
 
 <p class="justified">Newton devised a brilliant indirect test of
-  Kepler's cube-square law for the case of the Earth: A cannonball
+  Kepler&rsquo;s cube-square law for the case of the Earth: A cannonball
   accelerates downward at a rate of 9.8&nbsp;m/s&sup2; (as Galileo
   measured), independent of how fast it is moving horizontally.
   Newton realized that if its horizontal speed were high enough, the
-  cannonball would follow the curve of Earth's surface, and (absent
+  cannonball would follow the curve of Earth&rsquo;s surface, and (absent
   air resistance) it would continue to fall all the way around the
   Earth in a circular orbit.  He could use this hypothetical (to him)
-  orbiting cannonball and the Moon to check Kepler's cube-square law
+  orbiting cannonball and the Moon to check Kepler&rsquo;s cube-square law
   for objects orbiting the Earth.</p>
 
 <p class="justified">As you have seen, if objects accelerate toward a
   center at a rate inversely proportional to the square of their
-  distance, they obey Kepler's laws.  The ancient Greeks had measured
-  the radius of the Earth - 6380&nbsp;km - and the distance to the
-  Moon - 60 Earth radii.  Since the Moon goes around with respect to
-  the stars once more each year than with respect to the Sun, its
+  distance, they obey Kepler&rsquo;s laws.  The ancient Greeks had
+  measured the radius of the Earth (6380&nbsp;km) and the distance to
+  the Moon (60 Earth radii).  Since the Moon goes around with respect
+  to the stars once more each year than with respect to the Sun, its
   sidereal period is about 27.3&nbsp;days.  For a roughly circular
   orbit, you have already worked out the acceleration
   g&nbsp;=&nbsp;&omega;v&nbsp;=&nbsp;&omega;&sup2;r, so the downward
   acceleration of the Moon works out to be 0.0027&nbsp;m/s&sup2;
-  ((2&#x1D745;/(27.3&times;<wbr>24&times;<wbr>3600))&sup2;&times;<wbr>60&times;<wbr>6830000).
+  ((2&pi;/(27.3&times;<wbr>24&times;<wbr>3600))&sup2;&times;<wbr>60&times;<wbr>6830000).
   If the inverse square law holds between the cannonball and the Moon,
   this should be 60&sup2;&nbsp;=&nbsp;3600 times less than
   9.8&nbsp;m/s&sup2;, and indeed it does "answer pretty nearly" in
-  Newton's words.</p>
+  Newton&rsquo;s words.</p>
 
-<p class="justified">Newton's reasoning here is arguably the greatest
+<p class="justified">Newton&rsquo;s reasoning here is arguably the greatest
   breakthrough in the history of science: The familiar force of
   gravity that pulls cannonballs downward near the surface of the
   Earth is the same force that holds the Moon in orbit around us.  And
   furthermore, the connection between the trajectories of cannonballs
-  and of the Moon is none other than Kepler's laws for the motion of
+  and of the Moon is none other than Kepler&rsquo;s laws for the motion of
   planets around the Sun, or of the Galilean moons around Jupiter.
   The millenia of labor poured into understanding the motion of the
   planets has brought Newton right back to the one force we all feel
-  from birth - gravity.</p>
+  from birth &mdash; gravity.</p>
 
 <h2>Gravity</h2>
 
-<p class="justified">Newton's great insight - far more important than
-  Archimedes's "Eureka" moment - is that his inverse square law of
-  acceleration relates the gravity we all feel at the surface of the
-  Earth to the acceleration of the Moon in its orbit around the Earth.
-  Gravity may be the familiar force you've always known, but it does
-  far more than just pull you down to Earth.  Gravity extends upward
-  throughout the solar system and beyond, binding the moons to their
-  planets and the planets to the Sun.  We sense the solar system by
-  touch as well as by sight, or at least we all feel the force holding
-  the whole thing together.</p>
+<p class="justified">Newton&rsquo;s great insight &mdash; far more
+  important than Archimedes&rsquo;s "Eureka" moment &mdash; is that
+  his inverse square law of acceleration relates the gravity we all
+  feel at the surface of the Earth to the acceleration of the Moon in
+  its orbit around the Earth.  Gravity may be the familiar force
+  you&rsquo;ve always known, but it does far more than just pull you
+  down to Earth.  Gravity extends upward throughout the solar system
+  and beyond, binding the moons to their planets and the planets to
+  the Sun.  We sense the solar system by touch as well as by sight, or
+  at least we all feel the force holding the whole thing together.</p>
 
-<p class="justified">Notice that you never used Newton's laws of
+<p class="justified">Notice that you never used Newton&rsquo;s laws of
   motion in proving the equivalence of the inverse square law of
-  planetary acceleration to Kepler's laws.  We mentioned his laws of
+  planetary acceleration to Kepler&rsquo;s laws.  We mentioned his laws of
   motion merely to motivate why instantaneous position, velocity, and
   acceleration is an interesting way to describe motion.  The inverse
   square law of acceleration is simply a description of how planets
   and moons and earthbound projectiles do, in fact, move.  It is not a
   theoretical prediction, but an experimental observation, just like
-  Kepler's laws.</p>
+  Kepler&rsquo;s laws.</p>
 
 <p class="justified">However, Newton also developed a general theory
-  of mechanics - how things move - including his iconic formula
-  F&nbsp;=&nbsp;ma.  When he applied this mechanics to the case of
-  planetary motion, Newton discovered his theory of universal
+  of mechanics &mdash; how things move &mdash; including his iconic
+  formula F&nbsp;=&nbsp;ma.  When he applied this mechanics to the
+  case of planetary motion, Newton discovered his theory of universal
   gravitation.  Universal gravitation offers an explanation for the
   differences in the constant of proportionality in the inverse square
-  acceleration laws observed for the Sun, Jupiter, and Earth - it is
-  no longer simply a description of how things move, but a theory
-  explaining how any object can serve as a center of attraction.
-  Universal gravitation also explains why the Moon does not accurately
-  move in a Keplerian ellipse, and very accurately predicts its observed
-  orbit.  But all this belongs to a separate story,
-  "<a href="./binding.html">Binding the Solar System</a>."</p>
+  acceleration laws observed for the Sun, Jupiter, and Earth &mdash;
+  it is no longer simply a description of how things move, but a
+  theory explaining how any object can serve as a center of
+  attraction.  Universal gravitation also explains why the Moon does
+  not accurately move in a Keplerian ellipse, and very accurately
+  predicts its observed orbit.  But all this belongs to a separate
+  story, &ldquo;<a href="./binding.html">Binding the Solar
+  System</a>.&rdquo;</p>
 
 </div>
 
@@ -625,7 +642,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 
-      <script type="module" src="./touching.js"></script>
+      <script type="module" src="./feeling.js"></script>
 
   </body>
 </html>
