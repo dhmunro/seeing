@@ -4,8 +4,18 @@ const {Application, Container, Graphics, Text, TextStyle, Transform} = PIXI
 
 /* ------------------------------------------------------------------------ */
 
-const theText = document.querySelector(".textcolumn");
+const theText = document.querySelector("#text-box");
 const paragraphs = Array.from(theText.querySelectorAll("p"));
+const currentPage = document.getElementById("currentPage");
+const pages = Array.from(theText.querySelectorAll("div.page"));
+pages[0].classList.add("hidden");
+for (let i = 0; i < pages.length; i += 1) {
+  if (i == parseInt(currentPage.value)) {
+    pages[i].classList.remove("hidden");
+  } else {
+    pages[i].classList.add("hidden");
+  }
+}
 const HELP_PANEL = document.getElementById("help-panel");
 
 const canvas = document.getElementById("figure");
@@ -15,44 +25,79 @@ await app.init({canvas: canvas, resizeTo: canvas.parentElement,
                 autoDensity: true,  // makes renderer view units CSS pixels
                 resolution: window.devicePixelRatio || 1});
 // PIXI.Text has independent resolution option
+// console.log("app init", app.screen.width, app.screen.height);
 
 /* ------------------------------------------------------------------------ */
 /*
 
-The figures comprise a series of static line drawings and 3D renderings,
-so each static figure is displayed in a particular scroll region.  As you
-scroll through the document, the figure transitions to the next (or previous)
-figure when you cross from one region to the following (or preceding).
-However, these steps are not sudden - there is a gradual, reversible animation
-to transition from each static drawing to the next, which may take up to a
-few seconds depending on the complexity of the transition.  (Possibly some of
-the static drawings will include a play button to animate them in the absence
-of scrolling.)
+The web page has three visual components: a text caption part, a figure part,
+and a control part.  For landscape screens, the text and figure parts are side
+by side with text on the left and figure on the right, and the control part
+is a full width narrow strip at the bottom.  For portrait screens, the text
+=art is at the top, the figure section occupies an equal height below the
+text part, and the control part is again a narrow strip at the bottom.
 
-The transitions cause the figure state to lag the scroll position, so several
-transitions may be queued to run in the sequence they were triggered.  When
-a new transition is triggered, it may remove the last transition in this
-queue if the scrolling direction is reversed, or be added to the queue if
-it is forward.  If removal empties the queue, the currently running transition
-reverses, so eventually returning to its initial state.  If the queue gets
-longer than three or four transitions, the currently running transition
-speeds up to reach its final state more and more quickly the longer the
-queue, so that a long jump scroll very briefly displays all the intermediate
-figures.  (Perhaps just the final figure is displayed if the scroll jump
-is made by clicking off the scrollbar thumb or the page up/down keys,
-aborting and emptying the transition queue - this could be tied to when
-the final scroll position is not visible when the page is scrolled to
-the middle of the current figure's region?)
+These parts are defined by the classes "txt", "fig", and "ctl".  The ctl div is
+a fixed html element.  Only a single txt or fig div is visible except during
+transitions, when a second txt or fig may be visible under the first.  The
+non-visible divs have both a "hidden" and "pending" class.  The "hidden" class
+sets display:none, while the "pending" class sets a width multiplier to zero.
+A txt div is right justified, so its right edge is always centered for any
+width multiplier, while a fig div is left justified, so its left edge is always
+cenetred for any width mulitplier.  (For portrait layout, txt is bottom
+justified, fig is top justified, and height instead of width multipliers are
+used.)  A third class "infront" is applied during transitions to set stacking
+order.
 
-Each graphical object has a state in every figure in which it is visible,
-as well as a method to display any intermediate state.
+A forward page-turning transition works like this:
+1. Add "infront" class to old fig, then remove "hidden" from new fig.  The new
+  fig remains hidden because it is behind the old.
+2. Add "pending" to old fig, triggering the first half of the transition.
+  This progressively reveals the new fig as the old fig on top shrinks to the
+  center of the screen.
+3. When the transition ends, add "hidden" and remove "pending" from old fig.
+  Next add "infront" and "pending" to new txt, then remove "hidden" from
+  new txt.  Finally, remove "pending" from new txt, triggering the second
+  half of the transition.  This progressively covers the old txt with the new
+  txt.  Note that you need to do window.getComputedStyle(newtxt).property
+  where property is the animated width mulitplier between adding and removing
+  the "pending" class to new txt.
+4. When the transition ends, add "hidden" to the old txt and remove "infront"
+  from the new txt.
 
+The text side consists of "page" divs, with the number of divs equal to the
+number of pages, and the page turning procedure is straightforward.
+
+The figure side, however, presents a different challenge: There are only two
+canvases.  One canvas is the one the javascript actually draws on, while the
+second is an overlay used in the page turning.  The drawImage function first
+copies the old figure to this second canvas, so there is a copy of the old
+figure.  This can be placed in front of the live canvas, while the javascript
+draws the new figure underneath.  The sequence to reveal the new figure then
+depends on whether you are turning to the next page or to the previous page:
+
+To switch to the next page, simply add the "pending" class to trigger the
+scaling transition (also "easein").  When the transition ends, hide the
+now zero width canvas with the copied old page, and remove the "pending" (and
+"easein") and "infront" classes, then call the function to change the text
+side.
+
+To switch to the previous page, the procedure will be called when the text
+side transition ends.  First add "hidden" and "pending" (and "easeout") to
+the newly drawn figure that is under the copy of the old figure, then
+remove "infront" from the old copy and add "infront" to the (now zero width)
+new figure.  Next, remove "hidden", then "pending" to trigger the scaling
+transition.  When the transition finishes, hide the old canvas, and remove
+"infront" (and "easout") from the new figure.
 */
 
 class ScrollPosition {
   constructor(callback, onend) {
     // callback should set canvas to correct picture
     // - it must never cause theText to scroll
+    // Use clumsy hidden input to store currentPage so that page reload
+    // does not return to page 0.
+    pages[parseInt(currentPage.value)].classList.remove("hidden");
     this.highlight(0);
     this.onResize(callback);
     // theText.scrollTop is delayed when CSS scroll-behavior: smooth
@@ -65,22 +110,22 @@ class ScrollPosition {
       this._resizeTimeout = setTimeout(
         () => this.onResize(callback), 50);
     });
-    theText.addEventListener("scroll", () => {
-      callback(this.place());
-      this.scrollTop = theText.scrollTop;
-    }, {passive: true});
-    theText.addEventListener("scrollend", () => {
-      // every wheel event calls this, but not every scrollbar drag
-      if (onend) onend(this.place());
-    });
-    theText.addEventListener("wheel", e => {
-      e.preventDefault();
-      // Apparently, deltaY is always +-120, which is supposed to be 3 lines.
-      // Original idea was 1/8 degree, and most wheels step by 15 degrees.
-      this.scrollBy(Math.sign(e.deltaY));
-    });
-    addEventListener("keydown", e => {
-      switch (event.key) {
+    // theText.addEventListener("scroll", () => {
+    //   callback(this.place());
+    //   this.scrollTop = theText.scrollTop;
+    // }, {passive: true});
+    // theText.addEventListener("scrollend", () => {
+    //   // every wheel event calls this, but not every scrollbar drag
+    //   if (onend) onend(this.place());
+    // });
+    // theText.addEventListener("wheel", e => {
+    //   e.preventDefault();
+    //   // Apparently, deltaY is always +-120, which is supposed to be 3 lines.
+    //   // Original idea was 1/8 degree, and most wheels step by 15 degrees.
+    //   this.scrollBy(Math.sign(e.deltaY));
+    // });
+    window.addEventListener("keydown", e => {
+      switch (e.key) {
       case "Home":
         this.scrollTop = 0;
         theText.scroll(0, 0);
@@ -90,10 +135,10 @@ class ScrollPosition {
         theText.scroll(0, this.scrollTop);
         break;
       case "PageUp":
-        this.stepParagraph(-1);
+        this.stepPage(-1);
         break;
       case "PageDown":
-        this.stepParagraph();
+        this.stepPage();
         break;
       case "ArrowUp":
       case "Up":
@@ -124,6 +169,15 @@ class ScrollPosition {
     }
     this.scrollTop = Math.floor(this.tops[i] + 0.001);
     theText.scroll(0, this.scrollTop);
+  }
+
+  stepPage(back) {
+    let p = parseInt(currentPage.value);
+    let q = (back < 0)? p - 1 : p + 1;
+    if (q < 0 || q >= pages.length) return;
+    pages[p].classList.add("hidden");
+    pages[q].classList.remove("hidden");
+    currentPage.value = "" + q;
   }
 
   place() {  // current position of center of view in paragraphs
@@ -214,13 +268,79 @@ class ScrollPosition {
   }
 }
 
+window.addEventListener("keydown", e => {
+  let p = parseInt(currentPage.value);
+  switch (e.key) {
+  case "Home":
+    pages[p].classList.add("hidden");
+    pages[0].classList.remove("hidden");
+    currentPage.value = "0";
+    break;
+  case "End":
+    pages[p].classList.add("hidden");
+    p = pages.length - 1;
+    pages[p].classList.remove("hidden");
+    currentPage.value = "" + p;
+    break;
+  case "PageUp":
+    stepPage(-1);
+    break;
+  case "PageDown":
+    stepPage();
+    break;
+  default:
+    return;
+  }
+  e.preventDefault();
+});
+
+function stepPage(back) {
+  let p = parseInt(currentPage.value);
+  let q = (back < 0)? p - 1 : p + 1;
+  if (q < 0 || q >= pages.length) return;
+  currentPage.value = "" + q;
+  if (q > p) {
+    pages[q].classList.add("infront", "easeout", "midturn");
+    // pages[q].style.transform = "rotateY(89.9deg)";
+    pages[q].classList.remove("hidden");
+    /* need getComputedStyle to force transform to update in DOM */
+    window.getComputedStyle(pages[q]).getPropertyValue("transform");
+    pages[q].addEventListener("transitionend", fwdHandler);
+    pages[q].classList.remove("midturn");
+    // pages[q].style.transform = "rotate(0deg)";
+  } else {
+    pages[p].classList.add("infront", "easein");
+    pages[q].classList.remove("hidden");
+    pages[p].addEventListener("transitionend", bckHandler);
+    // pages[p].style.transform = "rotateY(89.9deg)";
+    pages[p].classList.add("midturn");
+  }
+}
+
+function fwdHandler() {
+  let q = parseInt(currentPage.value);
+  let p = q - 1;
+  pages[q].removeEventListener("transitionend", fwdHandler);
+  pages[q].classList.remove("infront", "easeout");
+  pages[p].classList.add("hidden");
+}
+
+function bckHandler() {
+  let q = parseInt(currentPage.value);
+  let p = q + 1;
+  pages[p].removeEventListener("transitionend", bckHandler);
+  pages[p].classList.add("hidden")
+  pages[p].classList.remove("infront", "easein", "midturn");
+  // pages[p].style.transform = "rotate(0deg)";
+}
+
 /* ------------------------------------------------------------------------ */
 /* Two top level containers hold all the other objects.  One is the
    position space container, and the second is the velocity space container.
    These always have the origin at the center and an x coordinate
    running from -220 to 220.  They rescale whenever the stage size changes
    (e.g.- on window resize).  They can also change dynamically to either
-   overlap or move to non-overalpping positions.  (Note that the container
+   overlap or move to non-overlapping positions.  (Note that the container
    coordinates must have a scale of several hundred as this affects the
    number of points chosen for the Graphics.ellipse object.)
  */
@@ -230,6 +350,7 @@ class Space {
     const space = new Container();
     parent.addChild(space);
     this.space = space;
+    console.log("constructing Space", virtualStage);
     if (virtualStage) {
       this.observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -242,6 +363,7 @@ class Space {
             [w, h] = [box.width, box.height];
           }
           this.rescale(w, h);
+          console.log("rescale to", w, h);
         }
       });
       this.observer.observe(canvas.parentElement);
@@ -257,6 +379,7 @@ class Space {
     const space = this.space;
     if (this.observer) {
       [width, height] = [app.screen.width, app.screen.height];
+      console.log("in rescale", width, height);
     }
     if (scale !== undefined) {
       const [x, y] = [width, height];
@@ -268,6 +391,7 @@ class Space {
       space.position.set(xmax, ymax);
       // Set up virtual stage so that smaller dimension is always 500 units.
       const sc = ((xmax < ymax)? xmax : ymax) / 500;
+      console.log("set scale", sc, xmax, ymax, xcen, ycen)
       space.scale.set(sc, sc);
     }
     app.renderer.render(app.stage);
@@ -355,6 +479,7 @@ class Arrow {
   set visible(v) {
     this.both.visible = v;
   }
+
 
   get alpha() {
     return this.both.alpha;
@@ -504,7 +629,6 @@ class EllipsePlus {
     const vscale = velocitySpace.space.toGlobal({x:1, y:0}).x -
           velocitySpace.space.toGlobal({x:0, y:0}).x;
     if (pscale == this.pscale && vscale == this.vscale) return;
-    console.log("new scales", vscale, pscale, this.scale0);
   }
 
   // move planet to new place on ellipse, specified by mean anomaly (radians)
@@ -836,11 +960,12 @@ function interp(t, dti, dt, dtf) {
 const graphics = new GraphicsState(500);
 positionSpace.graphics = graphics;
 
-const scrollPos = new ScrollPosition((place) => {
-  if (place < 0.5) HELP_PANEL.classList.remove("hidden");
-  else HELP_PANEL.classList.add("hidden");
-  graphics.scrollTo(place);
-});
+// const scrollPos = new ScrollPosition((place) => {
+//   if (place < 0.5) HELP_PANEL.classList.remove("hidden");
+//   else HELP_PANEL.classList.add("hidden");
+//   graphics.scrollTo(place);
+// });
+// window.scrollPos = scrollPos;
 
 /* ------------------------------------------------------------------------ */
 
@@ -909,6 +1034,19 @@ window.theText = theText;
 
 window.graphics = graphics;
 window.ellipse = ellipse;
+
+let stepDir = 1;
+function tester() {
+  let p = parseInt(currentPage.value);
+  let q = p + stepDir;
+  if (stepDir < 0) {
+    if (q < 0) stepDir = -stepDir;
+  } else {
+    if (q > 2) stepDir = -stepDir
+  }
+  stepPage(stepDir);
+}
+window.tester = tester;
 
 /* ------------------------------------------------------------------------ */
 
