@@ -1,6 +1,7 @@
 /* import {Application, Container, Graphics, Text, TextStyle,
    Transform} from 'pixi.js'; */
-const {Application, Container, Graphics, Text, TextStyle, Transform} = PIXI
+const {Application, Container, Graphics, Text, TextStyle, Transform,
+       RenderTexture} = PIXI
 
 /* ------------------------------------------------------------------------ */
 
@@ -25,7 +26,13 @@ await app.init({canvas: canvas, resizeTo: canvas.parentElement,
                 autoDensity: true,  // makes renderer view units CSS pixels
                 resolution: window.devicePixelRatio || 1});
 // PIXI.Text has independent resolution option
-// console.log("app init", app.screen.width, app.screen.height);
+
+const auxcanvas = document.getElementById("auxfigure");
+const auxctx = auxcanvas.getContext("2d");
+window.fig = canvas;
+window.auxfig = auxcanvas;
+window.auxctx = auxctx;
+window.app = app;
 
 /* ------------------------------------------------------------------------ */
 /*
@@ -294,44 +301,102 @@ window.addEventListener("keydown", e => {
   e.preventDefault();
 });
 
+let startPage, endPage;
+
 function stepPage(back) {
   let p = parseInt(currentPage.value);
   let q = (back < 0)? p - 1 : p + 1;
   if (q < 0 || q >= pages.length) return;
+  [startPage, endPage] = [p, q];
   currentPage.value = "" + q;
   if (q > p) {
+    changeFigure();
+  } else {
+    changePage();
+  }
+}
+
+function changePage() {
+  let [p, q] = [startPage, endPage];
+  console.log("changePage", p, q);
+  if (q > p) {  /* figure side already turned */
     pages[q].classList.add("infront", "easeout", "midturn");
-    // pages[q].style.transform = "rotateY(89.9deg)";
     pages[q].classList.remove("hidden");
     /* need getComputedStyle to force transform to update in DOM */
     window.getComputedStyle(pages[q]).getPropertyValue("transform");
     pages[q].addEventListener("transitionend", fwdHandler);
     pages[q].classList.remove("midturn");
-    // pages[q].style.transform = "rotate(0deg)";
   } else {
     pages[p].classList.add("infront", "easein");
     pages[q].classList.remove("hidden");
     pages[p].addEventListener("transitionend", bckHandler);
-    // pages[p].style.transform = "rotateY(89.9deg)";
     pages[p].classList.add("midturn");
   }
 }
 
 function fwdHandler() {
-  let q = parseInt(currentPage.value);
-  let p = q - 1;
+  let [p, q] = [startPage, endPage];
   pages[q].removeEventListener("transitionend", fwdHandler);
   pages[q].classList.remove("infront", "easeout");
   pages[p].classList.add("hidden");
 }
 
 function bckHandler() {
-  let q = parseInt(currentPage.value);
-  let p = q + 1;
+  let p = startPage;
   pages[p].removeEventListener("transitionend", bckHandler);
-  pages[p].classList.add("hidden")
+  pages[p].classList.add("hidden");
   pages[p].classList.remove("infront", "easein", "midturn");
-  // pages[p].style.transform = "rotate(0deg)";
+  /* now turn figure side */
+  changeFigure();
+}
+
+function changeFigure() {
+  let [p, q] = [startPage, endPage];
+  // auxctx.drawImage(canvas, 0, 0);  /* copy startPage to auxfigure canvas */
+  // let cvs = app.renderer.extract.canvas(app.stage, app.screen);
+  // let png = app.renderer.extract.image(app.stage, "image/png");
+  let tx = RenderTexture.create(
+    {width: app.screen.width, height: app.screen.height,
+     resolution: app.renderer.resolution});
+  app.renderer.render(app.stage, tx);
+  let im = app.renderer.extract.pixels(tx);
+  console.log("changeFigure", im, app.screen.width, app.screen.height);
+  let data = new ImageData(im.pixels, im.width, im.height);
+  auxctx.putImageData(data, 0, 0);
+  if (q < p) {  /* text side already turned */
+    auxcanvas.classList.remove("hidden");
+    canvas.classList.add("infront", "easeout", "midturn");
+    window.graphics.scrollTo(1 + q%2);
+    /* need getComputedStyle to force transform to update in DOM */
+    window.getComputedStyle(canvas).getPropertyValue("transform");
+    canvas.addEventListener("transitionend", bckFigHandler);
+    console.log("begin bck", p, q);
+    canvas.classList.remove("midturn");
+  } else {
+    auxcanvas.classList.add("infront", "easein");
+    auxcanvas.classList.remove("hidden");
+    window.getComputedStyle(auxcanvas).getPropertyValue("transform");
+    window.graphics.scrollTo(1 + q%2);
+    auxcanvas.addEventListener("transitionend", fwdFigHandler);
+    console.log("begin fwd", p, q);
+    auxcanvas.classList.add("midturn");
+  }
+}
+
+function fwdFigHandler() {
+  auxcanvas.removeEventListener("transitionend", fwdFigHandler);
+  console.log("fwdFigHandler", startPage, endPage);
+  auxcanvas.classList.add("hidden");
+  auxcanvas.classList.remove("infront", "easein", "midturn");
+  /* now turn text side */
+  changePage();
+}
+
+function bckFigHandler() {
+  canvas.removeEventListener("transitionend", bckFigHandler);
+  console.log("bckFigHandler", startPage, endPage);
+  auxcanvas.classList.add("hidden");
+  canvas.classList.remove("infront", "easeout");
 }
 
 /* ------------------------------------------------------------------------ */
@@ -350,7 +415,6 @@ class Space {
     const space = new Container();
     parent.addChild(space);
     this.space = space;
-    console.log("constructing Space", virtualStage);
     if (virtualStage) {
       this.observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -363,7 +427,6 @@ class Space {
             [w, h] = [box.width, box.height];
           }
           this.rescale(w, h);
-          console.log("rescale to", w, h);
         }
       });
       this.observer.observe(canvas.parentElement);
@@ -379,7 +442,6 @@ class Space {
     const space = this.space;
     if (this.observer) {
       [width, height] = [app.screen.width, app.screen.height];
-      console.log("in rescale", width, height);
     }
     if (scale !== undefined) {
       const [x, y] = [width, height];
@@ -391,7 +453,6 @@ class Space {
       space.position.set(xmax, ymax);
       // Set up virtual stage so that smaller dimension is always 500 units.
       const sc = ((xmax < ymax)? xmax : ymax) / 500;
-      console.log("set scale", sc, xmax, ymax, xcen, ycen)
       space.scale.set(sc, sc);
     }
     app.renderer.render(app.stage);
@@ -725,7 +786,7 @@ const ellipse = new EllipsePlus(0, 0, 400, 320, "#d9cfba",
 app.ticker.autoStart = false;
 
 class GraphicsState {
-  constructor(msJump, dgoal=3) {
+  constructor(msJump, dgoal=0) {
     this.msJump = msJump;  // delay time for jump transitions
     this.dgoal = dgoal;  // max number of pending transitions
     this.place = null;
@@ -789,6 +850,10 @@ class GraphicsState {
       transition.finish(true);
       current -= 1;
       transition = transitions[current];
+    }
+    if (dgoal == 0) {
+      app.renderer.render(app.stage);
+      return;
     }
     // set current and goal, then start the ticker
     const down = (i < current);
@@ -959,6 +1024,7 @@ function interp(t, dti, dt, dtf) {
 
 const graphics = new GraphicsState(500);
 positionSpace.graphics = graphics;
+window.graphics = graphics;
 
 // const scrollPos = new ScrollPosition((place) => {
 //   if (place < 0.5) HELP_PANEL.classList.remove("hidden");
