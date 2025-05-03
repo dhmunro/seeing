@@ -1,11 +1,12 @@
 /* import {Application, Container, Graphics, Text, TextStyle,
-   Transform} from 'pixi.js'; */
+        Transform} from "pixi.js"; */
 const {Application, Container, Graphics, Text, TextStyle, Transform,
        RenderTexture} = PIXI
 
 /* ------------------------------------------------------------------------ */
 
 const theText = document.querySelector("#text-box");
+const theFigure = document.querySelector("#figure-box");
 const paragraphs = Array.from(theText.querySelectorAll("p"));
 const currentPage = document.getElementById("currentPage");
 const pages = Array.from(theText.querySelectorAll("div.page"));
@@ -17,7 +18,17 @@ for (let i = 0; i < pages.length; i += 1) {
     pages[i].classList.add("hidden");
   }
 }
-const HELP_PANEL = document.getElementById("help-panel");
+const pagingDms = (p => {
+  const dt = window.getComputedStyle(pages[0]).getPropertyValue(p);
+  let dms = parseFloat(dt);
+  if (dt.slice(-2) != "ms") {  // But dt always in units of s?
+    dms *= 1000;
+  }
+  return dms;
+})("transition-duration");
+const figBgColor = (p =>
+  window.getComputedStyle(theFigure).getPropertyValue(p)
+)("background");
 
 const canvas = document.getElementById("figure");
 const app = new Application();
@@ -26,77 +37,244 @@ await app.init({canvas: canvas, resizeTo: canvas.parentElement,
                 autoDensity: true,  // makes renderer view units CSS pixels
                 resolution: window.devicePixelRatio || 1});
 // PIXI.Text has independent resolution option
+const overlayTexture = RenderTexture.create({
+  width: app.screen.width,
+  height: app.screen.height,
+  resolution: window.devicePixelRatio || 1
+});
+function calendarOrientation() {
+  const v = window.getComputedStyle(theText).getPropertyValue("border-bottom");
+  return v.slice(0, 1) != "0";
+}
 
-const auxcanvas = document.getElementById("auxfigure");
-const auxctx = auxcanvas.getContext("2d");
 window.fig = canvas;
-window.auxfig = auxcanvas;
-window.auxctx = auxctx;
 window.app = app;
 
 /* ------------------------------------------------------------------------ */
 /*
 
-The web page has three visual components: a text caption part, a figure part,
-and a control part.  For landscape screens, the text and figure parts are side
-by side with text on the left and figure on the right, and the control part
-is a full width narrow strip at the bottom.  For portrait screens, the text
-=art is at the top, the figure section occupies an equal height below the
-text part, and the control part is again a narrow strip at the bottom.
+The web page has two visual components: a text caption part, a figure part.  For
+landscape screens, the text and figure parts are side by side with text on the
+left and figure on the right.  For portrait screens, the text part is at the
+top, and the figure section occupies an equal height below the text part.
 
-These parts are defined by the classes "txt", "fig", and "ctl".  The ctl div is
-a fixed html element.  Only a single txt or fig div is visible except during
-transitions, when a second txt or fig may be visible under the first.  The
-non-visible divs have both a "hidden" and "pending" class.  The "hidden" class
-sets display:none, while the "pending" class sets a width multiplier to zero.
-A txt div is right justified, so its right edge is always centered for any
-width multiplier, while a fig div is left justified, so its left edge is always
-cenetred for any width mulitplier.  (For portrait layout, txt is bottom
-justified, fig is top justified, and height instead of width multipliers are
-used.)  A third class "infront" is applied during transitions to set stacking
-order.
+The text side consists of a "text-wrap" div with "page" div children.  The
+number of "page" divs equals the number of pages, and the page turning procedure
+is handled as CSS transitions.  The figure side consists of a "fig-wrap" div
+containing the PIXI canvas.
 
-A forward page-turning transition works like this:
-1. Add "infront" class to old fig, then remove "hidden" from new fig.  The new
-  fig remains hidden because it is behind the old.
-2. Add "pending" to old fig, triggering the first half of the transition.
-  This progressively reveals the new fig as the old fig on top shrinks to the
-  center of the screen.
-3. When the transition ends, add "hidden" and remove "pending" from old fig.
-  Next add "infront" and "pending" to new txt, then remove "hidden" from
-  new txt.  Finally, remove "pending" from new txt, triggering the second
-  half of the transition.  This progressively covers the old txt with the new
-  txt.  Note that you need to do window.getComputedStyle(newtxt).property
-  where property is the animated width mulitplier between adding and removing
-  the "pending" class to new txt.
-4. When the transition ends, add "hidden" to the old txt and remove "infront"
-  from the new txt.
+The figure side, however, presents a different challenge for page turning: I
+could not figure out how to copy the PIXI canvas in order to be able to use CSS
+for the page turning transitions, so they are done entirely in javascript:
 
-The text side consists of "page" divs, with the number of divs equal to the
-number of pages, and the page turning procedure is straightforward.
+To turn the page forward, the entire stage is rendered to a texture of the same
+size.  The stage is then updated to the new figure, except that the texture with
+the copy of the old figure is rendered in a rectangle on top of everything else.
+The scene is then rendered as the first frame in the transition animation, with
+the top rectangle transformed to successively narrower portions of at the left
+edge in following frames to look like the page is being rotated, revealing the
+new frame underneath.  Finally, the stage can be rerendered without adding the
+textured rectangle.
 
-The figure side, however, presents a different challenge: There are only two
-canvases.  One canvas is the one the javascript actually draws on, while the
-second is an overlay used in the page turning.  The drawImage function first
-copies the old figure to this second canvas, so there is a copy of the old
-figure.  This can be placed in front of the live canvas, while the javascript
-draws the new figure underneath.  The sequence to reveal the new figure then
-depends on whether you are turning to the next page or to the previous page:
-
-To switch to the next page, simply add the "pending" class to trigger the
-scaling transition (also "easein").  When the transition ends, hide the
-now zero width canvas with the copied old page, and remove the "pending" (and
-"easein") and "infront" classes, then call the function to change the text
-side.
-
-To switch to the previous page, the procedure will be called when the text
-side transition ends.  First add "hidden" and "pending" (and "easeout") to
-the newly drawn figure that is under the copy of the old figure, then
-remove "infront" from the old copy and add "infront" to the (now zero width)
-new figure.  Next, remove "hidden", then "pending" to trigger the scaling
-transition.  When the transition finishes, hide the old canvas, and remove
-"infront" (and "easout") from the new figure.
+To turn the page backward, the new figure is rendered to the textured rectangle,
+which begins fully rotated.  After it has rotated down to completely cover the
+old figure, the scene is redrawn a final time with the new figure on the stage
+and no textured rectangle.
 */
+
+window.addEventListener("keydown", e => {
+  let p = parseInt(currentPage.value);
+  switch (e.key) {
+  case "Home":
+    stepPage(0, true);
+    break;
+  case "End":
+    stepPage(pages.length-1, true);
+    break;
+  case "PageUp":
+    stepPage(-1);
+    break;
+  case "PageDown":
+    stepPage();
+    break;
+  default:
+    return;
+  }
+  e.preventDefault();
+});
+
+let startPage, endPage;
+
+function stepPage(by=1, from0=false) {
+  let p = parseInt(currentPage.value);
+  let q = from0? by : p + by;
+  if (q < 0 || q >= pages.length) return;
+  [startPage, endPage] = [p, q];
+  currentPage.value = "" + q;
+  if (q > p && q < figures.length) {
+    changeFigure();
+  } else {
+    changePage();
+  }
+}
+
+function changePage() {
+  let [p, q] = [startPage, endPage];
+  if (q > p) {  /* figure side already turned */
+    pages[q].classList.add("infront", "easeout", "midturn");
+    pages[q].classList.remove("hidden");
+    /* need getComputedStyle to force transform to update in DOM */
+    window.getComputedStyle(pages[q]).getPropertyValue("transform");
+    pages[q].addEventListener("transitionend", fwdHandler);
+    pages[q].classList.remove("midturn");
+  } else {
+    pages[p].classList.add("infront", "easein");
+    pages[q].classList.remove("hidden");
+    pages[p].addEventListener("transitionend", bckHandler);
+    pages[p].classList.add("midturn");
+  }
+}
+
+function fwdHandler() {
+  let [p, q] = [startPage, endPage];
+  pages[q].removeEventListener("transitionend", fwdHandler);
+  pages[q].classList.remove("infront", "easeout");
+  pages[p].classList.add("hidden");
+}
+
+function bckHandler() {
+  let p = startPage;
+  pages[p].removeEventListener("transitionend", bckHandler);
+  pages[p].classList.add("hidden");
+  pages[p].classList.remove("infront", "easein", "midturn");
+  /* now turn figure side */
+  changeFigure();
+}
+
+function changeFigure() {
+  let [p, q] = [startPage, endPage];
+  // Animate the page turn for figure side using PIXI.
+  if (q >= figures.length) q = figures.length - 1;
+  if (p >= figures.length) p = figures.length - 1;
+  console.log("changeFigure", p, q);
+  if (q < p) {  /* text side already turned back */
+    // Draw new figure to overlay Texture.  Set overlay to 90 degrees.
+    figures[q](0);
+    app.renderer.render({container: app.stage, target: overlayTexture});
+    // Redraw old figure on canvas, with overlay visible but initially rotated.
+    figures[p](0);
+    overlay.visible = true;
+    // Animate new figure rotating to cover old.
+    figEaseOut.start();
+  } else if (q > p) {  /* turn figure side first, then trigger text side */
+    // Draw old figure to overlay texture.  Set overlay to 0 degrees.
+    figures[p](0);
+    app.renderer.render({container: app.stage, target: overlayTexture});
+    // Draw new figure on canvas, with overlay visible, initially covering it.
+    figures[q](0);
+    overlay.visible = true;
+    // Animate old figure rotating to expose new.
+    figEaseIn.start();
+  } else {  // remove eventually
+    figures[q](0);
+    app.renderer.render({container: app.stage});
+  }
+}
+
+class CssTransition {
+  // Default  CSS transitions are defined as Bezier curves, which are
+  // inconvenient because they are parametric.  Here are reasonably accurate
+  // piecewise cubic approximations.
+  constructor(type, dms, cb, ctx) {
+    let split = 0.5;
+    let coefs = [[0., 0., 1., 0.], [0., 0., 1., 0.]];  // y = x is default
+    if (type == "ease") {  // maximum error 0.00660
+      split = 0.22399346;
+      coefs = [[-7.9356810,  6.92937852,  0.4,  0.],
+               [1.04553848, -3.40785808,  3.6791007, -0.31678111]];
+    } else if (type == "ease-in") {  // maximum error 0.00345
+      split = 0.55974585;
+      coefs = [[-0.74015112,  1.64384427,  0., 0.],
+               [ 0.39179008, -0.25841715,  1.06560198, -0.19897492]];
+    } else if (type == "ease-out") {  // maximum error 0.00345
+      split = 0.44025426;
+      coefs = [[ 0.39178986, -0.91695300,  1.72413793,  0.],
+               [-0.74015128,  0.57660948,  1.06723489,  0.09630692]];
+    } else if (type == "ease-in-out") {  // maximum error 0.00443
+      coefs = [[-0.50782681,  2.25391341,  0.,  0.],
+               [-0.50782681, -0.73043297,  2.98434637, -0.74608659]];
+    }
+    this.split = split
+    this.coefs = coefs
+    this.dms = dms;  // duration of transition
+    this.cb = cb;
+    this.ctx = ctx;
+    this.ms = 0;
+    this.running = false;
+  }
+
+  f(x) {
+    let coefs = this.coefs[(x < this.split)? 0 : 1];
+    let y = coefs[0];
+    for (let c of coefs.slice(1)) {
+      y *= x
+      y += c
+    }
+    return y
+  }
+
+  start() {
+    console.log("starting", this.running);
+    if (this.running) this.stop();
+    this.ms = 0;
+    app.ticker.add(this.step, this);
+    this.running = true;
+    app.ticker.start();
+  }
+
+  stop() {
+    if (this.running) {
+      console.log("stopping");
+      app.ticker.remove(this.step, this);
+      this.running = false;
+      app.ticker.stop();
+      this.cb.call(this.ctx, 1.0);
+    }
+  }
+
+  step() {
+    this.ms += app.ticker.deltaMS;
+    if (this.ms >= this.dms) {
+      this.stop();
+    } else {
+      this.cb.call(this.ctx, this.f(this.ms / this.dms));
+    }
+  }
+}
+
+window.CssTransition = CssTransition
+
+const figEaseOut = new CssTransition("ease-out", pagingDms, (frac) => {
+  if (frac < 1.) {
+    drawOverlay(0.25*twoPi*(1.-frac));
+  } else {
+    let q = endPage;
+    if (q >= figures.length) q = figures.length - 1;
+    figures[q](0);
+    overlay.visible = false;
+  }
+  app.renderer.render({container: app.stage});
+})
+
+const figEaseIn = new CssTransition("ease-in", pagingDms, (frac) => {
+  if (frac < 1.) {
+    drawOverlay(0.25*twoPi*frac);
+  } else {
+    overlay.visible = false;
+  }
+  app.renderer.render({container: app.stage});
+  if (!overlay.visible) changePage();
+})
 
 class ScrollPosition {
   constructor(callback, onend) {
@@ -275,130 +453,6 @@ class ScrollPosition {
   }
 }
 
-window.addEventListener("keydown", e => {
-  let p = parseInt(currentPage.value);
-  switch (e.key) {
-  case "Home":
-    pages[p].classList.add("hidden");
-    pages[0].classList.remove("hidden");
-    currentPage.value = "0";
-    break;
-  case "End":
-    pages[p].classList.add("hidden");
-    p = pages.length - 1;
-    pages[p].classList.remove("hidden");
-    currentPage.value = "" + p;
-    break;
-  case "PageUp":
-    stepPage(-1);
-    break;
-  case "PageDown":
-    stepPage();
-    break;
-  default:
-    return;
-  }
-  e.preventDefault();
-});
-
-let startPage, endPage;
-
-function stepPage(back) {
-  let p = parseInt(currentPage.value);
-  let q = (back < 0)? p - 1 : p + 1;
-  if (q < 0 || q >= pages.length) return;
-  [startPage, endPage] = [p, q];
-  currentPage.value = "" + q;
-  if (q > p) {
-    changeFigure();
-  } else {
-    changePage();
-  }
-}
-
-function changePage() {
-  let [p, q] = [startPage, endPage];
-  console.log("changePage", p, q);
-  if (q > p) {  /* figure side already turned */
-    pages[q].classList.add("infront", "easeout", "midturn");
-    pages[q].classList.remove("hidden");
-    /* need getComputedStyle to force transform to update in DOM */
-    window.getComputedStyle(pages[q]).getPropertyValue("transform");
-    pages[q].addEventListener("transitionend", fwdHandler);
-    pages[q].classList.remove("midturn");
-  } else {
-    pages[p].classList.add("infront", "easein");
-    pages[q].classList.remove("hidden");
-    pages[p].addEventListener("transitionend", bckHandler);
-    pages[p].classList.add("midturn");
-  }
-}
-
-function fwdHandler() {
-  let [p, q] = [startPage, endPage];
-  pages[q].removeEventListener("transitionend", fwdHandler);
-  pages[q].classList.remove("infront", "easeout");
-  pages[p].classList.add("hidden");
-}
-
-function bckHandler() {
-  let p = startPage;
-  pages[p].removeEventListener("transitionend", bckHandler);
-  pages[p].classList.add("hidden");
-  pages[p].classList.remove("infront", "easein", "midturn");
-  /* now turn figure side */
-  changeFigure();
-}
-
-function changeFigure() {
-  let [p, q] = [startPage, endPage];
-  // auxctx.drawImage(canvas, 0, 0);  /* copy startPage to auxfigure canvas */
-  // let cvs = app.renderer.extract.canvas(app.stage, app.screen);
-  // let png = app.renderer.extract.image(app.stage, "image/png");
-  let tx = RenderTexture.create(
-    {width: app.screen.width, height: app.screen.height,
-     resolution: app.renderer.resolution});
-  app.renderer.render(app.stage, tx);
-  let im = app.renderer.extract.pixels(tx);
-  console.log("changeFigure", im, app.screen.width, app.screen.height);
-  let data = new ImageData(im.pixels, im.width, im.height);
-  auxctx.putImageData(data, 0, 0);
-  if (q < p) {  /* text side already turned */
-    auxcanvas.classList.remove("hidden");
-    canvas.classList.add("infront", "easeout", "midturn");
-    window.graphics.scrollTo(1 + q%2);
-    /* need getComputedStyle to force transform to update in DOM */
-    window.getComputedStyle(canvas).getPropertyValue("transform");
-    canvas.addEventListener("transitionend", bckFigHandler);
-    console.log("begin bck", p, q);
-    canvas.classList.remove("midturn");
-  } else {
-    auxcanvas.classList.add("infront", "easein");
-    auxcanvas.classList.remove("hidden");
-    window.getComputedStyle(auxcanvas).getPropertyValue("transform");
-    window.graphics.scrollTo(1 + q%2);
-    auxcanvas.addEventListener("transitionend", fwdFigHandler);
-    console.log("begin fwd", p, q);
-    auxcanvas.classList.add("midturn");
-  }
-}
-
-function fwdFigHandler() {
-  auxcanvas.removeEventListener("transitionend", fwdFigHandler);
-  console.log("fwdFigHandler", startPage, endPage);
-  auxcanvas.classList.add("hidden");
-  auxcanvas.classList.remove("infront", "easein", "midturn");
-  /* now turn text side */
-  changePage();
-}
-
-function bckFigHandler() {
-  canvas.removeEventListener("transitionend", bckFigHandler);
-  console.log("bckFigHandler", startPage, endPage);
-  auxcanvas.classList.add("hidden");
-  canvas.classList.remove("infront", "easeout");
-}
-
 /* ------------------------------------------------------------------------ */
 /* Two top level containers hold all the other objects.  One is the
    position space container, and the second is the velocity space container.
@@ -440,8 +494,9 @@ class Space {
 
   rescale(width, height, scale) {
     const space = this.space;
-    if (this.observer) {
+    if (this.observer) {  // this is the virtual stage
       [width, height] = [app.screen.width, app.screen.height];
+      overlayTexture.resize(width, height);  // keep RenderTexture same size as canvas
     }
     if (scale !== undefined) {
       const [x, y] = [width, height];
@@ -455,7 +510,7 @@ class Space {
       const sc = ((xmax < ymax)? xmax : ymax) / 500;
       space.scale.set(sc, sc);
     }
-    app.renderer.render(app.stage);
+    app.renderer.render({container: app.stage});
   }
 
   add(...children) {
@@ -485,6 +540,28 @@ const virtualStage = new Space(app.stage, true);
 const stage = virtualStage.space;
 const positionSpace = new Space(stage);
 const velocitySpace = new Space(stage);
+const overlay = new Graphics().rect(-100, -100, 100, 100).fill("blue");
+overlay.visible = false;
+stage.addChild(overlay);
+
+window.stage = stage;
+
+function drawOverlay(angle=0) {
+  const scr = app.screen;
+  let {x: width, y: height} = stage.toLocal({x: scr.width, y: scr.height});
+  // let width = wh.x, height = wh.y;
+  let {x, y} = stage.toLocal({x: 0, y: 0});
+  width -= x;
+  height -= y;
+  if (calendarOrientation()) {
+    height *= Math.cos(angle);
+  } else {
+    width *= Math.cos(angle);
+  }
+  overlay.clear();
+  overlay.rect(x, y, width, height).fill(figBgColor);
+  overlay.rect(x, y, width, height).fill({texture: overlayTexture});
+}
 
 class Arrow {
   constructor(parent, style, lwhead, x0, y0, x1, y1) {
@@ -796,13 +873,13 @@ class GraphicsState {
     this.current = 0;
     this.goal = null;
     this.t = 0;  // t is elapsed time for current transition
-    app.ticker.add(this.stepper, this);
-    app.ticker.stop();  // need this even though autoStart false?
+    // app.ticker.add(this.stepper, this);
+    // app.ticker.stop();  // need this even though autoStart false?
   }
 
   scrollTo(place, force=false) {
     if (this.place === null) {
-      // called from ScrollPosition constructor, transition lists not built yet
+      // called from ScrollPosition constructor, no transition lists yet
       this.place = place;
       return;
     }
@@ -828,7 +905,7 @@ class GraphicsState {
         // between its initial and final states.
         transitions[j].finish(false);
       }
-      app.renderer.render(app.stage);
+      // app.renderer.render({container: app.stage});
       if (animators[i]) app.ticker.start();
       return;
     }
@@ -852,7 +929,7 @@ class GraphicsState {
       transition = transitions[current];
     }
     if (dgoal == 0) {
-      app.renderer.render(app.stage);
+      // app.renderer.render({container: app.stage});
       return;
     }
     // set current and goal, then start the ticker
@@ -1035,6 +1112,23 @@ window.graphics = graphics;
 
 /* ------------------------------------------------------------------------ */
 
+const figures = [
+  (frac) => {
+    ellipse.setAlphas(1, 0);
+    ellipse.pMove(0);
+  },
+  (frac) => {
+    ellipse.setAlphas(1, 0);
+    ellipse.pMove(twoPi*0.05);
+  },
+  (frac) => {
+    ellipse.setAlphas(0, 1);
+    ellipse.pMove(twoPi*0.05);
+    ellipse.ellipse.visible = ellipse.sector.visible = true;
+    ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
+  }
+]
+
 graphics.appendJump(0, (frac) => {
   ellipse.setAlphas(1, 0);
   ellipse.pMove(0);
@@ -1100,19 +1194,6 @@ window.theText = theText;
 
 window.graphics = graphics;
 window.ellipse = ellipse;
-
-let stepDir = 1;
-function tester() {
-  let p = parseInt(currentPage.value);
-  let q = p + stepDir;
-  if (stepDir < 0) {
-    if (q < 0) stepDir = -stepDir;
-  } else {
-    if (q > 2) stepDir = -stepDir
-  }
-  stepPage(stepDir);
-}
-window.tester = tester;
 
 /* ------------------------------------------------------------------------ */
 
