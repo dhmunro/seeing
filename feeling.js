@@ -7,17 +7,10 @@ const {Application, Container, Graphics, Text, TextStyle, Transform,
 
 const theText = document.querySelector("#text-box");
 const theFigure = document.querySelector("#figure-box");
-const paragraphs = Array.from(theText.querySelectorAll("p"));
 const currentPage = document.getElementById("currentPage");
+const pageForward = document.getElementById("pg-forward");
+const pageBackward = document.getElementById("pg-backward");
 const pages = Array.from(theText.querySelectorAll("div.page"));
-pages[0].classList.add("hidden");
-for (let i = 0; i < pages.length; i += 1) {
-  if (i == parseInt(currentPage.value)) {
-    pages[i].classList.remove("hidden");
-  } else {
-    pages[i].classList.add("hidden");
-  }
-}
 const pagingDms = (p => {
   const dt = window.getComputedStyle(pages[0]).getPropertyValue(p);
   let dms = parseFloat(dt);
@@ -42,10 +35,11 @@ const overlayTexture = RenderTexture.create({
   height: app.screen.height,
   resolution: window.devicePixelRatio || 1
 });
-function calendarOrientation() {
-  const v = window.getComputedStyle(theText).getPropertyValue("border-bottom");
-  return v.slice(0, 1) != "0";
-}
+const portraitOrientation = window.matchMedia("(max-aspect-ratio: 1/1)");
+let calendarLike = portraitOrientation.matches;
+portraitOrientation.addEventListener("change", () => {
+  calendarLike = portraitOrientation.matches;
+});
 
 window.fig = canvas;
 window.app = app;
@@ -83,7 +77,6 @@ and no textured rectangle.
 */
 
 window.addEventListener("keydown", e => {
-  let p = parseInt(currentPage.value);
   switch (e.key) {
   case "Home":
     stepPage(0, true);
@@ -103,7 +96,7 @@ window.addEventListener("keydown", e => {
   e.preventDefault();
 });
 
-let startPage, endPage;
+let startPage = 0, endPage = parseInt(currentPage.value);
 
 function stepPage(by=1, from0=false) {
   let p = parseInt(currentPage.value);
@@ -111,15 +104,49 @@ function stepPage(by=1, from0=false) {
   if (q < 0 || q >= pages.length) return;
   [startPage, endPage] = [p, q];
   currentPage.value = "" + q;
-  if (q > p && q < figures.length) {
+  for (let p of [pageForward, pageBackward, animationControl.parent])
+    p.style.display = "none";
+  if (q > p) {
     changeFigure();
   } else {
     changePage();
   }
 }
 
-function changePage() {
+pageForward.addEventListener("click", e => stepPage());
+pageBackward.addEventListener("click", e => stepPage(-1));
+
+function flashPagers() {
+  for (let p of [pageForward, pageBackward]) p.style.display = "grid";
+  pageForward.classList.add("pg-flash");
+  pageBackward.classList.add("pg-flash");
+  setTimeout(() => {
+    pageForward.classList.remove("pg-flash");
+    pageBackward.classList.remove("pg-flash");
+  }, 1000);
+}
+
+function setAnimationControlVisibility(q) {
+  const isAnimated = (q >= 0)? figures[q].length : 0;
+  animationControl.parent.style.display = isAnimated? "block" : "none";
+}
+
+window.flashPagers = flashPagers;
+window.pageForward = pageForward;
+
+function changePage(noTransition=false) {
   let [p, q] = [startPage, endPage];
+  if (noTransition) {
+    pages[p].classList.add("hidden");
+    pages[q].classList.remove("hidden");
+    if (q <= p) {
+      changeFigure(true);
+    } else {
+      flashPagers();
+      setAnimationControlVisibility(q);
+    }
+    return;
+  }
   if (q > p) {  /* figure side already turned */
     pages[q].classList.add("infront", "easeout", "midturn");
     pages[q].classList.remove("hidden");
@@ -140,6 +167,8 @@ function fwdHandler() {
   pages[q].removeEventListener("transitionend", fwdHandler);
   pages[q].classList.remove("infront", "easeout");
   pages[p].classList.add("hidden");
+  flashPagers();
+  setAnimationControlVisibility(q);
 }
 
 function bckHandler() {
@@ -151,12 +180,20 @@ function bckHandler() {
   changeFigure();
 }
 
-function changeFigure() {
+function changeFigure(noTransition=false) {
   let [p, q] = [startPage, endPage];
   // Animate the page turn for figure side using PIXI.
-  if (q >= figures.length) q = figures.length - 1;
-  if (p >= figures.length) p = figures.length - 1;
-  console.log("changeFigure", p, q);
+  if (noTransition) {
+    figures[q](0);
+    app.renderer.render({container: app.stage});
+    if (q > p) {
+      changePage(true);
+    } else {
+      flashPagers();
+      setAnimationControlVisibility(q);
+    }
+    return;
+  }
   if (q < p) {  /* text side already turned back */
     // Draw new figure to overlay Texture.  Set overlay to 90 degrees.
     figures[q](0);
@@ -175,7 +212,7 @@ function changeFigure() {
     overlay.visible = true;
     // Animate old figure rotating to expose new.
     figEaseIn.start();
-  } else {  // remove eventually
+  } else {  // can have q==p when initializing
     figures[q](0);
     app.renderer.render({container: app.stage});
   }
@@ -224,7 +261,6 @@ class CssTransition {
   }
 
   start() {
-    console.log("starting", this.running);
     if (this.running) this.stop();
     this.ms = 0;
     app.ticker.add(this.step, this);
@@ -234,7 +270,6 @@ class CssTransition {
 
   stop() {
     if (this.running) {
-      console.log("stopping");
       app.ticker.remove(this.step, this);
       this.running = false;
       app.ticker.stop();
@@ -258,13 +293,13 @@ const figEaseOut = new CssTransition("ease-out", pagingDms, (frac) => {
   if (frac < 1.) {
     drawOverlay(0.25*twoPi*(1.-frac));
   } else {
-    let q = endPage;
-    if (q >= figures.length) q = figures.length - 1;
-    figures[q](0);
+    figures[endPage](0);
     overlay.visible = false;
+    flashPagers();
+    setAnimationControlVisibility(endPage);
   }
   app.renderer.render({container: app.stage});
-})
+});
 
 const figEaseIn = new CssTransition("ease-in", pagingDms, (frac) => {
   if (frac < 1.) {
@@ -274,195 +309,93 @@ const figEaseIn = new CssTransition("ease-in", pagingDms, (frac) => {
   }
   app.renderer.render({container: app.stage});
   if (!overlay.visible) changePage();
-})
+});
 
-class ScrollPosition {
-  constructor(callback, onend) {
-    // callback should set canvas to correct picture
-    // - it must never cause theText to scroll
-    // Use clumsy hidden input to store currentPage so that page reload
-    // does not return to page 0.
-    pages[parseInt(currentPage.value)].classList.remove("hidden");
-    this.highlight(0);
-    this.onResize(callback);
-    // theText.scrollTop is delayed when CSS scroll-behavior: smooth
-    // keep separate value for eventual scrollTop position
-    this.scrollTop = theText.scrollTop;
-    window.addEventListener("resize", () => {
-      if (this._resizeTimeout !== null) {
-        clearTimeout(this._resizeTimeout);
-      }
-      this._resizeTimeout = setTimeout(
-        () => this.onResize(callback), 50);
-    });
-    // theText.addEventListener("scroll", () => {
-    //   callback(this.place());
-    //   this.scrollTop = theText.scrollTop;
-    // }, {passive: true});
-    // theText.addEventListener("scrollend", () => {
-    //   // every wheel event calls this, but not every scrollbar drag
-    //   if (onend) onend(this.place());
-    // });
-    // theText.addEventListener("wheel", e => {
-    //   e.preventDefault();
-    //   // Apparently, deltaY is always +-120, which is supposed to be 3 lines.
-    //   // Original idea was 1/8 degree, and most wheels step by 15 degrees.
-    //   this.scrollBy(Math.sign(e.deltaY));
-    // });
-    window.addEventListener("keydown", e => {
-      switch (e.key) {
-      case "Home":
-        this.scrollTop = 0;
-        theText.scroll(0, 0);
-        break;
-      case "End":
-        this.scrollTop = theText.scrollHeight - theText.clientHeight;
-        theText.scroll(0, this.scrollTop);
-        break;
-      case "PageUp":
-        this.stepPage(-1);
-        break;
-      case "PageDown":
-        this.stepPage();
-        break;
-      case "ArrowUp":
-      case "Up":
-        this.scrollBy(-1);
-        break;
-      case "ArrowDown":
-      case "Down":
-        this.scrollBy(1);
-        break;
-      default:
-        return;
-      }
-      e.preventDefault();
-    });
+/* ------------------------------------------------------------------------ */
+
+class AnimationControl {
+  constructor(parentId) {
+    this.parent = document.getElementById(parentId);
+    this.play = document.querySelector("#" + parentId + " .play");
+    this.pause = document.querySelector("#" + parentId + " .pause");
+    this.slider = document.querySelector("#" + parentId + " .slider");
+    this.thumb = document.querySelector("#" + parentId + " .thumb");
+    this.playing = this.play.classList.contains("hidden");
+    this.dragging = false;
+    document.querySelector("#" + parentId + " .play-pause").addEventListener(
+      "click", () => this.playPause());
+    this.thumb.addEventListener("pointerdown", (e) => this.beginThumb(e));
+    this.moving = false;
+    this.moveThumb = this.moveThumb.bind(this);
+    // this.mover = (e) => this.moveThumb(e);
+    this.endThumb = this.endThumb.bind(this);
+    // this.ender = (e) => this.endThumb(e);
   }
 
-  scrollBy(nlines) {
-    this.scrollTop += nlines*this.lineHeight;
-    theText.scroll(0, this.scrollTop);
-  }
-
-  stepParagraph(back) {
-    let i = this.iNow;
-    if (back) {
-      if (i > 0) i -= 1;
+  playPause() {
+    if (this.playing) {
+      this.playing = false;
+      this.pause.classList.add("hidden");
+      this.play.classList.remove("hidden");
     } else {
-      if (i < paragraphs.length - 1) i += 1;
+      this.playing = true;
+      this.play.classList.add("hidden");
+      this.pause.classList.remove("hidden");
     }
-    this.scrollTop = Math.floor(this.tops[i] + 0.001);
-    theText.scroll(0, this.scrollTop);
   }
 
-  stepPage(back) {
-    let p = parseInt(currentPage.value);
-    let q = (back < 0)? p - 1 : p + 1;
-    if (q < 0 || q >= pages.length) return;
-    pages[p].classList.add("hidden");
-    pages[q].classList.remove("hidden");
-    currentPage.value = "" + q;
+  beginThumb(e) {
+    if (this.moving) return;
+    this.moving = true;
+    let bbSlider = this.slider.getBoundingClientRect();
+    let bbThumb = this.thumb.getBoundingClientRect();
+    let wthumb = bbThumb.right - bbThumb.left;
+    this.offset = bbThumb.left - bbSlider.left - e.clientX;
+    this.width = bbSlider.right - bbSlider.left - wthumb;
+    this.thumb.addEventListener("pointermove", this.moveThumb);
+    this.thumb.addEventListener("pointerup", this.endThumb);
+    this.thumb.addEventListener("pointercancel", this.endThumb);
+    this.thumb.setPointerCapture(e.pointerId);
   }
 
-  place() {  // current position of center of view in paragraphs
-    const {coffset, tops, iNow} = this;
-    let i = iNow;
-    let top = theText.scrollTop;
-    let imax = paragraphs.length - 1;
-    while (tops[i] <= top) {
-      i += 1;
-      if (i > imax) {
-        i = imax;
-        break;
-      }
-    }
-    while (tops[i] > top) {
-      i -= 1;
-      if (i < 0) {
-        i = 0;
-        break;
-      }
-    }
-    this.iNow = i;  // remember as initial guess for next call
-    // Center of text box is in paragraph i, estimate fraction.
-    const ptop = tops[i];
-    const pbot = (i<imax)? tops[i+1] : theText.scrollHeight;
-    let frac = (top - ptop)/(pbot - ptop);
+  moveThumb(e) {
+    let left = e.clientX + this.offset;
+    if (left < 0) left = 0;
+    else if (left > this.width) left = this.width;
+    this.thumb.style.left = left + "px";
+  }
+
+  endThumb(e) {
+    this.moveThumb(e);
+    this.thumb.removeEventListener("pointermove", this.moveThumb);
+    this.thumb.removeEventListener("pointerup", this.endThumb);
+    this.thumb.removeEventListener("pointercancel", this.endThumb);
+    this.thumb.releasePointerCapture(e.pointerId);
+    this.moving = false;
+  }
+
+  setThumb(frac) {
+    const {left, right} = this.slider.getBoundingClientRect();
+    let {left: lthumb, right: wthumb} = this.thumb.getBoundingClientRect();
+    wthumb -= lthumb;
+    this.thumb.style.left = ((right-wthumb-left)*frac) + "px";
+  }
+
+  getThumb() {
+    const {left, right} = this.slider.getBoundingClientRect();
+    let {left: lthumb, right: width} = this.thumb.getBoundingClientRect();
+    width -= lthumb;
+    width = right - left - width;
+    let frac = (lthumb - left) / width;
     if (frac < 0) frac = 0;
-    if (frac >= 1) frac = 0.999;
-    this.highlight(i);
-    return i + frac;
-  }
-
-  onResize(callback) {
-    this._resizeTimeout = null;
-    const topNow = theText.scrollTop;
-    const scrollh = theText.scrollHeight;
-    const coffset = theText.clientHeight/2;
-    this.coffset = coffset;
-    // center = top + coffset    usually, but
-    // center = 1.5*top          when top < 2*coffset (= page height)
-    // center = top + 0.5*(5*coffset + center - height)
-    //        = top + 0.5*(6*coffset + top - height)
-    //        = 1.5*top + 3*coffset - 0.5*height
-    //          when top > height - 4*coffset  (center > height - 3*coffset)
-    // find i with tops[i] <= top < tops[i+1]
-    let center = topNow + this.coffset;
-    if (center < 3*coffset) {
-      center = 1.5*topNow;
-    }
-    if (center > scrollh - 3*coffset) {
-      center = 1.5*topNow - 0.5*scrollh + 3*coffset;
-    }
-    let iNow = 0;
-    let tops = paragraphs.map(pp => 0);
-    let splits = paragraphs.map((pp, i) => {
-      if (!i) return 0;
-      const pp0 = paragraphs[i-1];
-      let off = pp0.offsetTop + pp0.clientHeight;
-      off = (off + pp.offsetTop)/2;
-      let top = off - coffset;    
-      if (top < 2*coffset) {
-        top = off / 1.5;
-      } else if (top > scrollh - 4*coffset) {
-        top = (off + 0.5*scrollh - 3*coffset) / 1.5;
-      }
-      top = Math.ceil(top);
-      if (top <= topNow) iNow = i;
-      tops[i] = top;
-      return off;
-    });
-    this.tops = tops;
-    this.splits = splits;
-    this.iNow = iNow;
-    this.lineHeight = Number(
-      window.getComputedStyle(paragraphs[0]).getPropertyValue("font-size")
-        .match(/\d+/)[0]) * 1.2;  // 1.2 * 1em is "normal" line spacing
-    this.lineHeight = Math.ceil(this.lineHeight);
-    this.pageHeight = theText.clientHeight - this.lineHeight;
-    callback(this.place());
-  }
-
-  highlight(i) {
-    if (this.highlighted !== undefined) {
-      paragraphs[this.highlighted].classList.remove("highlighted");
-    }
-    this.highlighted = i;
-    paragraphs[i].classList.add("highlighted");
+    else if (frac > 0.995) frac = 1;
+    return frac;
   }
 }
 
+const animationControl = new AnimationControl("animation-control");
+
 /* ------------------------------------------------------------------------ */
-/* Two top level containers hold all the other objects.  One is the
-   position space container, and the second is the velocity space container.
-   These always have the origin at the center and an x coordinate
-   running from -220 to 220.  They rescale whenever the stage size changes
-   (e.g.- on window resize).  They can also change dynamically to either
-   overlap or move to non-overlapping positions.  (Note that the container
-   coordinates must have a scale of several hundred as this affects the
-   number of points chosen for the Graphics.ellipse object.)
- */
 
 class Space {
   constructor(parent, virtualStage) {
@@ -553,7 +486,7 @@ function drawOverlay(angle=0) {
   let {x, y} = stage.toLocal({x: 0, y: 0});
   width -= x;
   height -= y;
-  if (calendarOrientation()) {
+  if (calendarLike) {
     height *= Math.cos(angle);
   } else {
     width *= Math.cos(angle);
@@ -806,8 +739,16 @@ class EllipsePlus {
   }
 
   setAlphas(kepler, newton) {
-    if (newton === undefined) newton = 1 - kepler;
     let {ellipse, sector, radius, velocity, accel, focus, lineOP, label} = this;
+    if (kepler == -1) {
+      focus[0].visible = this.planet.visible = false;
+      label[0].visible = label[1].visible = false;
+      kepler = newton = 0;
+    } else {
+      focus[0].visible = this.planet.visible = true;
+      label[0].visible = label[1].visible = true;
+    }
+    if (newton === undefined) newton = 1 - kepler;
     ellipse.visible = sector.visible = (kepler != 0);
     radius.visible = velocity.visible = accel.visible = (newton != 0);
     ellipse.alpha = sector.alpha = (kepler == 0)? 1 : kepler;
@@ -1112,22 +1053,37 @@ window.graphics = graphics;
 
 /* ------------------------------------------------------------------------ */
 
-const figures = [
-  (frac) => {
-    ellipse.setAlphas(1, 0);
-    ellipse.pMove(0);
-  },
-  (frac) => {
-    ellipse.setAlphas(1, 0);
-    ellipse.pMove(twoPi*0.05);
-  },
-  (frac) => {
-    ellipse.setAlphas(0, 1);
-    ellipse.pMove(twoPi*0.05);
-    ellipse.ellipse.visible = ellipse.sector.visible = true;
-    ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
+function blankFigure() {
+  ellipse.setAlphas(-1);
+}
+
+const figures = pages.map((p) => blankFigure);
+let nFigures = 0;
+function defineFigure(f) {
+  if (nFigures >= pages.length) {
+    console.log("discarding figure beyond last page");
+    return;
   }
-]
+  // If animated, f(frac) draws animation frame at 0<=frac<=1
+  // otherwsie, simply define f(), so that f.length is zero if no animation.
+  figures[nFigures] = f;
+  nFigures += 1;
+}
+
+defineFigure(() => {
+  ellipse.setAlphas(1, 0);
+  ellipse.pMove(0);
+});
+defineFigure((frac) => {
+  ellipse.setAlphas(1, 0);
+  ellipse.pMove(twoPi*(0.05 + 2*frac));
+});
+defineFigure((frac) => {
+  ellipse.setAlphas(0, 1);
+  ellipse.pMove(twoPi*(0.05 + 2*frac));
+  ellipse.ellipse.visible = ellipse.sector.visible = true;
+  ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
+});
 
 graphics.appendJump(0, (frac) => {
   ellipse.setAlphas(1, 0);
@@ -1194,6 +1150,13 @@ window.theText = theText;
 
 window.graphics = graphics;
 window.ellipse = ellipse;
+
+// Set initial page according to #currentPage <input> element.
+if (endPage < figures.length) {  // get rid of this test eventually
+  changeFigure(true);  // turn to initial page
+} else {
+  changePage(true);
+}
 
 /* ------------------------------------------------------------------------ */
 

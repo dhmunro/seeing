@@ -217,13 +217,6 @@
       margin-right: auto;
     }
 
-    #figureXX {
-      background: var(--fig-bg);
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-
     .fig {
       position: absolute;
       background: var(--fig-bg);
@@ -245,9 +238,104 @@
       text-align: center;
     }
 
-    #control-box {
-      border-top: 1px solid;
-      grid-column: 1/-1;
+    #animation-control {
+      position: absolute;
+      padding-top: 0.7rem;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, 0);
+      width: 60%;
+      max-width: 25rem;
+    }
+
+    .play-pause {
+      display: inline-block;
+      float: left;
+      width: 2rem;
+      height: 2rem;
+      margin-right: 0.7rem;
+      cursor: pointer;
+    }
+
+    .play, .pause {
+      fill: #888;
+    }
+
+    .play:hover, .pause:hover {
+      fill: #444;
+    }
+
+    .slider {
+      position: relative;
+      display: inline-block;
+      width: calc(100% - 2.7rem);
+      height: 2rem;
+    }
+
+    .trough {
+      margin-top: 0.75rem;
+      height: 0.5rem;
+      border-radius: 0.25rem;
+      background: #ddd;
+    }
+
+    .thumb {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      margin-top: 0.2rem;
+      height: 1.6rem;
+      width: 1.6rem;
+      border-radius: 0.8rem;
+      background: #888;
+      cursor: pointer;
+    }
+
+    .thumb:hover {
+      background: #444;
+    }
+
+    .pg-pager {
+      display: grid;
+      grid: 1fr / 1fr;
+      opacity: 0;
+      transition: opacity 2s;
+    }
+    .pg-pager:hover {
+      opacity: 0.6;
+      transition: opacity 0s;
+    }
+    .pg-flash {
+      opacity: 0.6;
+      transition: opacity 0s;
+    }
+
+    #pg-backward {
+      position: absolute;
+      top: 15%;
+      left: 0;
+      height: 70%;
+      width: 2rem;
+    }
+    #pg-forward {
+      position: absolute;
+      bottom: 15%;
+      right: 0;
+      height: 70%;
+      width: 2rem;
+    }
+
+    .pg-up, .pg-down {
+      display: none;
+      justify-self: center;
+      background: #ddd;
+      fill: #444;
+    }
+    .pg-left, .pg-right {
+      display: inline-block;
+      align-self: center;
+      background: #ddd;
+      fill: #444;
     }
 
     @media (max-aspect-ratio: 1/1) {
@@ -281,6 +369,29 @@
       #figure-wrap {
         margin-left: auto;
       }
+
+      #pg-backward {
+       position: absolute;
+       top: 0;
+       left: 15%;
+       height: 2rem;
+       width: 70%;
+      }
+      #pg-forward {
+       position: absolute;
+       bottom: 0;
+       right: 15%;
+       height: 2rem;
+       width: 70%;
+      }
+
+      .pg-up, .pg-down {
+        display: inline-block;
+      }
+      .pg-left, .pg-right {
+        display: none;
+      }
+
     }
 
     @media screen and (max-width: 720px) {
@@ -739,6 +850,30 @@
     <div id="figure-wrap">
       <canvas class="fig" id="figure"></canvas>
     </div>
+    <div id="animation-control" class="">
+      <div class="play-pause">
+        <svg class="play" xmlns="http://www.w3.org/2000/svg"
+         height="2rem" viewBox="0 0 512 512"><use xlink:href="#fa-play"/></svg>
+        <svg class="pause hidden" xmlns="http://www.w3.org/2000/svg"
+         height="2rem" viewBox="0 0 512 512"><use xlink:href="#fa-pause"/></svg>
+      </div>
+      <div class="slider">
+        <div class="trough"></div><div class="thumb"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pg-backward" class="pg-pager">
+    <svg class="pg-left pg-button" xmlns="http://www.w3.org/2000/svg"
+     height="2rem" viewBox="0 0 512 512"><use xlink:href="#fa-chevron-left"/></svg>
+    <svg class="pg-up pg-button" xmlns="http://www.w3.org/2000/svg"
+     height="2rem" viewBox="0 0 512 512"><use xlink:href="#fa-chevron-up"/></svg>
+  </div>
+  <div id="pg-forward" class="pg-pager">
+    <svg class="pg-right pg-button" xmlns="http://www.w3.org/2000/svg"
+     height="2rem" viewBox="0 0 512 512"><use xlink:href="#fa-chevron-right"/></svg>
+    <svg class="pg-down pg-button" xmlns="http://www.w3.org/2000/svg"
+     height="2rem" viewBox="0 0 512 512"><use xlink:href="#fa-chevron-down"/></svg>
   </div>
 
 </body>
@@ -749,17 +884,33 @@
                   (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
         Copyright 2023 Fonticons, Inc. -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-  <symbol id="fa-xmark" viewBox="0 0 384 512">
-    <path
-      d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
-  </symbol>
   <symbol id="fa-play" viewBox="0 0 384 512">
     <path
       d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" />
   </symbol>
+  <symbol id="fa-pause" viewBox="0 0 320 512">
+    <path
+      d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z" />
+  </symbol>
   <symbol id="fa-chevron-right" viewBox="0 0 320 512">
     <path
       d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z" />
+  </symbol>
+  <symbol id="fa-chevron-left" viewBox="0 0 320 512">
+    <path
+      d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/>
+  </symbol>
+  <symbol id="fa-chevron-up" viewBox="0 0 512 512">
+    <path
+      d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z"/>
+  </symbol>
+  <symbol id="fa-chevron-down" viewBox="0 0 512 512">
+    <path
+      d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+  </symbol>
+  <symbol id="fa-xmark" viewBox="0 0 384 512">
+    <path
+      d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
   </symbol>
   <symbol id="fa-compress" viewBox="0 0 448 512">
     <path
@@ -768,10 +919,6 @@
   <symbol id="fa-expand" viewBox="0 0 448 512">
     <path
       d="M32 32C14.3 32 0 46.3 0 64v96c0 17.7 14.3 32 32 32s32-14.3 32-32V96h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H64V352zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32h64v64c0 17.7 14.3 32 32 32s32-14.3 32-32V64c0-17.7-14.3-32-32-32H320zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H320c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V352z" />
-  </symbol>
-  <symbol id="fa-pause" viewBox="0 0 320 512">
-    <path
-      d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z" />
   </symbol>
   <symbol id="fa-circle-info" viewBox="0 0 512 512">
     <path
