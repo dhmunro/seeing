@@ -126,13 +126,11 @@ function flashPagers() {
   }, 1000);
 }
 
-function setAnimationControlVisibility(q) {
+function setAnimationControlState(q) {
   const isAnimated = (q >= 0)? figures[q].length : 0;
   animationControl.parent.style.display = isAnimated? "block" : "none";
+  animationControl.setThumb(parseFloat(pages[q].dataset.state));
 }
-
-window.flashPagers = flashPagers;
-window.pageForward = pageForward;
 
 function changePage(noTransition=false) {
   let [p, q] = [startPage, endPage];
@@ -143,7 +141,7 @@ function changePage(noTransition=false) {
       changeFigure(true);
     } else {
       flashPagers();
-      setAnimationControlVisibility(q);
+      setAnimationControlState(q);
     }
     return;
   }
@@ -168,7 +166,7 @@ function fwdHandler() {
   pages[q].classList.remove("infront", "easeout");
   pages[p].classList.add("hidden");
   flashPagers();
-  setAnimationControlVisibility(q);
+  setAnimationControlState(q);
 }
 
 function bckHandler() {
@@ -190,13 +188,13 @@ function changeFigure(noTransition=false) {
       changePage(true);
     } else {
       flashPagers();
-      setAnimationControlVisibility(q);
+      setAnimationControlState(q);
     }
     return;
   }
   if (q < p) {  /* text side already turned back */
     // Draw new figure to overlay Texture.  Set overlay to 90 degrees.
-    figures[q](0);
+    figures[q](parseFloat(pages[q].dataset.state));
     app.renderer.render({container: app.stage, target: overlayTexture});
     // Redraw old figure on canvas, with overlay visible but initially rotated.
     figures[p](0);
@@ -205,7 +203,7 @@ function changeFigure(noTransition=false) {
     figEaseOut.start();
   } else if (q > p) {  /* turn figure side first, then trigger text side */
     // Draw old figure to overlay texture.  Set overlay to 0 degrees.
-    figures[p](0);
+    figures[p](parseFloat(pages[p].dataset.state));
     app.renderer.render({container: app.stage, target: overlayTexture});
     // Draw new figure on canvas, with overlay visible, initially covering it.
     figures[q](0);
@@ -287,8 +285,6 @@ class CssTransition {
   }
 }
 
-window.CssTransition = CssTransition
-
 const figEaseOut = new CssTransition("ease-out", pagingDms, (frac) => {
   if (frac < 1.) {
     drawOverlay(0.25*twoPi*(1.-frac));
@@ -296,7 +292,7 @@ const figEaseOut = new CssTransition("ease-out", pagingDms, (frac) => {
     figures[endPage](0);
     overlay.visible = false;
     flashPagers();
-    setAnimationControlVisibility(endPage);
+    setAnimationControlState(endPage);
   }
   app.renderer.render({container: app.stage});
 });
@@ -314,7 +310,7 @@ const figEaseIn = new CssTransition("ease-in", pagingDms, (frac) => {
 /* ------------------------------------------------------------------------ */
 
 class AnimationControl {
-  constructor(parentId) {
+  constructor(parentId, callback) {
     this.parent = document.getElementById(parentId);
     this.play = document.querySelector("#" + parentId + " .play");
     this.pause = document.querySelector("#" + parentId + " .pause");
@@ -330,9 +326,11 @@ class AnimationControl {
     // this.mover = (e) => this.moveThumb(e);
     this.endThumb = this.endThumb.bind(this);
     // this.ender = (e) => this.endThumb(e);
+    this.callback = callback;
   }
 
   playPause() {
+    if (this.moving) return;  // needed despite pointer capture
     if (this.playing) {
       this.playing = false;
       this.pause.classList.add("hidden");
@@ -346,6 +344,7 @@ class AnimationControl {
 
   beginThumb(e) {
     if (this.moving) return;
+    if (this.playing) this.playPause();  // pause before manual move
     this.moving = true;
     let bbSlider = this.slider.getBoundingClientRect();
     let bbThumb = this.thumb.getBoundingClientRect();
@@ -363,6 +362,7 @@ class AnimationControl {
     if (left < 0) left = 0;
     else if (left > this.width) left = this.width;
     this.thumb.style.left = left + "px";
+    if (this.callback) this.callback(this.getThumb());
   }
 
   endThumb(e) {
@@ -371,7 +371,9 @@ class AnimationControl {
     this.thumb.removeEventListener("pointerup", this.endThumb);
     this.thumb.removeEventListener("pointercancel", this.endThumb);
     this.thumb.releasePointerCapture(e.pointerId);
-    this.moving = false;
+    setTimeout((ac) => {
+      ac.moving = false;  // delay slightly to prevent play-pause from firing
+    }, 50, this);
   }
 
   setThumb(frac) {
@@ -379,6 +381,7 @@ class AnimationControl {
     let {left: lthumb, right: wthumb} = this.thumb.getBoundingClientRect();
     wthumb -= lthumb;
     this.thumb.style.left = ((right-wthumb-left)*frac) + "px";
+    if (this.callback) this.callback(frac);
   }
 
   getThumb() {
@@ -393,7 +396,12 @@ class AnimationControl {
   }
 }
 
-const animationControl = new AnimationControl("animation-control");
+const animationControl = new AnimationControl("animation-control", (frac) => {
+  let p = parseInt(currentPage.value);
+  figures[p](frac);
+  app.renderer.render({container: app.stage});
+  pages[p].dataset.state = frac + "";
+});
 
 /* ------------------------------------------------------------------------ */
 
@@ -476,8 +484,6 @@ const velocitySpace = new Space(stage);
 const overlay = new Graphics().rect(-100, -100, 100, 100).fill("blue");
 overlay.visible = false;
 stage.addChild(overlay);
-
-window.stage = stage;
 
 function drawOverlay(angle=0) {
   const scr = app.screen;
@@ -803,154 +809,6 @@ const ellipse = new EllipsePlus(0, 0, 400, 320, "#d9cfba",
 
 app.ticker.autoStart = false;
 
-class GraphicsState {
-  constructor(msJump, dgoal=0) {
-    this.msJump = msJump;  // delay time for jump transitions
-    this.dgoal = dgoal;  // max number of pending transitions
-    this.place = null;
-    this.triggers = [];
-    this.transitions = [];
-    this.animators = [];
-    this.current = 0;
-    this.goal = null;
-    this.t = 0;  // t is elapsed time for current transition
-    // app.ticker.add(this.stepper, this);
-    // app.ticker.stop();  // need this even though autoStart false?
-  }
-
-  scrollTo(place, force=false) {
-    if (this.place === null) {
-      // called from ScrollPosition constructor, no transition lists yet
-      this.place = place;
-      return;
-    }
-    let {triggers, transitions, animators, current, goal, t} = this;
-    let i = current;
-    // find i such that triggers[i] <= place < triggers[i+1]
-    while (triggers[i] > place) {
-      i -= 1;
-    }
-    if (i == current) {
-      const imax = triggers.length - 1;
-      while (i < imax && place >= triggers[i + 1]) {
-        i += 1;
-      }
-    }
-    // triggers[i] <= place < triggers[i+1]
-    if (goal === null) {
-      // initializing from call just after transition lists built
-      this.goal = this.current = i;
-      for (let j = 0; j <= i; j += 1) {
-        // On first pass, call all transitions in order, so that any
-        // one transition simply needs to alter the drawing to change
-        // between its initial and final states.
-        transitions[j].finish(false);
-      }
-      // app.renderer.render({container: app.stage});
-      if (animators[i]) app.ticker.start();
-      return;
-    }
-    if (i == goal) return;  // place does not cross a trigger
-    // scroll has crossed a trigger boundary
-    const animator = (goal == current) && animators[current];
-    if (animator && animator.started) {
-      animator.cancel();  // immediately cancel any animation
-    }
-    // ensure no more than dgoal transitions pending
-    const dgoal = this.dgoal;
-    let transition = transitions[current];
-    while (i > current + dgoal) {
-      transition.finish(false);
-      current += 1;
-      transition = transitions[current];
-    }
-    while (i < current - dgoal) {
-      transition.finish(true);
-      current -= 1;
-      transition = transitions[current];
-    }
-    if (dgoal == 0) {
-      // app.renderer.render({container: app.stage});
-      return;
-    }
-    // set current and goal, then start the ticker
-    const down = (i < current);
-    if (!down) current += 1;
-    transitions[current].start(down);
-    this.current = current;
-    this.goal = i;
-    if (!app.ticker.started) app.ticker.start();
-  }
-
-  // stepper is called by ticker, which is started by scrollTo
-  // current is transition which is happening now or most recently completed
-  //   "completed" means state is at current transition(1)
-  // goal is the transition such that transition(1) state corresponds
-  //   to the current place (most recent scrollTo)
-  stepper(ticker) {
-    let {animators, transitions, current, goal, t} = this;
-    let animator = (current == goal)? animators[current] : null;
-    let dms = ticker.deltaMS;
-    if (dms == 0) return;
-    if (animator && animator.started) {
-      if (!animators[current].step(dms)) {  // animation ended
-        ticker.stop();
-      }
-      return;
-    }
-    const down = (goal < current);
-    const transition = transitions[current];
-    if (down) dms = -dms;
-    this.t = t + dms;
-    if (!transition.step(dms)) {  // transition finished
-      if (down) {
-        current -= 1;
-        this.current = current;
-        if (goal < current) {
-          transitions[current].start(true);
-        } else {  // all transitions done, start animator or stop ticker
-          animator = animators[current];
-          if (animator) animator.start();
-          else ticker.stop();
-        }
-      } else {
-        if (goal > current) {
-          current += 1;
-          this.current = current;
-          transitions[current].start(false);
-        } else {  // all transitions done, start animator or stop ticker
-          animator = animators[current];
-          if (animator) animator.start();
-          else ticker.stop();
-        }
-      }
-    }
-  }
-
-  append(stepper) {
-    if (stepper instanceof Animator) {
-      this.animators[this.transitions.length - 1] = stepper;
-    } else {
-      this.triggers.push(stepper.trigger);
-      this.transitions.push(stepper);
-    }
-  }
-
-  appendJump(trigger, updateScene) {
-    const inow = this.transitions.length - 1;
-    const revertScene = (inow < 0)? updateScene : this.transitions[inow].update;
-    let prev;
-    this.append(new Transition(trigger, this.msJump, (frac) => {
-      frac -= 0.5;
-      if (frac * prev <= 0) {
-        if (frac < 0) revertScene(1);
-        else updateScene(1);
-      }
-      prev = frac;
-    }));
-  }
-}
-
 class Transition {
   constructor(trigger, dts, updateScene) {
     this.trigger = trigger;  // place at which this transition triggers
@@ -1040,24 +898,16 @@ function interp(t, dti, dt, dtf) {
   }
 }
 
-const graphics = new GraphicsState(500);
-positionSpace.graphics = graphics;
-window.graphics = graphics;
-
-// const scrollPos = new ScrollPosition((place) => {
-//   if (place < 0.5) HELP_PANEL.classList.remove("hidden");
-//   else HELP_PANEL.classList.add("hidden");
-//   graphics.scrollTo(place);
-// });
-// window.scrollPos = scrollPos;
-
 /* ------------------------------------------------------------------------ */
 
 function blankFigure() {
   ellipse.setAlphas(-1);
 }
 
-const figures = pages.map((p) => blankFigure);
+const figures = pages.map((p) => {
+  p.dataset.state = 0;
+  return blankFigure;
+});
 let nFigures = 0;
 function defineFigure(f) {
   if (nFigures >= pages.length) {
@@ -1070,86 +920,42 @@ function defineFigure(f) {
   nFigures += 1;
 }
 
-defineFigure(() => {
+defineFigure(() => {  // 0 state: plain ellipse + sector, P at theta=0
   ellipse.setAlphas(1, 0);
   ellipse.pMove(0);
 });
-defineFigure((frac) => {
+defineFigure((frac) => {  // 1 state: plain ellipse + sector, P at theta=pi/10
   ellipse.setAlphas(1, 0);
   ellipse.pMove(twoPi*(0.05 + 2*frac));
 });
-defineFigure((frac) => {
+defineFigure((frac) => {  // 2 state: plain r+v+g vectors, P at theta=pi/10
   ellipse.setAlphas(0, 1);
   ellipse.pMove(twoPi*(0.05 + 2*frac));
   ellipse.ellipse.visible = ellipse.sector.visible = true;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
 });
-
-graphics.appendJump(0, (frac) => {
-  ellipse.setAlphas(1, 0);
-  ellipse.pMove(0);
+defineFigure((frac) => {  // 3 state: simple SPO diagram, P at theta=pi/10
+  ellipse.setAlphas(0, 1);
+  const {radius, velocity, accel, sector, focus, lineOP, label} = ellipse;
+  ellipse.ellipse.visible = true;
+  if (radius.head.visible) radius.headVisible(false);
+  velocity.visible = accel.visible = false;
+  focus[1].visible = lineOP.visible = label[2].visible = true;
+  focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
+  ellipse.pMove(twoPi*(0.05 + 2*frac));
 });
-// 0 state: plain ellipse + sector, P at theta=0
-
-graphics.append(new Transition(
-  1, [250, 500, 250], (frac) => {
-    ellipse.setAlphas(1, 0);
-    ellipse.pMove(0.3*frac);
-  }));
-const demoOrbits = new Animator([500, 7000, 500], (frac) => {
-  ellipse.pMove(0.3 + 2*twoPi*frac);
-}, 1000);
-graphics.append(demoOrbits);
-// 1 state: plain ellipse + sector, P at theta=0.3
-
-graphics.append(new Transition(
-  2, [250, 1500, 250], (frac) => {
-    ellipse.setAlphas(1-frac**2, frac**2);
-    ellipse.pMove(0.3);
-  }));
-graphics.append(demoOrbits);
-// 2 state: plain r+v+g vectors, P at theta=0.3
-
-graphics.append(new Transition(
-  3, [500, 3500, 500], (frac) => {
-    ellipse.setAlphas(0, 1);
-    ellipse.ellipse.visible = ellipse.sector.visible = true;
-    ellipse.ellipse.alpha = ellipse.sector.alpha = frac**2;
-    ellipse.pMove(0.3 + twoPi*frac);
-  }));
-graphics.append(demoOrbits);
-// 3 state: r+v+g vectors + ellipse + sector, P at theta=0.3
-
-graphics.append(new Transition(
-  5, [250, 1500, 250], (frac) => {
-    ellipse.setAlphas(0, 1);
-    const alpha = (1 - 2*frac)**2;
-    const {radius, velocity, accel, sector, focus, lineOP, label} = ellipse;
-    if (frac < 0.5) {
-      if (frac) ellipse.pMove(0.3);
-      ellipse.ellipse.visible = sector.visible = true;
-      sector.alpha = radius.head.alpha = alpha;
-      velocity.alpha = accel.alpha = alpha;
-    } else {
-      ellipse.ellipse.visible = true;
-      if (radius.head.visible) radius.headVisible(false);
-      velocity.visible = accel.visible = false;
-      focus[1].visible = lineOP.visible = label[2].visible = true;
-      focus[1].alpha = lineOP.alpha = label[2].alpha = (1 - 2*frac)**2;
-    }
-  }));
-graphics.append(new Animator([250, 3500, 250], (frac) => {
-  ellipse.pMove(0.3 + twoPi*frac);
-}, 1000));
-// 4 state: simple SPF diagram, P at theta=0.3
-
-graphics.scrollTo(graphics.place);
 
 window.app = app;
 window.theText = theText;
 
-window.graphics = graphics;
 window.ellipse = ellipse;
+
+window.CssTransition = CssTransition;
+window.stage = stage;
+window.flashPagers = flashPagers;
+window.pageForward = pageForward;
+window.flashPagers = flashPagers;
+window.pageForward = pageForward;
 
 // Set initial page according to #currentPage <input> element.
 if (endPage < figures.length) {  // get rid of this test eventually
