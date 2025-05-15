@@ -129,7 +129,7 @@ function flashPagers() {
 function setAnimationControlState(q) {
   const isAnimated = (q >= 0)? figures[q].length : 0;
   animationControl.parent.style.display = isAnimated? "block" : "none";
-  animationControl.setThumb(parseFloat(pages[q].dataset.state));
+  animationControl.setThumb(astates[q][1]);
 }
 
 function changePage(noTransition=false) {
@@ -194,7 +194,7 @@ function changeFigure(noTransition=false) {
   }
   if (q < p) {  /* text side already turned back */
     // Draw new figure to overlay Texture.  Set overlay to 90 degrees.
-    figures[q](parseFloat(pages[q].dataset.state));
+    figures[q](astates[q][1]);
     app.renderer.render({container: app.stage, target: overlayTexture});
     // Redraw old figure on canvas, with overlay visible but initially rotated.
     figures[p](0);
@@ -203,7 +203,7 @@ function changeFigure(noTransition=false) {
     figEaseOut.start();
   } else if (q > p) {  /* turn figure side first, then trigger text side */
     // Draw old figure to overlay texture.  Set overlay to 0 degrees.
-    figures[p](parseFloat(pages[p].dataset.state));
+    figures[p](astates[p][1]);
     app.renderer.render({container: app.stage, target: overlayTexture});
     // Draw new figure on canvas, with overlay visible, initially covering it.
     figures[q](0);
@@ -327,19 +327,40 @@ class AnimationControl {
     this.endThumb = this.endThumb.bind(this);
     // this.ender = (e) => this.endThumb(e);
     this.callback = callback;
+    this.msTotal = 0;
+    this.currentPage = 0;
   }
 
   playPause() {
     if (this.moving) return;  // needed despite pointer capture
-    if (this.playing) {
+    if (this.playing) {  // pause
       this.playing = false;
       this.pause.classList.add("hidden");
       this.play.classList.remove("hidden");
-    } else {
+      app.ticker.remove(this.drawFrame, this);
+      app.ticker.stop();
+    } else {  // play
       this.playing = true;
       this.play.classList.add("hidden");
       this.pause.classList.remove("hidden");
+      this.currentPage = parseInt(currentPage.value);
+      let [duration, frac] = astates[this.currentPage];
+      this.duration = duration;
+      if (frac > 0.995) frac = 0;  // reset if at end
+      this.msTotal = frac * duration;
+      app.ticker.add(this.drawFrame, this);
+      if (this.callback) this.callback(frac);
+      app.ticker.start();
     }
+  }
+
+  drawFrame() {
+    if (!this.playing) return;
+    this.msTotal += app.ticker.deltaMS;
+    let frac = this.msTotal / this.duration;
+    if (frac >= 1) frac = 1;
+    this.setThumb(frac);
+    if (frac >= 1) this.playPause();
   }
 
   beginThumb(e) {
@@ -400,7 +421,7 @@ const animationControl = new AnimationControl("animation-control", (frac) => {
   let p = parseInt(currentPage.value);
   figures[p](frac);
   app.renderer.render({container: app.stage});
-  pages[p].dataset.state = frac + "";
+  astates[p][1] = frac;
 });
 
 /* ------------------------------------------------------------------------ */
@@ -904,12 +925,10 @@ function blankFigure() {
   ellipse.setAlphas(-1);
 }
 
-const figures = pages.map((p) => {
-  p.dataset.state = 0;
-  return blankFigure;
-});
+const figures = pages.map((p) => blankFigure);
+const astates = pages.map((p) => [0, 0]);  // animation [duration, fraction]
 let nFigures = 0;
-function defineFigure(f) {
+function defineFigure(f, duration=0) {
   if (nFigures >= pages.length) {
     console.log("discarding figure beyond last page");
     return;
@@ -917,6 +936,7 @@ function defineFigure(f) {
   // If animated, f(frac) draws animation frame at 0<=frac<=1
   // otherwsie, simply define f(), so that f.length is zero if no animation.
   figures[nFigures] = f;
+  astates[nFigures][0] = duration;  // animation duration in ms
   nFigures += 1;
 }
 
@@ -927,13 +947,13 @@ defineFigure(() => {  // 0 state: plain ellipse + sector, P at theta=0
 defineFigure((frac) => {  // 1 state: plain ellipse + sector, P at theta=pi/10
   ellipse.setAlphas(1, 0);
   ellipse.pMove(twoPi*(0.05 + 2*frac));
-});
+}, 5000);
 defineFigure((frac) => {  // 2 state: plain r+v+g vectors, P at theta=pi/10
   ellipse.setAlphas(0, 1);
   ellipse.pMove(twoPi*(0.05 + 2*frac));
   ellipse.ellipse.visible = ellipse.sector.visible = true;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
-});
+}, 5000);
 defineFigure((frac) => {  // 3 state: simple SPO diagram, P at theta=pi/10
   ellipse.setAlphas(0, 1);
   const {radius, velocity, accel, sector, focus, lineOP, label} = ellipse;
@@ -943,7 +963,7 @@ defineFigure((frac) => {  // 3 state: simple SPO diagram, P at theta=pi/10
   focus[1].visible = lineOP.visible = label[2].visible = true;
   focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
   ellipse.pMove(twoPi*(0.05 + 2*frac));
-});
+}, 5000);
 
 window.app = app;
 window.theText = theText;
