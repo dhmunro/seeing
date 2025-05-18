@@ -447,11 +447,19 @@
 
         <p>The figure shows the planet P and the ellipse of its trajectory with
         the Sun S at one focus.  The gray area represents the sector of the
-        ellipse the radius SP will sweep out in some fixed but arbitrary time
-        (here one twentieth of the period of the planet).  According to Kepler,
+        ellipse the radius SP will sweep out in some fixed but arbitrary time.
+        The arbitrary choice here is one twentieth the period of the planet;
+        the planet P will move to the leading edge of the gray sector in one
+        twentieth as long as a full orbit.  According to Kepler,
         the speed of the planet varies in such a way that the area of the gray
-        sector remains constant (here one twentieth the area of the
-        ellipse).</p>
+        sector remains constant.  Therefore, the area of the gray sector in
+        this figure is always one twentieth the area of the whole ellipse.</p>
+
+        <p>Newton will complicate this picture, because he wants to fit the way
+        a planet moves into his framework for how bodies in general move.  The
+        payoff is that his laws of motion will apply to planets as well as to
+        objects here on Earth &mdash; a radically different approach than
+        Kepler or anyone else before him.</p>
       </div>
 
       <div class="page hidden">
@@ -460,12 +468,33 @@
         <p>Newton introduced a completely new way to think about motion. He
         imagined motion as a series of tiny steps or snapshots very slightly
         separated in time. This is exactly the way animation works &mdash; a
-        rapidly displayed sequence of slightly changing snapshots looks exactly
-        the same as a continuous motion.  (Chopping a trajectory into a series
-        of small steps is essentially <em>differentiation</em> in calculus
-        jargon, while assembling steps back into a trajectory is
-        <em>integration</em>.)
-        </p>
+        rapidly displayed sequence of slightly changing snapshots looks like
+        a continuous motion when the frame rate is high enough.  Chopping a
+        trajectory into a series of small steps is essentially
+        <em>differentiation</em> in calculus jargon, while assembling steps
+        back into a trajectory is <em>integration</em>.</p>
+        
+        <p>Practically speaking, whenever you need to compute how something
+        moves, you cannot avoid breaking its trajectory into a finite number
+        of small steps.  The best you can do is to take steps of short
+        enough duration that the difference between your animated model and
+        a continuous motion does not matter (for whatever purpose your model
+        serves).</p>
+
+        <p>Here we begin with ten frames per period.  The gray sector is
+        initially one tenth the total ellipse area, so the radius vector SP
+        jumps to the end of the gray sector at each step.  The orbit looks very
+        jerky, so after a half period we double the frame rate to twenty
+        per period, halving the area of the gray sector.  Then we double it
+        again, again halving the gray area, and so on.  Soon the animated
+        radius appears to move continously as far as your eye can tell, and the
+        gray area showing the size of each step is invisibly narrow.  Newton
+        described the animation step duration as <em>infinitessimal</em>,
+        meaning &ldquo;as brief as necessary for present purposes.&rdquo;
+        (This amounts to Newton's answer to Zeno's paradox.)</p>
+      </div>
+
+      <div class="page hidden">
 
         <p>During each small step, the body (here a planet or moon) moves in
         very nearly a straight line at a constant speed.  Newton&rsquo;s idea is

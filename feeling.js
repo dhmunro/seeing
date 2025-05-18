@@ -730,9 +730,9 @@ class EllipsePlus {
   }
 
   // move planet to new place on ellipse, specified by mean anomaly (radians)
-  pMove(ma) {
+  pMove(ma, dma0) {
     this.checkScale();
-    const [x, y, y0, xm, ym, xs, ys] = this.arcSolve(ma);
+    const [x, y, y0, xm, ym, xs, ys] = this.arcSolve(ma, dma0);
     const {a, c, vScale, aScale} = this;
     this.planet.position.set(x, y);
     this.radius.modify(x-c, y);
@@ -798,11 +798,12 @@ class EllipsePlus {
     return ea;
   }
 
-  arcSolve(ma) {
+  arcSolve(ma, dma0) {
     const {a, b, dma} = this;
+    if (dma0 === undefined) dma0 = dma;
     const ea = this.eaSolve(ma);
     let [x, y] = [a*Math.cos(ea), a*Math.sin(ea)];
-    const eas = this.eaSolve(ma + dma);
+    const eas = this.eaSolve(ma + dma0);
     let [xs, ys] = [a*Math.cos(eas), a*Math.sin(eas)];
     // (-y, x) is 90 degrees ahead of (x, y)
     const ttho2 = (ys*x - xs*y)/(a**2 + xs*x + ys*y);  // sin(th)/(1+cos(th))
@@ -940,21 +941,51 @@ function defineFigure(f, duration=0) {
   nFigures += 1;
 }
 
-defineFigure(() => {  // 0 state: plain ellipse + sector, P at theta=0
+// How Newton recast Kepler's Laws and grounded the heavens
+defineFigure(() => {  // plain ellipse + sector, P at theta=0
   ellipse.setAlphas(1, 0);
   ellipse.pMove(0);
 });
-defineFigure((frac) => {  // 1 state: plain ellipse + sector, P at theta=pi/10
+// How Kepler thinks about motion
+defineFigure((frac) => {  // plain ellipse + sector, P at theta=pi/10
   ellipse.setAlphas(1, 0);
-  ellipse.pMove(twoPi*(0.05 + 2*frac));
-}, 5000);
-defineFigure((frac) => {  // 2 state: plain r+v+g vectors, P at theta=pi/10
+  ellipse.pMove(twoPi*(0.05 + 3*frac));
+}, 12000);
+// How Newton thinks about motion
+defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   ellipse.setAlphas(0, 1);
-  ellipse.pMove(twoPi*(0.05 + 2*frac));
+  // Of three orbits, want first half to step by 1/20, second half by 1/40
+  // third half by 1/80, fourth half by 1/160, third orbit continuous.
+  const period = 1./3.;
+  let dma = 0;
+  if (frac < 0.5*period) {
+    frac -= (frac % (period/10));
+    dma = twoPi / 10;
+  } else if (frac < period) {
+    frac -= (frac % (period/20));
+    dma = twoPi / 20;
+  } else if (frac < 1.5*period) {
+    frac -= (frac % (period/40));
+    dma = twoPi / 40;
+  } else if (frac < 2*period) {
+    frac -= (frac % (period/80));
+    dma = twoPi / 80;
+  } else if (frac < 2.5*period) {
+    frac -= (frac % (period/160));
+    dma = twoPi / 160;
+  }
+  ellipse.pMove(twoPi*(0.05 + 3*frac), dma);
+  ellipse.ellipse.visible = ellipse.sector.visible = true;
+  ellipse.velocity.visible = ellipse.accel.visible = false;
+  ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
+}, 12000);
+defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
+  ellipse.setAlphas(0, 1);
+  ellipse.pMove(twoPi*(0.05 + 3*frac));
   ellipse.ellipse.visible = ellipse.sector.visible = true;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
-}, 5000);
-defineFigure((frac) => {  // 3 state: simple SPO diagram, P at theta=pi/10
+}, 12000);
+defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
   ellipse.setAlphas(0, 1);
   const {radius, velocity, accel, sector, focus, lineOP, label} = ellipse;
   ellipse.ellipse.visible = true;
@@ -962,8 +993,8 @@ defineFigure((frac) => {  // 3 state: simple SPO diagram, P at theta=pi/10
   velocity.visible = accel.visible = false;
   focus[1].visible = lineOP.visible = label[2].visible = true;
   focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
-  ellipse.pMove(twoPi*(0.05 + 2*frac));
-}, 5000);
+  ellipse.pMove(twoPi*(0.05 + 3*frac));
+}, 12000);
 
 window.app = app;
 window.theText = theText;
@@ -972,10 +1003,6 @@ window.ellipse = ellipse;
 
 window.CssTransition = CssTransition;
 window.stage = stage;
-window.flashPagers = flashPagers;
-window.pageForward = pageForward;
-window.flashPagers = flashPagers;
-window.pageForward = pageForward;
 
 // Set initial page according to #currentPage <input> element.
 if (endPage < figures.length) {  // get rid of this test eventually
