@@ -85,10 +85,15 @@ window.addEventListener("keydown", e => {
     stepPage(pages.length-1, true);
     break;
   case "PageUp":
+  case "Backspace":
     stepPage(-1);
     break;
   case "PageDown":
+  case "Enter":
     stepPage();
+    break;
+  case " ":
+    animationControl.playPause();
     break;
   default:
     return;
@@ -664,6 +669,9 @@ class EllipsePlus {
     this.vScale = vScale;
     const velocity = new Arrow(positionSpace.space, vStroke, [24, 12],
                                a, 0, a, -vScale*(a+c));
+    const vtraj = new Graphics().arc(a, -vScale*c, vScale*a,
+      0, twoPi).stroke(vStroke);
+    positionSpace.add(vtraj);
     const aScale = (vScale*b)**2/(a*c);  // common dt for vel and acc arrows
     this.aScale = aScale;
     const accel = new Arrow(positionSpace.space, aStroke, [24, 12],
@@ -685,6 +693,8 @@ class EllipsePlus {
     foc1.visible = lineOP.visible = linePQ.visible = vplanet.visible = false;
     radius.visible = velocity.visible = accel.visible = linePM.visible = false;
     circle.visible = lineSQ.visible = lineOQ.visible = false;
+    this.vtraj = vtraj;
+    vtraj.visible = false;
 
     const style = new TextStyle({
       fontFamily: "Arial", fontSize: 30, fontWeight: "bold",
@@ -730,7 +740,7 @@ class EllipsePlus {
   }
 
   // move planet to new place on ellipse, specified by mean anomaly (radians)
-  pMove(ma, dma0) {
+  pMove(ma, dma0, ma1) {
     this.checkScale();
     const [x, y, y0, xm, ym, xs, ys] = this.arcSolve(ma, dma0);
     const {a, c, vScale, aScale} = this;
@@ -740,6 +750,15 @@ class EllipsePlus {
     const vr = a / Math.sqrt((x-c)**2 + y**2);
     const [vx, vy] = [vScale*vr*y, vScale*(vr*(c-x) - c)];
     this.velocity.modify(vx, vy);
+    let [ang0, ang1, vyc] = [0, twoPi, vScale*c];
+    if (ma1 !== undefined && ma-ma1 < 2*twoPi) {
+      const [x1, y1] = this.arcSolve(ma1);
+      const vr1 = a / Math.sqrt((x1-c)**2 + y1**2);
+      const [vx1, vy1c] = [vScale*vr1*y1, vScale*vr1*(c-x1)];
+      ang0 = Math.atan2(vy+vyc, vx);
+      ang1 = Math.atan2(vy1c, vx1);
+    }
+    this.vtraj.clear().arc(x, y-vyc, vScale*a, ang0, ang1).stroke();
     this.accel.position.set(x+vx, y+vy);
     const ar = aScale * vr**2;
     this.accel.modify(ar*(c-x), -ar*y);
@@ -783,6 +802,7 @@ class EllipsePlus {
     radius.headVisible(true);
     focus[1].visible = lineOP.visible = label[2].visible = false;
     focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
+    this.vtraj.visible = false;
   }
 
   eaSolve(ma, tol=1.e-6) {
@@ -977,6 +997,19 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   ellipse.pMove(twoPi*(0.05 + 3*frac), dma);
   ellipse.ellipse.visible = ellipse.sector.visible = true;
   ellipse.velocity.visible = ellipse.accel.visible = false;
+  ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
+}, 12000);
+// Velocity trajectory
+defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
+  ellipse.setAlphas(0, 1);
+  if (frac > 1./3.) {
+    ellipse.pMove(twoPi*(0.05 + 3*frac), ellipse.dma, twoPi*0.05);
+    ellipse.vtraj.visible = true;
+  } else {
+    ellipse.pMove(twoPi*(0.05 + 3*frac));
+  }
+  ellipse.ellipse.visible = ellipse.sector.visible = true;
+  ellipse.accel.visible = false;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
 }, 12000);
 defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10

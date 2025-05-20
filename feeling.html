@@ -436,7 +436,7 @@
       </div>
 
       <div class="page hidden">
-        <h3>How Kepler thinks about motion</h3>
+        <h2>How Kepler thinks about motion</h2>
 
         <p>&ldquo;A planet moves in an ellipse with the Sun at one focus, such
         that the line between the Sun and planet sweeps out equal areas in equal
@@ -449,8 +449,8 @@
         the Sun S at one focus.  The gray area represents the sector of the
         ellipse the radius SP will sweep out in some fixed but arbitrary time.
         The arbitrary choice here is one twentieth the period of the planet;
-        the planet P will move to the leading edge of the gray sector in one
-        twentieth as long as a full orbit.  According to Kepler,
+        the planet P will advamce to the leading edge of the gray sector in
+        one twentieth as long as a full orbit.  According to Kepler,
         the speed of the planet varies in such a way that the area of the gray
         sector remains constant.  Therefore, the area of the gray sector in
         this figure is always one twentieth the area of the whole ellipse.</p>
@@ -463,55 +463,57 @@
       </div>
 
       <div class="page hidden">
-        <h3>How Newton thinks about motion</h3>
+        <h2>How Newton thinks about motion</h2>
 
         <p>Newton introduced a completely new way to think about motion. He
         imagined motion as a series of tiny steps or snapshots very slightly
-        separated in time. This is exactly the way animation works &mdash; a
+        separated in time. This is exactly how animation works &mdash; a
         rapidly displayed sequence of slightly changing snapshots looks like
         a continuous motion when the frame rate is high enough.  Chopping a
         trajectory into a series of small steps is essentially
         <em>differentiation</em> in calculus jargon, while assembling steps
         back into a trajectory is <em>integration</em>.</p>
         
-        <p>Practically speaking, whenever you need to compute how something
-        moves, you cannot avoid breaking its trajectory into a finite number
-        of small steps.  The best you can do is to take steps of short
-        enough duration that the difference between your animated model and
-        a continuous motion does not matter (for whatever purpose your model
-        serves).</p>
-
         <p>Here we begin with ten frames per period.  The gray sector is
         initially one tenth the total ellipse area, so the radius vector SP
         jumps to the end of the gray sector at each step.  The orbit looks very
-        jerky, so after a half period we double the frame rate to twenty
-        per period, halving the area of the gray sector.  Then we double it
-        again, again halving the gray area, and so on.  Soon the animated
-        radius appears to move continously as far as your eye can tell, and the
-        gray area showing the size of each step is invisibly narrow.  Newton
-        described the animation step duration as <em>infinitessimal</em>,
-        meaning &ldquo;as brief as necessary for present purposes.&rdquo;
-        (This amounts to Newton's answer to Zeno's paradox.)</p>
+        jerky, so after a half period we double the frame rate to twenty per
+        period, halving the area of the gray sector.  After a second half period
+        we again double frame rate and halve the gray area, and so on.  Soon the
+        animated radius appears to move continously as far as your eye can tell,
+        and the gray area showing the size of each step is invisibly narrow.
+        Newton described the animation step duration as <em>infinitessimal</em>,
+        meaning &ldquo;as brief as necessary for present purposes.&rdquo;</p>
       </div>
 
       <div class="page hidden">
+        <h2>Velocity trajectory</h2>
 
-        <p>During each small step, the body (here a planet or moon) moves in
-        very nearly a straight line at a constant speed.  Newton&rsquo;s idea is
-        to find a rule for computing the small change in velocity, or
-        acceleration, before taking the next step. If you can find an
-        acceleration rule (here the inverse square law), then your animation
-        will automatically trace out the trajectory.</p>
+        <p>Velocity is rate of change of position, which will play a role
+        similar to the rate of change of area in Kepler's second law.  You can
+        represent the velocity vector by an arrow pointing along the
+        instantaneous direction of motion, with length proportional to speed.
+        That is, if the tail of the arrow is at the body, the tip of the arrow
+        is at the place the body would be after some fixed but arbitrary time if
+        its velocity were unchanging.  Here, the fixed time is one twentieth the
+        period of the planet.  As before, the leading edge of the shaded sector
+        shows where the planet will actually be after that same time
+        interval.</p>
 
-        <p>The direction of the velocity is always tangent to the trajectory
-        &mdash; the ellipse in this case. The magnitude of the velocity is the
-        speed of the planet. The scale of the velocity arrow in the drawing is
-        arbitrary &mdash; the tip of the arrow is where the planet would have
-        moved after some fixed but arbitrary time, had it continued in a
-        straight line at a constant speed.  However, the velocity is not
-        constant; the acceleration arrow, drawn with its tail at the head of the
-        velocity arrow, indicates rate of change of velocity in the same way the
-        velocity arrow represents rate of change of position.</p>
+        <p>Kepler's first two laws specify exactly how the planet moves, so
+        by taking very short time steps, you can compute the instantaneous
+        velocity as accurately as you please.  If you imagine infinitessimal
+        steps, you understand that the velocity vector must always be tangent
+        to the ellipse, and the equal area law means it will be longer or
+        shorter as the planet P approaches or recedes from the Sun S.</p>
+        
+        <p>By keeping track of the tip of the velocity vector &mdash; a velocity
+        trajectory &mdash; you notice something interesting: It seems to
+        trace a circle around P.  Of course, the center of this circle is
+        displaced upward from P, since the length of the vector has to change.
+        We will show that the velocity trajectory is not just approximately a
+        displaced circle, but precisely so for any body orbiting according to
+        Kepler's first two laws.</p>
       </div>
 
       <div class="page hidden">
