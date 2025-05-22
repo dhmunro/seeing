@@ -345,17 +345,21 @@ class AnimationControl {
       app.ticker.remove(this.drawFrame, this);
       app.ticker.stop();
     } else {  // play
-      this.playing = true;
-      this.play.classList.add("hidden");
-      this.pause.classList.remove("hidden");
       this.currentPage = parseInt(currentPage.value);
       let [duration, frac] = astates[this.currentPage];
       this.duration = duration;
-      if (frac > 0.995) frac = 0;  // reset if at end
+      if (frac < 0.995) {
+        this.playing = true;
+        this.play.classList.add("hidden");
+        this.pause.classList.remove("hidden");
+      } else {
+        frac = 0;
+        this.setThumb(0);
+      }
       this.msTotal = frac * duration;
       app.ticker.add(this.drawFrame, this);
       if (this.callback) this.callback(frac);
-      app.ticker.start();
+      if (this.playing) app.ticker.start();
     }
   }
 
@@ -667,11 +671,15 @@ class EllipsePlus {
                              c, 0, a, 0);
     const vScale = dma * a/b;  // common dt for vel arrow and shaded sector
     this.vScale = vScale;
+    const vtStroke = {...stroke};
+    vtStroke.color = "#6c6ce6";
+    const vtrajr = new Graphics().moveTo(a, -vScale*c).lineTo(
+      a, -vScale*a).stroke(vtStroke);
+    const vtraj = new Graphics().arc(a, -vScale*c, vScale*a,
+      0, twoPi).stroke(vtStroke);
+    positionSpace.add(vtrajr, vtraj);
     const velocity = new Arrow(positionSpace.space, vStroke, [24, 12],
                                a, 0, a, -vScale*(a+c));
-    const vtraj = new Graphics().arc(a, -vScale*c, vScale*a,
-      0, twoPi).stroke(vStroke);
-    positionSpace.add(vtraj);
     const aScale = (vScale*b)**2/(a*c);  // common dt for vel and acc arrows
     this.aScale = aScale;
     const accel = new Arrow(positionSpace.space, aStroke, [24, 12],
@@ -694,7 +702,8 @@ class EllipsePlus {
     radius.visible = velocity.visible = accel.visible = linePM.visible = false;
     circle.visible = lineSQ.visible = lineOQ.visible = false;
     this.vtraj = vtraj;
-    vtraj.visible = false;
+    this.vtrajr = vtrajr
+    vtraj.visible = vtrajr.visible = false;
 
     const style = new TextStyle({
       fontFamily: "Arial", fontSize: 30, fontWeight: "bold",
@@ -751,7 +760,7 @@ class EllipsePlus {
     const [vx, vy] = [vScale*vr*y, vScale*(vr*(c-x) - c)];
     this.velocity.modify(vx, vy);
     let [ang0, ang1, vyc] = [0, twoPi, vScale*c];
-    if (ma1 !== undefined && ma-ma1 < 2*twoPi) {
+    if (ma1 !== undefined && ma-ma1 > twoPi && ma-ma1 < 2*twoPi) {
       const [x1, y1] = this.arcSolve(ma1);
       const vr1 = a / Math.sqrt((x1-c)**2 + y1**2);
       const [vx1, vy1c] = [vScale*vr1*y1, vScale*vr1*(c-x1)];
@@ -759,6 +768,7 @@ class EllipsePlus {
       ang1 = Math.atan2(vy1c, vx1);
     }
     this.vtraj.clear().arc(x, y-vyc, vScale*a, ang0, ang1).stroke();
+    this.vtrajr.clear().moveTo(x, y-vyc).lineTo(x+vx, y+vy).stroke();
     this.accel.position.set(x+vx, y+vy);
     const ar = aScale * vr**2;
     this.accel.modify(ar*(c-x), -ar*y);
@@ -802,7 +812,7 @@ class EllipsePlus {
     radius.headVisible(true);
     focus[1].visible = lineOP.visible = label[2].visible = false;
     focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
-    this.vtraj.visible = false;
+    this.vtraj.visible = this.vtrajr.visible = false;
   }
 
   eaSolve(ma, tol=1.e-6) {
@@ -1005,19 +1015,15 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   if (frac > 1./3.) {
     ellipse.pMove(twoPi*(0.05 + 3*frac), ellipse.dma, twoPi*0.05);
     ellipse.vtraj.visible = true;
+    ellipse.vtrajr.visible = true;
+    ellipse.vtrajr.alpha = (frac > 2./3.)? 1 : 3*frac - 1;
   } else {
     ellipse.pMove(twoPi*(0.05 + 3*frac));
   }
   ellipse.ellipse.visible = ellipse.sector.visible = true;
   ellipse.accel.visible = false;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
-}, 12000);
-defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
-  ellipse.setAlphas(0, 1);
-  ellipse.pMove(twoPi*(0.05 + 3*frac));
-  ellipse.ellipse.visible = ellipse.sector.visible = true;
-  ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
-}, 12000);
+}, 15000);
 defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
   ellipse.setAlphas(0, 1);
   const {radius, velocity, accel, sector, focus, lineOP, label} = ellipse;
@@ -1027,7 +1033,7 @@ defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
   focus[1].visible = lineOP.visible = label[2].visible = true;
   focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
   ellipse.pMove(twoPi*(0.05 + 3*frac));
-}, 12000);
+}, 18000);
 
 window.app = app;
 window.theText = theText;

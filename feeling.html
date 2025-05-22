@@ -489,14 +489,13 @@
       <div class="page hidden">
         <h2>Velocity trajectory</h2>
 
-        <p>Velocity is rate of change of position, which will play a role
-        similar to the rate of change of area in Kepler's second law.  You can
-        represent the velocity vector by an arrow pointing along the
+        <p>You can represent the velocity vector &mdash; the rate of change of
+        position &mdash; by an arrow pointing along the
         instantaneous direction of motion, with length proportional to speed.
         That is, if the tail of the arrow is at the body, the tip of the arrow
         is at the place the body would be after some fixed but arbitrary time if
-        its velocity were unchanging.  Here, the fixed time is one twentieth the
-        period of the planet.  As before, the leading edge of the shaded sector
+        its velocity were unchanging. Here, the fixed time is one twentieth the
+        period of the planet. As before, the leading edge of the shaded sector
         shows where the planet will actually be after that same time
         interval.</p>
 
@@ -507,9 +506,9 @@
         to the ellipse, and the equal area law means it will be longer or
         shorter as the planet P approaches or recedes from the Sun S.</p>
         
-        <p>By keeping track of the tip of the velocity vector &mdash; a velocity
-        trajectory &mdash; you notice something interesting: It seems to
-        trace a circle around P.  Of course, the center of this circle is
+        <p>When you keep track of the tip of the velocity vector &mdash; a velocity
+        trajectory &mdash; something interesting happens: It seems to
+        trace a circle around P. Of course, the center of this circle is
         displaced upward from P, since the length of the vector has to change.
         We will show that the velocity trajectory is not just approximately a
         displaced circle, but precisely so for any body orbiting according to
@@ -517,50 +516,13 @@
       </div>
 
       <div class="page hidden">
-        <h2>Trajectory in velocity space</h2>
-
-        <p>The amount of calculation necessary to carry out Newton&rsquo;s
-        vision of animated motion is very large, unless there are mathematical
-        tricks to bypass most of the labor. Keplerian orbits turn out to be one
-        of those trick cases, as you will see. First, however, with a modern
-        computer like this browser, you can easily perform many million
-        calculations per second, and cut straight to the answer, with no need
-        for any tricks. The program which animates this ellipse computes a
-        series of small steps in the position of the point on the ellipse using
-        Kepler&rsquo;s equal area rule. By dividing each of these small
-        displacements by the interframe time, it can also draw a good
-        approximation to the instantaneous velocity vector at any time.</p>
-
-        <p>You know the tip of the radius vector SP traces an ellipse with its
-        tail at one focus. It looks like the tip of the velocity vector traces
-        an eccentric circle, that is, a circle displaced from the tail of the
-        arrow. You can verify this numerically, by taking smaller and smaller
-        steps around the Keplerian ellipse and applying the equal area law
-        between steps. In fact, you can verify that the eccentricity of the
-        circle in velocity space (the ratio of the displacement of its center
-        from the origin to its radius) is identical to the eccentricity of the
-        ellipse (defined in a moment) in ordinary position space.</p>
-
-        <p>So the trajectory of a planet in velocity space is an off-center
-        circle with the same eccentricity as its ellipse.  That is, the
-        <em>derivative</em> of a Keplerian ellipse is an eccentric circle.
-        (Ironically, this is the path Hipparchus and Ptolemy thought the Sun
-        followed around the Earth.) The geometrical proof of this fact gives you
-        some important additional insights into the connection between a
-        planet&rsquo;s velocity and its position, as well as a glimpse of
-        Newton&rsquo;s mathematical genius. As far as the math goes, the proof
-        seems like a trick or shortcut for all that calculation. But the proof
-        allows you to visualize and explore the relationships among the
-        positions and velocities, which you need to understand the physics
-        behind the numbers. Here it is, in two parts.</p>
-
-        <h2>Tangent to an ellipse</h2>
+        <h2>Defining an ellipse</h2>
 
         <p>An ellipse is the set of points for which the sum of the distances
         from two fixed points &mdash; its foci &mdash; is constant. Eccentricity
         is the ratio of the distance between the foci and the fixed sum of
-        distances; an ellipse with zero eccentricity is a circle (with both foci
-        coinciding at the center).  Notice that the major axis, or largest
+        distances; an ellipse with zero eccentricity is a circle with both foci
+        coinciding at the center.  Notice that the major axis, or largest
         diameter, of the ellipse equals that fixed sum of distances. The minor
         axis is the smallest diameter, always perpendicular to the major axis.
         Minor axis equals major axis for eccentricity zero, decreasing to zero
@@ -568,49 +530,52 @@
         eccentricity).</p>
 
         <p>Let S be the Sun at one focus and P be the planet
-          on the ellipse. If O is the other focus, then SP plus PO is a fixed
-          constant for any position of P. Extend SP to Q such that PQ equals
-          PO. Then SQ remains constant as P moves around the ellipse; in
-          other words, SQ sweeps out a circle with center S. Furthermore, OPQ
-          is always an isoceles triangle, which means that P lies on the
-          perpendicular bisector MP of OQ, where M is the midpoint of OQ.</p>
+        on the ellipse. If O is the other focus, then SP plus PO is a fixed
+        constant for any position of P. Extend SP to Q such that PQ equals
+        PO. Then SQ remains constant as P moves around the ellipse; in
+        other words, SQ sweeps out a circle with center S. Furthermore, OPQ
+        is always an isoceles triangle, which means that P lies on the
+        perpendicular bisector MP of OQ, where M is the midpoint of OQ.</p>
 
         <p>In fact, MP must be tangent to the ellipse at P.
-          To understand why, move P to any other point on the perpendicular
-          bisector of OQ. Since SPQ is no longer a straight line, the sum of
-          SP and PQ, hence the sum of SP and PO, must be greater than SQ for
-          any point on line MP other than the original P on SQ. But since the
-          ellipse is defined as all the points P with SP plus PO equal SQ,
-          every point on line MP must lie outside the ellipse, except for the
-          original P, which lies on it. Since line MP touches the ellipse
-          only at one point P, it must be tangent to the ellipse at P.</p>
+        To understand why, move P to any other point on the perpendicular
+        bisector of OQ. Since SPQ is no longer a straight line, the sum of
+        SP and PQ, hence the sum of SP and PO, must be greater than SQ for
+        any point on line MP other than the original P on SQ. But since the
+        ellipse is defined as all the points P with SP plus PO equal SQ,
+        every point on line MP must lie outside the ellipse, except for the
+        original P, which lies on it. Since line MP touches the ellipse
+        only at one point P, it must be tangent to the ellipse at P.</p>
 
         <p>Because the tangent MP is perpendicular to OQ, if
-          you rotate OSQ ninety degrees counterclockwise (the direction the
-          planet is moving here), then OQ will be parallel to the tangent of
-          the ellipse at P. That is, OQ now points in the direction of the
-          velocity vector at P. By construction, SQ is now always ninety
-          degrees ahead of the planet radius vector SP &mdash; a fact that
-          comes into play later. For now, if you interpret the sides of OSQ
-          as velocity vectors, you see that the velocity OQ of the planet,
-          tangent to its ellipse, moves around an eccentric circle of radius
-          SQ, displaced from zero velocity O by the fixed vector OS
-          perpendicular to the major axis of the ellipse. And the
-          eccentricity of this circle is the same as the eccentricity of the
-          ellipse by construction.</p>
+        you rotate OSQ ninety degrees counterclockwise (the direction the
+        planet is moving here), then OQ will be parallel to the tangent of
+        the ellipse at P. That is, OQ now points in the direction of the
+        velocity vector at P. By construction, SQ is now always ninety
+        degrees ahead of the planet radius vector SP &mdash; a fact that
+        comes into play later. For now, if you interpret the sides of OSQ
+        as velocity vectors, you see that the velocity OQ of the planet,
+        tangent to its ellipse, moves around an eccentric circle of radius
+        SQ, displaced from zero velocity O by the fixed vector OS
+        perpendicular to the major axis of the ellipse. And the
+        eccentricity of this circle is the same as the eccentricity of the
+        ellipse by construction.</p>
 
         <p>Thus, if the trajectory in velocity space is an
-          eccentric circle, and the radius vector SQ in velocity space always
-          leads the radius vector SP in ordinary space by ninety degrees, then
-          the point P indeed moves around an ellipse (of the same eccentricity
-          as the circle) with S at one focus. To complete Newton&rsquo;s
-          proof, you still need to demonstrate that SP sweeps over equal areas
-          in equal times. That is, you have proven that the velocity OQ
-          points in the correct direction &mdash; tangent to the ellipse
-          &mdash; but you still have to demonstrate that the length of OQ
-          agrees with the speed of the planet according to Kepler&rsquo;s
-          equal area law.</p>
+        eccentric circle, and the radius vector SQ in velocity space always
+        leads the radius vector SP in ordinary space by ninety degrees, then
+        the point P indeed moves around an ellipse (of the same eccentricity
+        as the circle) with S at one focus. To complete Newton&rsquo;s
+        proof, you still need to demonstrate that SP sweeps over equal areas
+        in equal times. That is, you have proven that the velocity OQ
+        points in the correct direction &mdash; tangent to the ellipse
+        &mdash; but you still have to demonstrate that the length of OQ
+        agrees with the speed of the planet according to Kepler&rsquo;s
+        equal area law.</p>
 
+      </div>
+
+      <div class="page hidden">
         <h2>Equal areas in equal times</h2>
 
         <p>Acceleration is to velocity what velocity is to
@@ -667,6 +632,9 @@
           endless progression of rates of change, instead relating
           acceleration to position.</p>
 
+      </div>
+
+      <div class="page hidden">
         <h2>Inverse square law</h2>
 
         <p>The trajectories in position and velocity space
@@ -724,6 +692,9 @@
           secondary; what you need to study are the relationships between
           instantaneous position, velocity, and acceleration.</p>
 
+      </div>
+
+      <div class="page hidden">
         <h2>Kepler&rsquo;s third law</h2>
 
         <p>So far, all you know is that each planet
@@ -780,6 +751,9 @@
           this inverse square law? Newton acknowledged he had no clue about
           this final mystery with the quip, "Hypotheses non fingo."</p>
 
+      </div>
+
+      <div class="page hidden">
         <h2>Feeling the solar system</h2>
 
         <p>The same year Kepler published his first two
@@ -833,6 +807,9 @@
           planets has brought Newton right back to the one force we all feel
           from birth &mdash; gravity.</p>
 
+      </div>
+
+      <div class="page hidden">
         <h2>Gravity</h2>
 
         <p>Newton&rsquo;s great insight &mdash; far more
