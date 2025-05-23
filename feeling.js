@@ -1026,14 +1026,29 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
 }, 15000);
 defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
   ellipse.setAlphas(0, 1);
-  const {radius, velocity, accel, sector, focus, lineOP, label} = ellipse;
+  const {radius, velocity, accel, focus, lineOP, label} = ellipse;
   ellipse.ellipse.visible = true;
   if (radius.head.visible) radius.headVisible(false);
   velocity.visible = accel.visible = false;
   focus[1].visible = lineOP.visible = label[2].visible = true;
   focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
-  ellipse.pMove(twoPi*(0.05 + 3*frac));
-}, 18000);
+  const [x, a] = [frac, 0.1];
+  let y = 1 + 7*a;
+  const x0 = 4*a/y;
+  y *= x;
+  y = (x < 2*x0)? 0.5*y*x/x0 - y + a : y - 7*a;
+  ellipse.pMove(twoPi*0.5*y);
+}, 6000);
+defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
+  ellipse.setAlphas(0, 1);
+  const {radius, velocity, accel, focus, lineOP, label} = ellipse;
+  ellipse.ellipse.visible = true;
+  if (radius.head.visible) radius.headVisible(false);
+  velocity.visible = accel.visible = false;
+  focus[1].visible = lineOP.visible = label[2].visible = true;
+  focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
+  ellipse.pMove(twoPi*(0.05 + 0.55*frac));
+}, 3000);
 
 window.app = app;
 window.theText = theText;

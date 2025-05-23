@@ -519,34 +519,40 @@
         <h2>Defining an ellipse</h2>
 
         <p>An ellipse is the set of points for which the sum of the distances
-        from two fixed points &mdash; its foci &mdash; is constant. Eccentricity
-        is the ratio of the distance between the foci and the fixed sum of
-        distances; an ellipse with zero eccentricity is a circle with both foci
-        coinciding at the center.  Notice that the major axis, or largest
-        diameter, of the ellipse equals that fixed sum of distances. The minor
-        axis is the smallest diameter, always perpendicular to the major axis.
-        Minor axis equals major axis for eccentricity zero, decreasing to zero
-        as the eccentricity increases to one (the largest possible
-        eccentricity).</p>
+        from two fixed points &mdash; its foci &mdash; is constant. The major
+        axis, or largest diameter, is on the line connecting the foci. The
+        minor axis, or smallest diameter, is on the perpendicular bisector of
+        the major axis and passes through the center of the ellipse. For a
+        Keplerian ellipse, the Sun S is at one of focus, the planet P is
+        a point on the ellipse, and the other focus O is a point in empty space.
+        The planet is closest to the Sun (its <em>perihelion</em>) at the
+        endpoint of the major axis near S, and farthest from the Sun (its
+        <em>aphelion</em>) at the endpoint near O.</p>
 
-        <p>Let S be the Sun at one focus and P be the planet
-        on the ellipse. If O is the other focus, then SP plus PO is a fixed
-        constant for any position of P. Extend SP to Q such that PQ equals
-        PO. Then SQ remains constant as P moves around the ellipse; in
-        other words, SQ sweeps out a circle with center S. Furthermore, OPQ
-        is always an isoceles triangle, which means that P lies on the
-        perpendicular bisector MP of OQ, where M is the midpoint of OQ.</p>
+        <p>Since the distance from S to perihelion is the same as from O to
+        apehelion, the constant sum of distances SP plus PO equals the major
+        axis of the ellipse.  Extend SP to Q such that PQ equals PO. Then SQ
+        remains constant as P moves around the ellipse; in other words, SQ
+        sweeps out a circle with center S.</p>
+      </div>
 
-        <p>In fact, MP must be tangent to the ellipse at P.
-        To understand why, move P to any other point on the perpendicular
+      <div class="page hidden">
+        <h2>Tangent to an ellipse</h2>
+
+        <p>By construction, OPQ is always an isoceles triangle, which means
+        that P lies on the perpendicular bisector MP of OQ, where M is the
+        midpoint of OQ.  In fact, MP must be tangent to the ellipse at P.</p>
+
+        <p>To understand why, move P to any other point on the perpendicular
         bisector of OQ. Since SPQ is no longer a straight line, the sum of
         SP and PQ, hence the sum of SP and PO, must be greater than SQ for
         any point on line MP other than the original P on SQ. But since the
         ellipse is defined as all the points P with SP plus PO equal SQ,
         every point on line MP must lie outside the ellipse, except for the
         original P, which lies on it. Since line MP touches the ellipse
-        only at one point P, it must be tangent to the ellipse at P.</p>
+        only at one point P, it is tangent to the ellipse at P.</p>
 
+        <hr/>
         <p>Because the tangent MP is perpendicular to OQ, if
         you rotate OSQ ninety degrees counterclockwise (the direction the
         planet is moving here), then OQ will be parallel to the tangent of
@@ -560,6 +566,14 @@
         perpendicular to the major axis of the ellipse. And the
         eccentricity of this circle is the same as the eccentricity of the
         ellipse by construction.</p>
+
+        <p>Eccentricity
+        is the ratio of the distance between the foci and the fixed sum of
+        distances; an ellipse with zero eccentricity is a circle with both foci
+        coinciding at the center. Minor axis equals major axis for eccentricity zero,
+        decreasing to zero
+        as the eccentricity increases to one (the largest possible
+        eccentricity).</p>
 
         <p>Thus, if the trajectory in velocity space is an
         eccentric circle, and the radius vector SQ in velocity space always
