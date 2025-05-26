@@ -12,7 +12,7 @@ const pageForward = document.getElementById("pg-forward");
 const pageBackward = document.getElementById("pg-backward");
 const pages = Array.from(theText.querySelectorAll("div.page"));
 const pagingDms = (p => {
-  const dt = window.getComputedStyle(pages[0]).getPropertyValue(p);
+  const dt = getComputedStyle(pages[0]).getPropertyValue(p);
   let dms = parseFloat(dt);
   if (dt.slice(-2) != "ms") {  // But dt always in units of s?
     dms *= 1000;
@@ -20,7 +20,7 @@ const pagingDms = (p => {
   return dms;
 })("transition-duration");
 const figBgColor = (p =>
-  window.getComputedStyle(theFigure).getPropertyValue(p)
+  getComputedStyle(theFigure).getPropertyValue(p)
 )("background");
 
 const canvas = document.getElementById("figure");
@@ -40,6 +40,7 @@ let calendarLike = portraitOrientation.matches;
 portraitOrientation.addEventListener("change", () => {
   calendarLike = portraitOrientation.matches;
 });
+let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
 window.fig = canvas;
 window.app = app;
@@ -154,7 +155,7 @@ function changePage(noTransition=false) {
     pages[q].classList.add("infront", "easeout", "midturn");
     pages[q].classList.remove("hidden");
     /* need getComputedStyle to force transform to update in DOM */
-    window.getComputedStyle(pages[q]).getPropertyValue("transform");
+    getComputedStyle(pages[q]).getPropertyValue("transform");
     pages[q].addEventListener("transitionend", fwdHandler);
     pages[q].classList.remove("midturn");
   } else {
@@ -463,11 +464,12 @@ class Space {
     this.graphics = null;
   }
 
-  rescale(width, height, scale) {
+  rescale(width, height, scale, draw=true) {
     const space = this.space;
     if (this.observer) {  // this is the virtual stage
       [width, height] = [app.screen.width, app.screen.height];
-      overlayTexture.resize(width, height);  // keep RenderTexture same size as canvas
+      overlayTexture.resize(width, height);  // overlay same size as canvas
+      rem = parseInt(getComputedStyle(document.documentElement).fontSize);
     }
     if (scale !== undefined) {
       const [x, y] = [width, height];
@@ -481,7 +483,7 @@ class Space {
       const sc = ((xmax < ymax)? xmax : ymax) / 500;
       space.scale.set(sc, sc);
     }
-    app.renderer.render({container: app.stage});
+    if (draw) app.renderer.render({container: app.stage});
   }
 
   add(...children) {
@@ -551,6 +553,7 @@ class Arrow {
     }
     this.lhead = lhead;
     this.whead = whead;
+    this.headScale = [lhead/width, whead/width];
     const both = new Container();
     both.addChild(new Graphics(), new Graphics());
     parent.addChild(both);
@@ -622,10 +625,42 @@ class Arrow {
       line.clear().moveTo(0, 0).lineTo(dx, dy).stroke();
     }
   }
+
+  setLineWidth(lw) {
+    this.line.strokeStyle.width = lw;
+    const [lrel, wrel] = this.headScale;
+    this.lhead *= lrel*lw;
+    this.whead *= wrel*lw;
+  }
 }
 
 class EllipsePlus {
-  constructor(x, y, a, b, fill, stroke, dotSize, dotStyle, dma, sectStyle) {
+  constructor(x, y, a, b, dma, sizes, colors) {
+    // In v8 there is no obvious way to force the transform matrices
+    // to be updated to their current values without rendering the scene.
+    // Nevertheless, even without the correctly updated transform matrices,
+    // the toGlobal function works properly.
+    const scale = positionSpace.space.toGlobal({x:1, y:0}).x -
+      positionSpace.space.toGlobal({x:0, y:0}).x;
+    this.pscale = this.vscale = scale;
+    // scale units in CSS root coords is 1 unit in positionSpace
+    const rem0 = rem / scale;  // 1 CSS rem in positionSpace
+    this.rem0 = rem0;
+    this.sizes = sizes;  // sizes are in units of CSS rem
+    let {lw, dot: dotSize, font: fontSize} = sizes;
+    [lw, dotSize, fontSize] = [rem0*lw, rem0*dotSize, rem0*fontSize];
+    this.colors = colors;
+    const stroke = {color: colors.p, width: lw, cap: "round"};
+    const vStroke = {color: colors.v, width: lw, cap: "round"};
+    const aStroke = {color: colors.a, width: lw, cap: "round"};
+    const opStroke = {color: colors.op, width: lw, cap: "round"};
+    const vtStroke = {color: colors.vt, width: lw, cap: "round"};
+
+    // ellipse .ellipse(0, 0, a, b)  circle .circle(c, 0, 2*a)
+    // lineSQ, lineOP, linePQ, linePM,        focus[foc0, foc1], planet
+    // sector, lineOQ, vtraj, vtrajr, velocity, accel
+    this.offscale = [0, 0, 1];  // overall [xoffset, yoffset, scale]
+
     this.x = x;
     this.y = y;
     this.a = a;
@@ -634,45 +669,35 @@ class EllipsePlus {
     this.c = c;
     this.dma = dma;
     const ellipse = new Graphics().ellipse(0, 0, a, b)
-          .fill(fill).stroke(stroke);
+          .fill(colors.f).stroke(stroke);
     this.ellipse = ellipse;
     // if object argument to stroke(), but not setStrokeStyle()?
     // type LineCap = 'butt' | 'round' | 'square'
     // type LineJoin = 'bevel' | 'round' | 'miter'
-    const vColor = "#0000bb", aColor = "#5c4033", opColor = "#008800";
-    const vStroke = {...stroke};
-    vStroke.color = vColor;
-    const aStroke = {...stroke};
-    aStroke.color = aColor;
-    const opStroke = {...stroke};
-    opStroke.color = opColor;
     const circle = new Graphics().circle(c, 0, 2*a).stroke(vStroke);
-    const vplanet = new Graphics().circle(0, 0, dotSize).fill(vColor);
+    const vplanet = new Graphics().circle(0, 0, dotSize).fill(colors.v);
     vplanet.position.set(2*a+c, 0);
     const lineSQ = new Graphics().moveTo(c, 0).lineTo(2*a+c,0).stroke(vStroke);
     const lineOP = new Graphics().moveTo(-c, 0).lineTo(a, 0).stroke(opStroke);
     const linePQ = new Graphics().moveTo(a, 0).lineTo(2*a+c,0).stroke(opStroke);
-    const linePM = new Graphics().moveTo(a, c/2).lineTo(a,-c/2).stroke(vStroke);
-    const foc0 = new Graphics().circle(c, 0, dotSize).fill(dotStyle);
-    const foc1 = new Graphics().circle(-c, 0, dotSize).fill(vColor);
-    const planet = new Graphics().circle(0, 0, dotSize).fill(dotStyle);
+    const linePM = new Graphics().moveTo(a, c/2).lineTo(a,-c/2).stroke(stroke);
+    const foc0 = new Graphics().circle(c, 0, dotSize).fill(colors.p);
+    const foc1 = new Graphics().circle(-c, 0, dotSize).fill(colors.v);
+    const planet = new Graphics().circle(0, 0, dotSize).fill(colors.p);
     planet.x = a;
     const [xx, yy, y0, xm, ym, xs, ys] = this.arcSolve(0);
     const sector = new Graphics().moveTo(xs, ys).lineTo(c, 0).lineTo(xx, y0)
-      .arcTo(xm, ym, xs, ys, a).fill(sectStyle);
+      .arcTo(xm, ym, xs, ys, a).fill(colors.s);
     sector.scale.set(1, b/a);
-    positionSpace.add(ellipse, sector, lineOP, linePQ, linePM);
+    positionSpace.add(ellipse, sector, lineOP, linePM, linePQ, foc0, planet);
     velocitySpace.add(lineSQ, circle, foc1, vplanet);
     const lineOQ = new Arrow(velocitySpace.space, vStroke, [24, 12],
                              -c, 0, 2*a+c, 0);
     lineOQ.headVisible(false);
-    positionSpace.add(foc0, planet);
     const radius = new Arrow(positionSpace.space, stroke, [24, 12],
                              c, 0, a, 0);
     const vScale = dma * a/b;  // common dt for vel arrow and shaded sector
     this.vScale = vScale;
-    const vtStroke = {...stroke};
-    vtStroke.color = "#6c6ce6";
     const vtrajr = new Graphics().moveTo(a, -vScale*c).lineTo(
       a, -vScale*a).stroke(vtStroke);
     const vtraj = new Graphics().arc(a, -vScale*c, vScale*a,
@@ -697,6 +722,7 @@ class EllipsePlus {
     this.linePM = linePM;
     this.lineSQ = lineSQ;
     this.vplanet = vplanet;
+    this.circle = circle;
     this.ma = 0;
     foc1.visible = lineOP.visible = linePQ.visible = vplanet.visible = false;
     radius.visible = velocity.visible = accel.visible = linePM.visible = false;
@@ -706,15 +732,15 @@ class EllipsePlus {
     vtraj.visible = vtrajr.visible = false;
 
     const style = new TextStyle({
-      fontFamily: "Arial", fontSize: 30, fontWeight: "bold",
+      fontFamily: "Arial", fontSize: 1.17*rem/scale, fontWeight: "bold",
     });
     const sLabel = new Text({text: "S", style: style});
     sLabel.anchor.set(0.5, 0.5);
-    const offset = 20;
-    this.labelOffset = offset;
+    const offset = 0.8*rem0;
+    this.labelOffset = 0.8;
     sLabel.position.set(c, offset);
     const oStyle = style.clone();
-    oStyle.fill = vColor;
+    oStyle.fill = colors.v;
     const oLabel = new Text({text: "O", style: oStyle});
     oLabel.anchor.set(0.5, 0.5);
     oLabel.position.set(-c, offset);
@@ -722,30 +748,59 @@ class EllipsePlus {
     const pLabel = new Text({text: "P", style: style});
     pLabel.anchor.set(0.5, 0.5);
     pLabel.position.set(a+offset, 0);
-    positionSpace.add(sLabel, pLabel, oLabel);
+    const mLabel = new Text({text: "M", style: style});
+    mLabel.anchor.set(0.5, 0.5);
+    mLabel.position.set(a-offset, 0);
+    mLabel.visible = false;
     const qLabel = new Text({text: "Q", style: oStyle});
     qLabel.anchor.set(0.5, 0.5);
     qLabel.position.set(2*a+c+offset, 0);
     qLabel.visible = false;
-    positionSpace.add(sLabel, pLabel);
+    positionSpace.add(sLabel, pLabel, mLabel);
     velocitySpace.add(oLabel, qLabel);
-    this.label = [sLabel, pLabel, oLabel, qLabel];
-
-    // In v8 there is no obvious way to force the transform matrices
-    // to be updated to their current values without rendering the scene.
-    // Nevertheless, even without the correctly updated transform matrices,
-    // the toGlobal function works properly.
-    const scale = positionSpace.space.toGlobal({x:1, y:0}).x -
-          positionSpace.space.toGlobal({x:0, y:0}).x;
-    this.scale0 = this.pscale = this.vscale = scale;
+    this.label = [sLabel, pLabel, oLabel, qLabel, mLabel];
   }
 
   checkScale() {
     const pscale = positionSpace.space.toGlobal({x:1, y:0}).x -
-          positionSpace.space.toGlobal({x:0, y:0}).x;
+      positionSpace.space.toGlobal({x:0, y:0}).x;
     const vscale = velocitySpace.space.toGlobal({x:1, y:0}).x -
-          velocitySpace.space.toGlobal({x:0, y:0}).x;
-    if (pscale == this.pscale && vscale == this.vscale) return;
+      velocitySpace.space.toGlobal({x:0, y:0}).x;
+    // If size of Space has changed, PIXI line widths and font sizes will
+    // scale, but we want to keep them a constant size in screen pixels,
+    // just like the font size in ordinary html elements.
+    if (pscale != this.pscale) {
+      this.pscale = pscale;
+      const rem0 = rem / pscale;
+      let {lw, dot, font} = this.sizes;
+      [lw, dot, font] = [rem0*lw, rem0*dot, rem0*font];
+      const {ellipse, lineOP, linePQ, linePM, vtraj, vtrajr} = this;
+      for (let g of [ellipse, lineOP, linePQ, linePM, vtraj, vtrajr])
+        g.strokeStyle.width = lw;
+      ellipse.clear().ellipse(0, 0, this.a, this.b).fill().stroke();
+      this.lineOQ.setLineWidth(lw);
+      this.planet.clear().circle(0, 0, dot).fill();
+      this.focus[0].clear().circle(this.c, 0, dot).fill();
+      const offset = this.labelOffset * rem / pscale;
+      this.label[0].position.set(this.c, offset);
+      for (let i of [0, 1]) this.label[i].style.fontSize = font;
+    }
+    if (vscale != this.vscale) {
+      this.vscale = vscale;
+      const rem0 = rem / pscale;
+      let {lw, dot, font} = this.sizes;
+      [lw, dot, font] = [rem0*lw, rem0*dot, rem0*font];
+      const {circle} = this;
+      for (let g of [circle]) g.strokeStyle.width = lw;
+      circle.clear().circle(this.c, 0, 2*this.a).stroke();
+      const {radius, velocity, accel} = this;
+      for (let a of [radius, velocity, accel]) a.setLineWidth(lw);
+      this.vplanet.clear().circle(0, 0, dot).fill();
+      this.focus[1].clear().circle(-this.c, 0, dot).fill();
+      const offset = this.labelOffset * rem / vscale;
+      this.label[2].position.set(-this.c, offset);
+      for (let i of [2, 3]) this.label[i].style.fontSize = font;
+    }
   }
 
   // move planet to new place on ellipse, specified by mean anomaly (radians)
@@ -778,9 +833,9 @@ class EllipsePlus {
     this.lineOQ.modify(qx+c, qy);
     this.lineSQ.clear().moveTo(c, 0).lineTo(qx, qy).stroke();
     this.vplanet.position.set(qx, qy);
-    let factor = 1 + this.labelOffset/Math.sqrt(x**2 + y**2);
+    let factor = 1 + this.labelOffset*rem/this.pscale/Math.sqrt(x**2 + y**2);
     this.label[1].position.set(factor*x, factor*y);
-    factor = 1 + this.labelOffset/Math.sqrt(qx**2 + qy**2);
+    factor = 1 + this.labelOffset*rem/this.vscale/Math.sqrt(qx**2 + qy**2);
     this.label[3].position.set(factor*qx, factor*qy);
     this.sector.clear().moveTo(xs, ys).lineTo(c, 0).lineTo(x, y0)
       .arcTo(xm, ym, xs, ys, a).fill();
@@ -795,7 +850,10 @@ class EllipsePlus {
   }
 
   setAlphas(kepler, newton) {
-    let {ellipse, sector, radius, velocity, accel, focus, lineOP, label} = this;
+    positionSpace.rescale(0, 0, 1, false);
+    velocitySpace.rescale(0, 0, 1, false);
+    let {ellipse, sector, radius, velocity, accel, focus, lineOP, linePQ,
+         label, circle, lineOQ, linePM} = this;
     if (kepler == -1) {
       focus[0].visible = this.planet.visible = false;
       label[0].visible = label[1].visible = false;
@@ -810,8 +868,15 @@ class EllipsePlus {
     ellipse.alpha = sector.alpha = (kepler == 0)? 1 : kepler;
     radius.alpha = velocity.alpha = accel.alpha = (newton == 0)? 1 : newton;
     radius.headVisible(true);
-    focus[1].visible = lineOP.visible = label[2].visible = false;
+    focus[1].visible = lineOP.visible = linePQ.visible = false;
+    label[2].visible = label[3].visible = circle.visible = false;
     focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
+    lineOQ.visible = linePM.visible = false;
+    lineOQ.alpha = linePM.alpha = 1;
+    lineOP.position.set(0, 0);  // moved during one figure animation
+    linePQ.pivot.set(0, 0);
+    linePQ.rotation = 0;
+    linePQ.position.set(0, 0);
     this.vtraj.visible = this.vtrajr.visible = false;
   }
 
@@ -849,9 +914,10 @@ const twoPi = 2*Math.PI;
 // #d9cfba is hsl(41, 29%, 79%)
 // #073642 is hsl(192, 81%, 14%)
 const xform = new Transform();
-const ellipse = new EllipsePlus(0, 0, 400, 320, "#d9cfba",
-                                {color: "#073642", width: 3, cap: "round"},
-                                6, "#073642", Math.PI/10, "#8884");
+const ellipse = new EllipsePlus(
+  0, 0, 400, 320, Math.PI/10, {lw: 0.12, dot: 0.24, font: 1.2},
+  {f: "#d9cfba", p: "#073642", v: "#0000bb", a: "#5c4033", op: "#008800",
+   vt: "#6c6ce6", s: "#8884"});
 
 // velocitySpace.space.rotation = -Math.PI/2;
 // velocitySpace.rescale(0, 60, 0.5);
@@ -1024,21 +1090,116 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   ellipse.accel.visible = false;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
 }, 15000);
-defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
+// Defining an ellipse
+let dtparts = [5000, 3000, 1000, 1500, 1000, 5000];
+let dttot = dtparts.reduce((p, q) => p + q);
+defineFigure((frac) => {
   ellipse.setAlphas(0, 1);
-  const {radius, velocity, accel, focus, lineOP, label} = ellipse;
+  const {radius, velocity, accel, focus, lineOP, linePQ, label} = ellipse;
   ellipse.ellipse.visible = true;
   if (radius.head.visible) radius.headVisible(false);
   velocity.visible = accel.visible = false;
   focus[1].visible = lineOP.visible = label[2].visible = true;
   focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
-  const [x, a] = [frac, 0.1];
-  let y = 1 + 7*a;
-  const x0 = 4*a/y;
-  y *= x;
-  y = (x < 2*x0)? 0.5*y*x/x0 - y + a : y - 7*a;
-  ellipse.pMove(twoPi*0.5*y);
-}, 6000);
+  let x, y, y0, x0;
+  const {a, c} = ellipse;
+  let [tprev, tnow, tnext] = [0, frac * dttot, dtparts[0]];
+  if (tnow <= tnext) {
+    [x, y0] = [tnow/tnext, 0.1];
+    y = 1 + 7*y0;
+    x0 = 4*y0/y;
+    y *= x;
+    y = (x < 2*x0)? 0.5*y*x/x0 - y + y0 : y - 7*y0;
+    ellipse.pMove(twoPi*0.5*y);
+    return;
+  }
+  [tprev, tnext] = [tnext, tnext + dtparts[1]];
+  if (tnow <= tnext) {
+    ellipse.pMove(twoPi*0.5);
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    if (x < 1./3) {
+      lineOP.alpha = (x < 0.25)? 4*x : 1;
+      lineOP.position.set(a+c, 0);
+    } else {
+      x = 1.5*x - 0.5;  // varies from 0 to 1
+      y = 0.5 - Math.abs(x-0.5);
+      if (y > 0.05) y = 0.05;
+      lineOP.position.set((a+c)*(1-x), -c*y);
+    }
+    return;
+  }
+  [tprev, tnext] = [tnext, tnext + dtparts[2]];
+  if (tnow <= tnext) {
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    ellipse.pMove(twoPi*(0.5 + 0.3*x));
+    return;
+  }
+  [tprev, tnext] = [tnext, tnext + dtparts[3]];
+  if (tnow <= tnext) {
+    ellipse.pMove(twoPi*0.8);
+    linePQ.visible = true;
+    [x0, y0] = ellipse.arcSolve(twoPi*0.8);
+    linePQ.pivot.set(x0, y0);  // also changes position??
+    let ang = 0.5*twoPi - Math.atan2(y0, x0-c) + Math.atan2(y0, x0+c);
+    x = 1.5*(tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    linePQ.rotation = (x < 1)? ang*(1-x) : 0;
+    linePQ.position.set(x0, y0);  // fix pivot?
+    label[3].visible = x >= 1;
+    return;
+  }
+  [tprev, tnext] = [tnext, tnext + dtparts[4]];
+  if (tnow <= tnext) {
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    positionSpace.rescale(-0.5*c*x, 0, 1-0.5*x, false);
+    velocitySpace.rescale(-0.5*c*x, 0, 1-0.5*x, false);
+    ellipse.pMove(twoPi*0.8);
+    linePQ.visible = label[3].visible = true;
+    ellipse.circle.visible = true;
+    return;
+  }
+  [tprev, tnext] = [tnext, tnext + dtparts[5]];
+  if (tnow <= tnext) {
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    positionSpace.rescale(-0.5*c, 0, 0.5, false);
+    velocitySpace.rescale(-0.5*c, 0, 0.5, false);
+    ellipse.pMove(twoPi*(0.8 + x));
+    linePQ.visible = label[3].visible = true;
+    ellipse.circle.visible = true;
+  }
+}, dttot);
+// Defining an ellipse
+dtparts = [2000, 5000];
+dttot = dtparts.reduce((p, q) => p + q);
+defineFigure((frac) => {
+  ellipse.setAlphas(0, 1);
+  const {radius, velocity, accel, focus, lineOP, linePQ, label,
+    lineOQ, linePM} = ellipse;
+  ellipse.ellipse.visible = true;
+  if (radius.head.visible) radius.headVisible(false);
+  velocity.visible = accel.visible = false;
+  focus[1].visible = lineOP.visible = label[2].visible = true;
+  focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
+  let x, y, y0, x0;
+  const {a, c} = ellipse;
+  positionSpace.rescale(-0.5*c, 0, 0.5, false);
+  velocitySpace.rescale(-0.5*c, 0, 0.5, false);
+  linePQ.visible = lineOQ.visible = label[3].visible = true;
+  ellipse.circle.visible = linePM.visible = true;
+  ellipse.pMove(twoPi*(0.8 + x));
+  let [tprev, tnow, tnext] = [0, frac * dttot, dtparts[0]];
+  if (tnow <= tnext) {
+    x = tnow / tnext;
+    ellipse.lineOQ.alpha = ellipse.linePM.alpha = x;
+    ellipse.pMove(twoPi*0.8);
+    return;
+  }
+  [tprev, tnext] = [tnext, tnext + dtparts[1]];
+  if (tnow <= tnext) {
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    ellipse.pMove(twoPi*(0.8 + x));
+    return;
+  }
+}, dttot);
 defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
   ellipse.setAlphas(0, 1);
   const {radius, velocity, accel, focus, lineOP, label} = ellipse;
