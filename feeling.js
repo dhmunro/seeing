@@ -104,6 +104,25 @@ window.addEventListener("keydown", e => {
 
 let startPage = 0, endPage = parseInt(currentPage.value);
 
+let dtparts, dttot;
+function drawFigure(p, frac) {
+  if (p === undefined) p = parseInt(currentPage.value);
+  const state = astates[p];
+  if (frac === undefined) {
+    frac = state[1];
+  } else {
+    state[1] = frac;
+  }
+  if (state[0].length) {
+    dtparts = state[0];
+    dttot = dtparts.reduce((p, q) => p + q);
+  } else {
+    dttot = state[0];
+    dtparts = [dttot];
+  }
+  figures[p](frac);
+}
+
 function stepPage(by=1, from0=false) {
   let p = parseInt(currentPage.value);
   let q = from0? by : p + by;
@@ -188,7 +207,7 @@ function changeFigure(noTransition=false) {
   let [p, q] = [startPage, endPage];
   // Animate the page turn for figure side using PIXI.
   if (noTransition) {
-    figures[q](0);
+    drawFigure(q);
     app.renderer.render({container: app.stage});
     if (q > p) {
       changePage(true);
@@ -200,24 +219,24 @@ function changeFigure(noTransition=false) {
   }
   if (q < p) {  /* text side already turned back */
     // Draw new figure to overlay Texture.  Set overlay to 90 degrees.
-    figures[q](astates[q][1]);
+    drawFigure(q);
     app.renderer.render({container: app.stage, target: overlayTexture});
     // Redraw old figure on canvas, with overlay visible but initially rotated.
-    figures[p](0);
+    drawFigure(p);
     overlay.visible = true;
     // Animate new figure rotating to cover old.
     figEaseOut.start();
   } else if (q > p) {  /* turn figure side first, then trigger text side */
     // Draw old figure to overlay texture.  Set overlay to 0 degrees.
-    figures[p](astates[p][1]);
+    drawFigure(p);
     app.renderer.render({container: app.stage, target: overlayTexture});
     // Draw new figure on canvas, with overlay visible, initially covering it.
-    figures[q](0);
+    drawFigure(q);
     overlay.visible = true;
     // Animate old figure rotating to expose new.
     figEaseIn.start();
   } else {  // can have q==p when initializing
-    figures[q](0);
+    drawFigure(q);
     app.renderer.render({container: app.stage});
   }
 }
@@ -295,7 +314,7 @@ const figEaseOut = new CssTransition("ease-out", pagingDms, (frac) => {
   if (frac < 1.) {
     drawOverlay(0.25*twoPi*(1.-frac));
   } else {
-    figures[endPage](0);
+    drawFigure(endPage);
     overlay.visible = false;
     flashPagers();
     setAnimationControlState(endPage);
@@ -348,6 +367,10 @@ class AnimationControl {
     } else {  // play
       this.currentPage = parseInt(currentPage.value);
       let [duration, frac] = astates[this.currentPage];
+      if (duration.length) {
+        dtparts = duration;
+        duration = dttot = dtparts.reduce((p, q) => p + q);
+      }
       this.duration = duration;
       if (frac < 0.995) {
         this.playing = true;
@@ -428,10 +451,8 @@ class AnimationControl {
 }
 
 const animationControl = new AnimationControl("animation-control", (frac) => {
-  let p = parseInt(currentPage.value);
-  figures[p](frac);
+  drawFigure(parseInt(currentPage.value), frac);
   app.renderer.render({container: app.stage});
-  astates[p][1] = frac;
 });
 
 /* ------------------------------------------------------------------------ */
@@ -1091,8 +1112,6 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
 }, 15000);
 // Defining an ellipse
-let dtparts = [5000, 3000, 1000, 1500, 1000, 5000];
-let dttot = dtparts.reduce((p, q) => p + q);
 defineFigure((frac) => {
   ellipse.setAlphas(0, 1);
   const {radius, velocity, accel, focus, lineOP, linePQ, label} = ellipse;
@@ -1166,10 +1185,8 @@ defineFigure((frac) => {
     linePQ.visible = label[3].visible = true;
     ellipse.circle.visible = true;
   }
-}, dttot);
+}, [5000, 3000, 1000, 1500, 1000, 5000]);
 // Defining an ellipse
-dtparts = [2000, 5000];
-dttot = dtparts.reduce((p, q) => p + q);
 defineFigure((frac) => {
   ellipse.setAlphas(0, 1);
   const {radius, velocity, accel, focus, lineOP, linePQ, label,
@@ -1199,7 +1216,7 @@ defineFigure((frac) => {
     ellipse.pMove(twoPi*(0.8 + x));
     return;
   }
-}, dttot);
+}, [2000, 5000]);
 defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
   ellipse.setAlphas(0, 1);
   const {radius, velocity, accel, focus, lineOP, label} = ellipse;
