@@ -1175,6 +1175,11 @@ defineFigure((frac) => {
   [tprev, tnext] = [tnext, tnext + dtparts[3]];
   if (tnow <= tnext) {
     ellipse.pMove(twoPi*0.8);
+    return;
+  }
+  [tprev, tnext] = [tnext, tnext + dtparts[4]];
+  if (tnow <= tnext) {
+    ellipse.pMove(twoPi*0.8);
     linePQ.visible = true;
     [x0, y0] = ellipse.arcSolve(twoPi*0.8);
     linePQ.pivot.set(x0, y0);  // also changes position??
@@ -1187,7 +1192,7 @@ defineFigure((frac) => {
   }
   linePQ.visible = label[3].visible = true;
   ellipse.circle.visible = true;
-  [tprev, tnext] = [tnext, tnext + dtparts[4]];
+  [tprev, tnext] = [tnext, tnext + dtparts[5]];
   if (tnow <= tnext) {
     x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
     positionSpace.rescale(-0.5*c*x, 0, 1-0.5*x, false);
@@ -1195,14 +1200,14 @@ defineFigure((frac) => {
     ellipse.pMove(twoPi*0.8);
     return;
   }
-  [tprev, tnext] = [tnext, tnext + dtparts[5]];
+  [tprev, tnext] = [tnext, tnext + dtparts[6]];
   if (tnow <= tnext) {
     x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
     positionSpace.rescale(-0.5*c, 0, 0.5, false);
     velocitySpace.rescale(-0.5*c, 0, 0.5, false);
     ellipse.pMove(twoPi*(0.8 + x));
   }
-}, [5000, 3000, 1000, 1500, 1000, 5000]);
+}, [5000, 4000, 2000, 1000, 1500, 2000, 5000]);
 // Tangent to an ellipse
 defineFigure((frac) => {
   ellipse.setAlphas(0, 1);
