@@ -377,8 +377,10 @@ class AnimationControl {
         this.play.classList.add("hidden");
         this.pause.classList.remove("hidden");
       } else {
-        frac = 0;
         this.setThumb(0);
+        this.msTotal = 0;
+        if (this.callback) this.callback(0);
+        return;
       }
       this.msTotal = frac * duration;
       app.ticker.add(this.drawFrame, this);
@@ -917,6 +919,7 @@ class EllipsePlus {
     linePQ.rotation = 0;
     linePQ.position.set(0, 0);
     this.vtraj.visible = this.vtrajr.visible = false;
+    this.vtraj.alpha = this.vtrajr.alpha = 1;
   }
 
   eaSolve(ma, tol=1.e-6) {
@@ -955,7 +958,7 @@ const twoPi = 2*Math.PI;
 const xform = new Transform();
 const ellipse = new EllipsePlus(
   0, 0, 400, 320, Math.PI/10, {lw: 0.12, dot: 0.24, font: 1.2},
-  {f: "#d9cfba", p: "#073642", v: "#0000bb", a: "#5c4033", op: "#008800",
+  {f: "#d9cfba", p: "#073642", v: "#0000bb", a: "#b7652b", op: "#008800",
    vt: "#6c6ce6", s: "#8884"});
 
 // velocitySpace.space.rotation = -Math.PI/2;
@@ -1128,7 +1131,29 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   ellipse.ellipse.visible = ellipse.sector.visible = true;
   ellipse.accel.visible = false;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
-}, 15000);
+}, 16000);
+// Newton's laws of motion
+defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
+  ellipse.setAlphas(0, 1);
+  ellipse.pMove(twoPi*(0.05 + 3*frac));
+  ellipse.vtraj.visible = true;
+  ellipse.vtrajr.visible = true;
+  ellipse.accel.visible = true;
+  ellipse.ellipse.visible = ellipse.sector.visible = true;
+  ellipse.accel.visible = true;
+  ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
+}, 16000);
+// Equal areas in equal times redux
+defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
+  ellipse.setAlphas(0, 1);
+  ellipse.pMove(twoPi*(0.05 + 3*frac));
+  ellipse.vtraj.visible = true;
+  ellipse.vtrajr.visible = true;
+  ellipse.accel.visible = true;
+  ellipse.ellipse.visible = ellipse.sector.visible = true;
+  ellipse.accel.visible = true;
+  ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
+}, 16000);
 // Defining an ellipse
 defineFigure((frac) => {
   ellipse.setAlphas(0, 1);

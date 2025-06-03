@@ -441,8 +441,8 @@
         <p>&ldquo;A planet moves in an ellipse with the Sun at one focus, such
         that the line between the Sun and planet sweeps out equal areas in equal
         times.&rdquo; Kepler&rsquo;s first two laws are a very natural way to
-        think about motion: First you describe the trajectory of an object, then
-        you find a rule for how the object progresses along that trajectory over
+        think about motion: First you describe the trajectory of a body, then
+        you find a rule for how the body progresses along that trajectory over
         time.</p>
 
         <p>The figure shows the planet P and the ellipse of its trajectory with
@@ -459,7 +459,7 @@
         a planet moves into his framework for how bodies in general move.  The
         payoff is that his laws of motion will apply to objects here on Earth
         as well as to planets &mdash; a radically different approach than
-        Kepler or anyone else before him.</p>
+        Kepler or anyone else before Newton.</p>
       </div>
 
       <div class="page hidden">
@@ -487,7 +487,7 @@
       </div>
 
       <div class="page hidden">
-        <h2>Velocity trajectory</h2>
+        <h2>Computed velocity trajectory</h2>
 
         <p>You can represent the velocity vector &mdash; the rate of change of
         position &mdash; by an arrow pointing along the
@@ -506,13 +506,81 @@
         to the ellipse, and the equal area law means it will be longer or
         shorter as the planet P approaches or recedes from the Sun S.</p>
         
-        <p>When you keep track of the tip of the velocity vector &mdash; a velocity
-        trajectory &mdash; something interesting happens: It seems to
+        <p>When you keep track of the tip of the velocity vector &mdash; a
+        velocity trajectory &mdash; something interesting happens: It seems to
         trace a circle around P. Of course, the center of this circle is
         displaced upward from P, since the length of the vector has to change.
         We will show that the velocity trajectory is not just approximately a
         displaced circle, but precisely so for any body orbiting according to
         Kepler's first two laws.</p>
+      </div>
+
+      <div class="page hidden">
+        <h2>Newton's laws of motion</h2>
+
+        <p>&ldquo;A body at rest tends to stay at rest; a body in motion tends
+        to stay in motion in a straight line at a constant speed.  A force
+        changes the velocity of a body; the body accelerates at a rate directly
+        proportional to the force and inversely proportional to the body's
+        mass.&rdquo;  Newton's first two laws of motion serve the same purpose
+        as Kepler's first two laws, but apply to material bodies in general,
+        on Earth as well as in the heavens.</p>
+
+        <p>We've already used Kepler's laws to numerically work out the velocity
+        trajectory of a planet.  Newton's laws suggest we also look at its
+        acceleration.  Like velocity, acceleration is a vector; in fact,
+        acceleration is to the velocity trajectory what velocity is to the
+        ordinary position trajectory.  Just as
+        the velocity must be tangent to the trajectory of the planet, its
+        acceleration must be tangent to its velocity trajectory.  The length of
+        the acceleration vector, like the velocity vector, is smaller when the
+        planet is far from the Sun, larger when near the Sun.</p>
+
+        <p>The line from the center of the velocity circle to the tip of the
+        velocity vector appears to always remain exactly perpendicular to the
+        position vector SP.  Since the acceleration is tangent to the velocity
+        circle, this means the acceleration vector of the planet always points
+        exactly in the direction from P to S.  That is, the planet always
+        accelerates directly toward the Sun.  According to Newton's second law,
+        there is a force on the planet pulling it directly toward the Sun!</p>
+      </div>
+
+      <div class="page hidden">
+        <h2>Equal areas in equal times</h2>
+
+        <p>"The planet accelerates directly toward the Sun," means exactly
+        the same thing as, "the Sun-planet line sweeps out equal areas
+        in equal times."  To see why, begin with a body P moving in a
+        straight line at a constant speed past a fixed point S.  Taking
+        snapshots at equal time intervals, P sweeps over a series of equal
+        area gray triangles.  The areas are equal because they share a common
+        height h, the distance from the linear trajectory of P to the point S,
+        and have equal bases b, the distance P moves in each time step.</p>
+
+        <p>Next, suppose that the velocity suddenly changes at one of the
+        time steps, so the body switches to a new trajectory line.  If SP
+        continues to sweep out area at the same rate, then the areas swept out
+        along the new line in each time step must equal the areas stepped off
+        along the original line.  But the last old triangle and the first new
+        triangle share a common side SP.  In order to have equal areas, their
+        altitudes perpendicular to SP must be equal.  Therefore, area will
+        continue to be swept out at the same rate along the new trajectory line
+        if, and only if, the component of the velocity perpendicular to SP
+        remains unchanged.  In other words, any sudden change in velocity
+        of the body at P which keeps the rate SP is sweeping out area constant
+        must be parallel to SP.</p>
+
+        <p>Imagine breaking down a continously changing velocity into a huge
+        number of infinitessimal steps.  You've just proven that each
+        infintessimal change in velocity must be directly toward or away from S.
+        In other words, the body P must accelerate directly toward or away
+        from S in order for SP to sweep out equal areas in equal times and vice
+        versa.</p>
+
+        <p>The rate area is swept out is the <em>angular momentum</em> of P
+        around S (divided by twice the mass of the body P).  Kepler's equal
+        area law is an example of conservation of angular momentum.</p>
+
       </div>
 
       <div class="page hidden">
@@ -533,7 +601,8 @@
         apehelion, the constant sum of distances SP plus PO equals the major
         axis of the ellipse.  Extend SP to Q such that PQ equals PO. Then SQ
         remains constant as P moves around the ellipse; in other words, SQ
-        sweeps out a circle with center S.</p>
+        sweeps out a circle with center S and radius equal to the major axis
+        of the ellipse.</p>
       </div>
 
       <div class="page hidden">
@@ -552,42 +621,32 @@
         which of course also lies on the ellipse. Thus, line MP touches the
         ellipse only at one point (the original P on SQ), so MP must be
         tangent to the ellipse at P.</p>
+      </div>
 
-        <!--
-        <p>Because the tangent MP is perpendicular to OQ, if
-        you rotate OSQ ninety degrees counterclockwise (the direction the
-        planet is moving here), then OQ will be parallel to the tangent of
-        the ellipse at P. That is, OQ now points in the direction of the
-        velocity vector at P. By construction, SQ is now always ninety
-        degrees ahead of the planet radius vector SP &mdash; a fact that
-        comes into play later. For now, if you interpret the sides of OSQ
-        as velocity vectors, you see that the velocity OQ of the planet,
-        tangent to its ellipse, moves around an eccentric circle of radius
-        SQ, displaced from zero velocity O by the fixed vector OS
-        perpendicular to the major axis of the ellipse. And the
-        eccentricity of this circle is the same as the eccentricity of the
-        ellipse by construction.</p>
+      <div class="page hidden">
+        <h2>Exact velocity trajectory</h2>
 
-        <p>Eccentricity
-        is the ratio of the distance between the foci and the fixed sum of
-        distances; an ellipse with zero eccentricity is a circle with both foci
-        coinciding at the center. Minor axis equals major axis for eccentricity zero,
-        decreasing to zero
-        as the eccentricity increases to one (the largest possible
-        eccentricity).</p>
+        <p>Since MP is tangent to the ellipse, and OQ is perpendicular to MP,
+        if you rotate the circle (along with points O and Q) by ninety degrees
+        about S, OQ will now be parallel to the ellipse tangent at P.  Also,
+        SQ will now be perpendicular to SP.  The diagram looks very much
+        like a scaled and translated version of the velocity trajectory we
+        computed numerically from Kepler's laws &mdash; OQ is proportional to
+        the velocity, OS to the displacement of the center of the velocity
+        circle from the zero velocity point O, and SQ is the constant velocity
+        radius.  In fact, if you compare the two numerically, you find they
+        match to within the accuracy you can do the calculations.</p>
 
-        <p>Thus, if the trajectory in velocity space is an
-        eccentric circle, and the radius vector SQ in velocity space always
-        leads the radius vector SP in ordinary space by ninety degrees, then
-        the point P indeed moves around an ellipse (of the same eccentricity
-        as the circle) with S at one focus. To complete Newton&rsquo;s
-        proof, you still need to demonstrate that SP sweeps over equal areas
-        in equal times. That is, you have proven that the velocity OQ
-        points in the correct direction &mdash; tangent to the ellipse
-        &mdash; but you still have to demonstrate that the length of OQ
-        agrees with the speed of the planet according to Kepler&rsquo;s
-        equal area law.</p>
-        -->
+        <p>Furthermore, the radius of the velocity circle SQ is perpendicular
+        to the Sun-planet line SP.  Since the acceleration is tangent to the
+        velocity circle, it must be parallel to SP.  In other words, if OQ is
+        the velocity vector of the planet P, then the acceleration vector of
+        the planet will point directly toward the Sun S.  But you learned that
+        is exactly equivalent to the equal area law.  A planet P moving with
+        velocity OQ, keeping SQ perpendicular to SP, will move around its
+        ellipse with speed that varies according to Kepler's equal area law.
+        You have found the geometrically exact velocity trajectory producing
+        Kepler's first two laws!</p>
 
       </div>
 
