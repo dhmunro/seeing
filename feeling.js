@@ -652,8 +652,8 @@ class Arrow {
   setLineWidth(lw) {
     this.line.strokeStyle.width = lw;
     const [lrel, wrel] = this.headScale;
-    this.lhead *= lrel*lw;
-    this.whead *= wrel*lw;
+    this.lhead = lrel*lw;
+    this.whead = wrel*lw;
   }
 }
 
@@ -716,10 +716,10 @@ class EllipsePlus {
     positionSpace.add(ellipse, sector, lineOP, linePM, linePQ,
                       foc0, planet, pointM);
     velocitySpace.add(lineSQ, circle, foc1, vplanet);
-    const lineOQ = new Arrow(velocitySpace.space, vStroke, [24, 12],
+    const lineOQ = new Arrow(velocitySpace.space, vStroke, [25, 10],
                              -c, 0, 2*a+c, 0);
     lineOQ.headVisible(false);
-    const radius = new Arrow(positionSpace.space, stroke, [24, 12],
+    const radius = new Arrow(positionSpace.space, stroke, [25, 10],
                              c, 0, a, 0);
     const vScale = dma * a/b;  // common dt for vel arrow and shaded sector
     this.vScale = vScale;
@@ -728,11 +728,11 @@ class EllipsePlus {
     const vtraj = new Graphics().arc(a, -vScale*c, vScale*a,
       0, twoPi).stroke(vtStroke);
     positionSpace.add(vtrajr, vtraj);
-    const velocity = new Arrow(positionSpace.space, vStroke, [24, 12],
+    const velocity = new Arrow(positionSpace.space, vStroke, [25, 10],
                                a, 0, a, -vScale*(a+c));
     const aScale = (vScale*b)**2/(a*c);  // common dt for vel and acc arrows
     this.aScale = aScale;
-    const accel = new Arrow(positionSpace.space, aStroke, [24, 12],
+    const accel = new Arrow(positionSpace.space, aStroke, [25, 10],
                             a, -vScale*(a+c),
                             a-aScale*c*(a/(a-c))**2, -vScale*(a+c), 0);
     this.focus = [foc0, foc1];
@@ -803,8 +803,9 @@ class EllipsePlus {
       const {ellipse, lineOP, linePQ, linePM, vtraj, vtrajr} = this;
       for (let g of [ellipse, lineOP, linePQ, linePM, vtraj, vtrajr])
         g.strokeStyle.width = lw;
+      const {radius, velocity, accel} = this;
+      for (let a of [radius, velocity, accel]) a.setLineWidth(lw);
       ellipse.clear().ellipse(0, 0, this.a, this.b).fill().stroke();
-      this.lineOQ.setLineWidth(lw);
       this.planet.clear().circle(0, 0, dot).fill();
       this.pointM.clear().circle(0, 0, dot).fill();
       this.focus[0].clear().circle(this.c, 0, dot).fill();
@@ -820,8 +821,8 @@ class EllipsePlus {
       const {circle, lineSQ} = this;
       for (let g of [circle, lineSQ]) g.strokeStyle.width = lw;
       circle.clear().circle(this.c, 0, 2*this.a).stroke();
-      const {radius, velocity, accel} = this;
-      for (let a of [radius, velocity, accel]) a.setLineWidth(lw);
+      const {lineOQ} = this;
+      for (let a of [lineOQ]) a.setLineWidth(lw);
       this.vplanet.clear().circle(0, 0, dot).fill();
       this.focus[1].clear().circle(-this.c, 0, dot).fill();
       const offset = this.labelOffset * rem / vscale;
@@ -833,12 +834,14 @@ class EllipsePlus {
   // move planet to new place on ellipse, specified by mean anomaly (radians)
   pMove(ma, dma0, ma1) {
     this.checkScale();
-    let dither;
+    let dither = undefined;
     if (ma.length) [ma, dither] = ma;
     const [x, y, y0, xm, ym, xs, ys] = this.arcSolve(ma, dma0);
     const {a, c, vScale, aScale} = this;
-    this.planet.position.set(x, y);
-    this.radius.modify(x-c, y);
+    if (dither === undefined) {  // otherwise set below
+      this.planet.position.set(x, y);
+      this.radius.modify(x-c, y);
+    }
     this.velocity.position.set(x, y);
     const vr = a / Math.sqrt((x-c)**2 + y**2);
     const [vx, vy] = [vScale*vr*y, vScale*(vr*(c-x) - c)];
@@ -853,9 +856,9 @@ class EllipsePlus {
     }
     this.vtraj.clear().arc(x, y-vyc, vScale*a, ang0, ang1).stroke();
     this.vtrajr.clear().moveTo(x, y-vyc).lineTo(x+vx, y+vy).stroke();
-    this.accel.position.set(x+vx, y+vy);
     const ar = aScale * vr**2;
     this.accel.modify(ar*(c-x), -ar*y);
+    this.accel.position.set(x+vx, y+vy);
     const [qx, qy] = [c + 2*vr*(x-c), 2*vr*y];
     const [mx, my] = [0.5*(qx+c) - c, 0.5*qy];
     this.pointM.position.set(mx, my);
@@ -1249,7 +1252,6 @@ defineFigure((frac) => {
   velocitySpace.rescale(-0.5*c, 0, 0.5, false);
   linePQ.visible = lineOQ.visible = label[3].visible = pointM.visible = true;
   ellipse.circle.visible = linePM.visible = label[4].visible = true;
-  ellipse.pMove(twoPi*(0.8 + x));
   let [tprev, tnow, tnext] = [0, frac * dttot, dtparts[0]];
   if (tnow <= tnext) {
     x = tnow / tnext;
