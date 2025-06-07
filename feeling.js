@@ -495,9 +495,9 @@ class Space {
       rem = parseInt(getComputedStyle(document.documentElement).fontSize);
     }
     if (scale !== undefined) {
-      const [x, y] = [width, height];
-      space.position.set(x, y);
+      const [x, y] = [width, height];  // arguments are x, y, scale
       space.scale.set(scale, scale);
+      space.position.set(x, y);
     } else {
       const [xcen, ycen] = this.center;
       const [xmax, ymax] = [xcen*width, ycen*height];
@@ -507,6 +507,12 @@ class Space {
       space.scale.set(sc, sc);
     }
     if (draw) app.renderer.render({container: app.stage});
+  }
+
+  getScale() {
+    const p10 = this.space.toGlobal({x:1, y:0});
+    const p00 = this.space.toGlobal({x:0, y:0});
+    return Math.sqrt((p10.x-p00.x)**2 + (p10.y-p00.y)**2);
   }
 
   add(...children) {
@@ -662,9 +668,8 @@ class EllipsePlus {
     // In v8 there is no obvious way to force the transform matrices
     // to be updated to their current values without rendering the scene.
     // Nevertheless, even without the correctly updated transform matrices,
-    // the toGlobal function works properly.
-    const scale = positionSpace.space.toGlobal({x:1, y:0}).x -
-      positionSpace.space.toGlobal({x:0, y:0}).x;
+    // the toGlobal function in Sapce.getScale() works properly.
+    const scale = positionSpace.getScale();
     this.pscale = this.vscale = scale;
     // scale units in CSS root coords is 1 unit in positionSpace
     const rem0 = rem / scale;  // 1 CSS rem in positionSpace
@@ -705,7 +710,8 @@ class EllipsePlus {
     const linePQ = new Graphics().moveTo(a, 0).lineTo(2*a+c,0).stroke(opStroke);
     const linePM = new Graphics().moveTo(a, c/2).lineTo(a,-c/2).stroke(stroke);
     const foc0 = new Graphics().circle(c, 0, dotSize).fill(colors.p);
-    const foc1 = new Graphics().circle(-c, 0, dotSize).fill(colors.v);
+    const foc1 = new Graphics().circle(0, 0, dotSize).fill(colors.v);
+    foc1.position.set(-c, 0);
     const planet = new Graphics().circle(0, 0, dotSize).fill(colors.p);
     const pointM = new Graphics().circle(0, 0, dotSize).fill(colors.p);
     planet.x = a;
@@ -788,10 +794,8 @@ class EllipsePlus {
   }
 
   checkScale() {
-    const pscale = positionSpace.space.toGlobal({x:1, y:0}).x -
-      positionSpace.space.toGlobal({x:0, y:0}).x;
-    const vscale = velocitySpace.space.toGlobal({x:1, y:0}).x -
-      velocitySpace.space.toGlobal({x:0, y:0}).x;
+    const pscale = positionSpace.getScale();
+    const vscale = velocitySpace.getScale();
     // If size of Space has changed, PIXI line widths and font sizes will
     // scale, but we want to keep them a constant size in screen pixels,
     // just like the font size in ordinary html elements.
@@ -824,7 +828,7 @@ class EllipsePlus {
       const {lineOQ} = this;
       for (let a of [lineOQ]) a.setLineWidth(lw);
       this.vplanet.clear().circle(0, 0, dot).fill();
-      this.focus[1].clear().circle(-this.c, 0, dot).fill();
+      this.focus[1].clear().circle(0, 0, dot).fill();
       const offset = this.labelOffset * rem / vscale;
       this.label[2].position.set(-this.c, offset);
       for (let i of [2, 3]) this.label[i].style.fontSize = font;
@@ -836,6 +840,8 @@ class EllipsePlus {
     this.checkScale();
     let dither = undefined;
     if (ma.length) [ma, dither] = ma;
+    let vrot = 0;
+    if (dma0 && dma0.length) [dma0, vrot] = [undefined, dma0[0]];
     const [x, y, y0, xm, ym, xs, ys] = this.arcSolve(ma, dma0);
     const {a, c, vScale, aScale} = this;
     if (dither === undefined) {  // otherwise set below
@@ -876,23 +882,38 @@ class EllipsePlus {
     }
     this.lineOP.clear().moveTo(-c, 0).lineTo(xd, yd).stroke();
     this.linePQ.clear().moveTo(xd, yd).lineTo(qx, qy).stroke();
-    this.lineOQ.modify(qx+c, qy);
-    this.lineSQ.clear().moveTo(c, 0).lineTo(qx, qy).stroke();
-    this.vplanet.position.set(qx, qy);
+
+    let [vqx, vqy] = [qx, qy];  // velocitySpace possibly rotated
+    let [ox, oy] = [-c, 0];
+    if (vrot) {
+      vrot *= 0.25*twoPi;
+      const [ca, sa] = [Math.cos(vrot), Math.sin(vrot)];
+      vqx -= c;
+      [vqx, vqy] = [c + vqx*ca + qy*sa, qy*ca - vqx*sa];
+      [ox, oy] = [c + (ox-c)*ca + oy*sa, oy*ca - (ox-c)*sa];
+      this.focus[1].position.set(ox, oy);
+    }
+    this.lineOQ.modify(vqx-ox, vqy-oy);
+    this.lineOQ.position.set(ox, oy);
+    this.lineSQ.clear().moveTo(c, 0).lineTo(vqx, vqy).stroke();
+    this.vplanet.position.set(vqx, vqy);
+
     const offset = this.labelOffset;  // label offset in rem
     const [offp, offv] = [offset*rem/this.pscale, offset*rem/this.vscale];
     let factor = 1 + offp/Math.sqrt(xd**2 + yd**2);
     this.label[1].position.set(factor*xd, factor*yd);
     factor = 1 + 1.25*offp/Math.sqrt(mx**2 + my**2);
     this.label[4].position.set(factor*mx, factor*my);
-    factor = 1 + offv/Math.sqrt(qx**2 + qy**2);
-    this.label[3].position.set(factor*qx, factor*qy);
+    factor = 1 + 1.2*offv/Math.sqrt(vqx**2 + vqy**2);
+    this.label[3].position.set(factor*vqx, factor*vqy);  // velocitySpace
+    if (oy) this.label[2].position.set(ox, oy+offv);
     this.sector.clear().moveTo(xs, ys).lineTo(c, 0).lineTo(x, y0)
       .arcTo(xm, ym, xs, ys, a).fill();
     ellipse.ma = ma % twoPi;
   }
 
   setAlphas(kepler, newton) {
+    positionSpace.visible = velocitySpace.visible = true;
     positionSpace.rescale(0, 0, 1, false);
     velocitySpace.rescale(0, 0, 1, false);
     let {ellipse, sector, radius, velocity, accel, focus, lineOP, linePQ,
@@ -911,16 +932,19 @@ class EllipsePlus {
     ellipse.alpha = sector.alpha = (kepler == 0)? 1 : kepler;
     radius.alpha = velocity.alpha = accel.alpha = (newton == 0)? 1 : newton;
     radius.headVisible(true);
+    lineOQ.headVisible(false);
     focus[1].visible = lineOP.visible = linePQ.visible = false;
     label[2].visible = label[3].visible = label[4].visible = false;
     focus[1].alpha = lineOP.alpha = label[2].alpha = pointM.alpha = 1;
     lineOQ.visible = linePM.visible = pointM.visible = lineSQ.visible = false;
-    lineOQ.alpha = linePM.alpha = label[4].alpha = 1;
+    lineOQ.alpha = linePM.alpha = label[4].alpha = linePQ.alpha = 1;
     vplanet.visible = circle.visible = false;
     lineOP.position.set(0, 0);  // moved during one figure animation
     linePQ.pivot.set(0, 0);
     linePQ.rotation = 0;
     linePQ.position.set(0, 0);
+    focus[1].position.set(-this.c, 0);
+    label[2].position.set(-this.c, this.labelOffset*rem/this.vscale);
     this.vtraj.visible = this.vtrajr.visible = false;
     this.vtraj.alpha = this.vtrajr.alpha = 1;
   }
@@ -1065,6 +1089,7 @@ function interp(t, dti, dt, dtf) {
 
 function blankFigure() {
   ellipse.setAlphas(-1);
+  positionSpace.visible = velocitySpace.visible = false;
 }
 
 const figures = pages.map((p) => blankFigure);
@@ -1120,7 +1145,7 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   ellipse.velocity.visible = ellipse.accel.visible = false;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
 }, 12000);
-// Velocity trajectory
+// Computed velocity trajectory
 defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   ellipse.setAlphas(0, 1);
   if (frac > 1./3.) {
@@ -1146,16 +1171,9 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
   ellipse.accel.visible = true;
   ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
 }, 16000);
-// Equal areas in equal times redux
-defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
-  ellipse.setAlphas(0, 1);
-  ellipse.pMove(twoPi*(0.05 + 3*frac));
-  ellipse.vtraj.visible = true;
-  ellipse.vtrajr.visible = true;
-  ellipse.accel.visible = true;
-  ellipse.ellipse.visible = ellipse.sector.visible = true;
-  ellipse.accel.visible = true;
-  ellipse.ellipse.alpha = ellipse.sector.alpha = 1;
+// Equal areas in equal times
+defineFigure((frac) => {
+  positionSpace.visible = velocitySpace.visible = false;
 }, 16000);
 // Defining an ellipse
 defineFigure((frac) => {
@@ -1212,7 +1230,7 @@ defineFigure((frac) => {
     [x0, y0] = ellipse.arcSolve(twoPi*0.8);
     linePQ.pivot.set(x0, y0);  // also changes position??
     let ang = 0.5*twoPi - Math.atan2(y0, x0-c) + Math.atan2(y0, x0+c);
-    x = 1.5*(tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    x = 1.5*(tnow - tprev)/(tnext - tprev);  // varies from 0 to 1.5
     linePQ.rotation = (x < 1)? ang*(1-x) : 0;
     linePQ.position.set(x0, y0);  // fix pivot?
     label[3].visible = vplanet.visible = x >= 1;
@@ -1278,16 +1296,49 @@ defineFigure((frac) => {
     return;
   }
 }, [2000, 2000, 1000, 4000]);
-defineFigure((frac) => {  // simple SPO diagram, P at theta=pi/10
+// Geometric velocity trajectory
+defineFigure((frac) => {
   ellipse.setAlphas(0, 1);
-  const {radius, velocity, accel, focus, lineOP, label} = ellipse;
-  ellipse.ellipse.visible = true;
-  if (radius.head.visible) radius.headVisible(false);
+  const {radius, velocity, accel, focus, lineOP, linePQ, label,
+    lineOQ, lineSQ, linePM, vplanet, pointM} = ellipse;
+  ellipse.ellipse.visible = vplanet.visible = true;
+  if (!radius.head.visible) radius.headVisible(true);
   velocity.visible = accel.visible = false;
-  focus[1].visible = lineOP.visible = label[2].visible = true;
+  focus[1].visible = label[2].visible = true;
+  lineOP.visible = linePQ.visible = false;
   focus[1].alpha = lineOP.alpha = label[2].alpha = 1;
-  ellipse.pMove(twoPi*(0.05 + 0.55*frac));
-}, 3000);
+  let x, y, y0, x0;
+  const {a, c} = ellipse;
+  positionSpace.rescale(-0.5*c, 0, 0.5, false);
+  velocitySpace.rescale(-0.5*c, 0, 0.5, false);
+  lineOQ.visible = label[3].visible = true;
+  ellipse.circle.visible = linePM.visible = true;
+  lineOQ.headVisible(true);
+  let [tprev, tnow, tnext] = [0, frac * dttot, dtparts[0]];
+  if (tnow <= tnext) {
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    ellipse.pMove(twoPi*0.05);
+    lineSQ.visible = x > 0.005;
+    lineOP.visible = linePQ.visible = true;
+    lineOP.alpha = linePQ.alpha = 1 - x;
+    label[4].visible = pointM.visible = true;
+    return;
+  }
+  lineSQ.visible = true;
+  [tprev, tnext] = [tnext, tnext + dtparts[1]];
+  if (tnow <= tnext) {
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    ellipse.pMove(twoPi*0.05, [x]);
+    return;
+  }
+  [tprev, tnext] = [tnext, tnext + dtparts[2]];
+  if (tnow <= tnext) {
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    x = (x < 0.15)? 0 : (x - 0.15)/0.85;
+    ellipse.pMove(twoPi*(0.05 + x), [1]);
+    return;
+  }
+}, [1000, 2000, 6000]);
 
 window.app = app;
 window.theText = theText;
