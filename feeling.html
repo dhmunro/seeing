@@ -36,13 +36,18 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
+    /* selenized light    */
     :root {
-      accent-color: #67f;
-      --text-bg: #c1b497;
-      --text-fg: #073642;
-      --text-hi: #fff4;
-      --fig-bg: #d0c3a4;
-      --fig-fill: #d9cfba;
+      accent-color: #0073d2;
+      --text-bg: #fef3da;
+      --text-fg: #52666d;
+      --text-hi: #d6cbb4;
+      --fig-bg: #fef3da;
+      --fig-fill: #f0e4cc;
+    }
+    ::selection {
+      color: #384c52;
+      background: #f0e4cc;
     }
 
     /* original landscape colors:
@@ -541,8 +546,8 @@
         position vector SP.  Since the acceleration is tangent to the velocity
         circle, this means the acceleration vector of the planet always points
         exactly in the direction from P to S.  That is, the planet always
-        accelerates directly toward the Sun.  According to Newton's second law,
-        there is a force on the planet pulling it directly toward the Sun!</p>
+        accelerates directly toward the Sun.  Newton's second law says there
+        must be a force on each planet pulling it directly toward the Sun!</p>
       </div>
 
       <div class="page hidden">
@@ -588,9 +593,9 @@
 
         <p>An ellipse is the set of points for which the sum of the distances
         from two fixed points &mdash; its foci &mdash; is constant. The major
-        axis, or largest diameter, is on the line connecting the foci. The
+        axis, or largest diameter, is on the line connecting the foci.  (The
         minor axis, or smallest diameter, is on the perpendicular bisector of
-        the major axis and passes through the center of the ellipse. For a
+        the major axis and passes through the center of the ellipse.)  For a
         Keplerian ellipse, the Sun S is at one of focus, the planet P is
         a point on the ellipse, and the other focus O is a point in empty space.
         The planet is closest to the Sun (its <em>perihelion</em>) at the
@@ -634,19 +639,32 @@
         computed numerically from Kepler's laws &mdash; OQ is proportional to
         the velocity, OS to the displacement of the center of the velocity
         circle from the zero velocity point O, and SQ is the constant velocity
-        radius.  In fact, if you compare the two numerically, you find they
-        match to within the accuracy you can do the calculations.</p>
+        radius.</p>
 
-        <p>Furthermore, the radius of the velocity circle SQ is perpendicular
-        to the Sun-planet line SP.  Since the acceleration is tangent to the
-        velocity circle, it must be parallel to SP.  In other words, if OQ is
-        the velocity vector of the planet P, then the acceleration vector of
-        the planet will point directly toward the Sun S.  But you learned that
-        is exactly equivalent to the equal area law.  Thus, if a planet P moves
-        with velocity OQ around its ellipse (with SQ remaining perpendicular to
-        SP), it speeds up and slows down according to Kepler's equal area law.
-        You have found the geometrically exact velocity trajectory producing
-        Kepler's first two laws!</p>
+        <p>In fact, the vector OQ you have constructed has exactly the
+        properties of the velocity vector of the planet: First, it is parallel
+        to the tangent of the ellipse at P.  Second, it moves around a circle
+        centered on S with SQ always exactly ninety degrees ahead of SP, so its
+        rate of change is always exactly in the PS direction.  Thus, if the
+        planet moves around its ellipse with velocity OQ, its acceleration
+        vector will point directly toward S, which means SP will sweep out
+        equal areas in equal times.  In other words, you now know how to
+        geometrically construct the velocity vector corresponding to Kepler's
+        first two laws.</p>
+      </div>
+
+      <div class="page hidden">
+        <h2>Newton's program</h2>
+
+        <p>Kepler describes planetary motion as an elliptical trajectory plus an equal area law.  Instead of the equal area law, you could say that the planet moves around its ellipse at a speed proportional to OQ in your velocity trajectory construction.  In other words, specifying both the position and velocity trajectories of a planet &mdash; both its ellipse and the associated eccentric circle &mdash;is an alternative to Kepler's description.</p>
+
+        <p>Newton realized that if you can find a rule for the acceleration, you need <em>neither</em> the position <em>nor</em> the velocity trajectory.  If you simply know where the planet is, how fast and in what direction it's moving at one instant of time, you can use your acceleration rule to figure out exactly where it will be at any future time (or where it was at any past time): The velocity tells you where it will move after a short time, and the acceleration tells you its direction and speed at that new time for the next time step.</p>
+
+        <p>Just as the equal area law and elliptical trajectory determine the velocity trajectory, the acceleration rule is also built into Kepler's laws.  In fact, you already found the rule for the direction of the acceleration &mdash; directly toward the Sun.  You only need to find its magnitude - exactly how fast is the velocity vector of the planet changing as it moves around the Sun?</p>
+      </div>
+
+      <div class="page hidden">
+        <h2>Angular speed</h2>
 
       </div>
 

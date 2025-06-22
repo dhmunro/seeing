@@ -26,7 +26,7 @@ const figBgColor = (p =>
 const canvas = document.getElementById("figure");
 const app = new Application();
 await app.init({canvas: canvas, resizeTo: canvas.parentElement,
-                background: 0xd0c3a4, antialias: true,
+                background: 0xfef3da, antialias: true,
                 autoDensity: true,  // makes renderer view units CSS pixels
                 resolution: window.devicePixelRatio || 1});
 // PIXI.Text has independent resolution option
@@ -727,6 +727,7 @@ class EllipsePlus {
     lineOQ.headVisible(false);
     const radius = new Arrow(positionSpace.space, stroke, [25, 10],
                              c, 0, a, 0);
+    // w0 = 2*pi/T = dma, L = w0*a*b, = u*b**2/a, so u = w0*a**2/b = (w0*a/b)*a
     const vScale = dma * a/b;  // common dt for vel arrow and shaded sector
     this.vScale = vScale;
     const vtrajr = new Graphics().moveTo(a, -vScale*c).lineTo(
@@ -735,18 +736,23 @@ class EllipsePlus {
       0, twoPi).stroke(vtStroke);
     positionSpace.add(vtrajr, vtraj);
     const velocity = new Arrow(positionSpace.space, vStroke, [25, 10],
-                               a, 0, a, -vScale*(a+c));
-    const aScale = (vScale*b)**2/(a*c);  // common dt for vel and acc arrows
+                               0, 0, 0, -vScale*(a+c));
+    velocity.position.set(a, 0);
+    // g = u*L/r**2 = w0**2*a*(a/r)**2
+    const aScale = dma**2;  // common dt for vel and acc arrows
     this.aScale = aScale;
     const accel = new Arrow(positionSpace.space, aStroke, [25, 10],
                             a, -vScale*(a+c),
-                            a-aScale*c*(a/(a-c))**2, -vScale*(a+c), 0);
+                            a-aScale*a**2/(a-c), -vScale*(a+c), 0);
+    const vaccel = new Arrow(velocitySpace.space, aStroke, [25, 10],
+                             2*a+c, 0, 2*a+c, aScale*2*a*(a/(a-c))**2);
     this.focus = [foc0, foc1];
     this.planet = planet;
     this.sector = sector;
     this.radius = radius;
     this.velocity = velocity;
     this.accel = accel;
+    this.vaccel = vaccel;
     this.lineOP = lineOP;
     this.linePQ = linePQ;
     this.lineOQ = lineOQ;
@@ -761,7 +767,7 @@ class EllipsePlus {
     circle.visible = lineSQ.visible = lineOQ.visible = pointM.visible = false;
     this.vtraj = vtraj;
     this.vtrajr = vtrajr
-    vtraj.visible = vtrajr.visible = false;
+    vtraj.visible = vtrajr.visible = vaccel.visible = false;
 
     const style = new TextStyle({
       fontFamily: "Arial", fontSize: 1.17*rem/scale, fontWeight: "bold",
@@ -825,8 +831,8 @@ class EllipsePlus {
       const {circle, lineSQ} = this;
       for (let g of [circle, lineSQ]) g.strokeStyle.width = lw;
       circle.clear().circle(this.c, 0, 2*this.a).stroke();
-      const {lineOQ} = this;
-      for (let a of [lineOQ]) a.setLineWidth(lw);
+      const {lineOQ, vaccel} = this;
+      for (let a of [lineOQ, vaccel]) a.setLineWidth(lw);
       this.vplanet.clear().circle(0, 0, dot).fill();
       this.focus[1].clear().circle(0, 0, dot).fill();
       const offset = this.labelOffset * rem / vscale;
@@ -862,7 +868,7 @@ class EllipsePlus {
     }
     this.vtraj.clear().arc(x, y-vyc, vScale*a, ang0, ang1).stroke();
     this.vtrajr.clear().moveTo(x, y-vyc).lineTo(x+vx, y+vy).stroke();
-    const ar = aScale * vr**2;
+    const ar = aScale * vr**3;
     this.accel.modify(ar*(c-x), -ar*y);
     this.accel.position.set(x+vx, y+vy);
     const [qx, qy] = [c + 2*vr*(x-c), 2*vr*y];
@@ -917,7 +923,7 @@ class EllipsePlus {
     positionSpace.rescale(0, 0, 1, false);
     velocitySpace.rescale(0, 0, 1, false);
     let {ellipse, sector, radius, velocity, accel, focus, lineOP, linePQ,
-         label, circle, lineOQ, linePM, pointM, lineSQ, vplanet} = this;
+         label, circle, lineOQ, linePM, pointM, lineSQ, vplanet, vaccel} = this;
     if (kepler == -1) {
       focus[0].visible = this.planet.visible = false;
       label[0].visible = label[1].visible = false;
@@ -938,7 +944,8 @@ class EllipsePlus {
     focus[1].alpha = lineOP.alpha = label[2].alpha = pointM.alpha = 1;
     lineOQ.visible = linePM.visible = pointM.visible = lineSQ.visible = false;
     lineOQ.alpha = linePM.alpha = label[4].alpha = linePQ.alpha = 1;
-    vplanet.visible = circle.visible = false;
+    vplanet.visible = circle.visible = vaccel.visible = false;
+    vaccel.position.set(0, 0);
     lineOP.position.set(0, 0);  // moved during one figure animation
     linePQ.pivot.set(0, 0);
     linePQ.rotation = 0;
@@ -978,6 +985,21 @@ class EllipsePlus {
 
 const twoPi = 2*Math.PI;
 
+    /* selenized light
+    :root {
+      accent-color: #0073d2;
+      --text-bg: #fef3da;
+      --text-fg: #52666d;
+      --text-hi: #d6cbb4;
+      --fig-bg: #fef3da;
+      --fig-fill: #f0e4cc;
+    }
+    ::selection {
+      color: #384c52;
+      background: #f0e4cc;
+    }
+    */
+
 // #d0c3a4 is hsl(42, 32%, 73%)
 // #c1b497 is hsl(41, 25%, 67%)
 // #d9cfba is hsl(41, 29%, 79%)
@@ -985,8 +1007,8 @@ const twoPi = 2*Math.PI;
 const xform = new Transform();
 const ellipse = new EllipsePlus(
   0, 0, 400, 320, Math.PI/10, {lw: 0.12, dot: 0.24, font: 1.2},
-  {f: "#d9cfba", p: "#073642", v: "#0000bb", a: "#b7652b", op: "#008800",
-   vt: "#6c6ce6", s: "#8884"});
+  {f: "#f0e4cc", p: "#384c52", v: "#0073d2", a: "#b38800", op: "#539100",
+   vt: "#0073d244", s: "#8884"});
 
 // velocitySpace.space.rotation = -Math.PI/2;
 // velocitySpace.rescale(0, 60, 0.5);
@@ -1300,7 +1322,7 @@ defineFigure((frac) => {
 defineFigure((frac) => {
   ellipse.setAlphas(0, 1);
   const {radius, velocity, accel, focus, lineOP, linePQ, label,
-    lineOQ, lineSQ, linePM, vplanet, pointM} = ellipse;
+    lineOQ, lineSQ, linePM, vplanet, pointM, vtraj, vtrajr} = ellipse;
   ellipse.ellipse.visible = vplanet.visible = true;
   if (!radius.head.visible) radius.headVisible(true);
   velocity.visible = accel.visible = false;
@@ -1331,14 +1353,24 @@ defineFigure((frac) => {
     ellipse.pMove(twoPi*0.05, [x]);
     return;
   }
+  vtraj.visible = vtrajr.visible = accel.visible = velocity.visible = true;
   [tprev, tnext] = [tnext, tnext + dtparts[2]];
+  if (tnow <= tnext) {
+    x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
+    ellipse.pMove(twoPi*0.05, [1]);
+    vtraj.alpha = vtrajr.alpha = accel.alpha = velocity.alpha = x;
+    linePM.alpha = 1 - x;
+    return;
+  }
+  linePM.visible = false;
+  [tprev, tnext] = [tnext, tnext + dtparts[3]];
   if (tnow <= tnext) {
     x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
     x = (x < 0.15)? 0 : (x - 0.15)/0.85;
     ellipse.pMove(twoPi*(0.05 + x), [1]);
     return;
   }
-}, [1000, 2000, 6000]);
+}, [1000, 2000, 2000, 6000]);
 
 window.app = app;
 window.theText = theText;
