@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="selenized light">
 
 <head>
   <title>Feeling the Solar System</title>
@@ -9,19 +9,6 @@
   <meta name="viewport"
     content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
   <link rel="icon" type="image/png" sizes="96x96" href="/favicon.png">
-  <!-- pixi.js for debugging, pixi.min.js for production
-         https://unpkg.com/pixi.js@8.x/dist/pixi.min.js
-         https://pixijs.download/release/pixi.min.js
-    <script type="importmap">
-      {
-        "imports": {
-          "pixi.js": "https://unpkg.com/pixi.js@8.x/dist/pixi.min.js"
-        }
-      }
-    </script>
-    -->
-  <!-- src="https://unpkg.com/pixi.js@8.x/dist/pixi.min.js" -->
-  <!-- src="https://cdn.jsdelivr.net/npm/pixi.js@8/dist/pixi.min.js" -->
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@8.9.1/dist/pixi.min.js" integrity="sha384-yDBakdoFK/38OzWsBSrn4PfeusMXoYyVmepxgxiGH5FKBxHQvfG88nZjhhgiIfPs" crossorigin="anonymous"></script>
   <!-- <script type="importmap">
     {
@@ -33,33 +20,10 @@
   <!-- "integrity": {
     "https://cdn.jsdelivr.net/npm/pixi.js@8.9.1/+esm": "sha384-Ta4xXON1zS4/uslYZyHcbnxUjR4MccJCe5V4+/mMgQ9k5/UeZ6LZAPI3XDOuvArh"
   } -->
+  <link rel="stylesheet" href="ctheme.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
-    /* selenized light    */
-    :root {
-      accent-color: #0073d2;
-      --text-bg: #fef3da;
-      --text-fg: #52666d;
-      --text-hi: #d6cbb4;
-      --fig-bg: #fef3da;
-      --fig-fill: #f0e4cc;
-    }
-    ::selection {
-      color: #384c52;
-      background: #f0e4cc;
-    }
-
-    /* original landscape colors:
-           *   color: beige (#f5f5dc)
-           *   background: #444
-           * solarized palette:
-           *   base2:  #eee8d5  base3:  #fdf6e3
-           *   base00: #657b83  base01: #586e75  base02: #073642  base03: #002b36
-           *   yellow: #b58900
-           * portrait color:
-           *   #aaa (original)  #a0a2a4 (slightly blue)  #b0b09a (slightly yellow)
-           */
     body {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -67,13 +31,6 @@
       grid-gap: 0.0rem;
       box-sizing: border-box;
       margin: 0;
-      /* index.html colors:
-               *   portrait mode:  background #002b36  color #c1b497
-               *   landscape mode: background #000000  color #a0a098
-               */
-      background: var(--fig-bg);
-      color: var(--text-fg);
-      /* #002b36; */
       font-family: 'Merriweather', serif;
       /* Without a specified height, % units in children are meaningless.
                * Use min-height so body can grow larger - without it, scrolling
@@ -91,36 +48,6 @@
     h1,
     h2 {
       text-align: center;
-    }
-
-    a {
-      outline-color: var(--text-hi);
-      /* match buttons (or just transparent) */
-    }
-
-    a:link {
-      color: black;
-    }
-
-    a:visited {
-      color: #002b36;
-    }
-
-    a:focus {
-      text-decoration: none;
-      background: var(--text-hi);
-    }
-
-    a:hover {
-      text-decoration: none;
-      background: var(--text-hi);
-      /* match button hover */
-    }
-
-    a:active {
-      background: var(--text-fg);
-      /* reversed from body text */
-      color: var(--text-bg);
     }
 
     .hidden {
@@ -152,10 +79,8 @@
     }
 
     .highlighted {
-      background: var(--fig-bg);
-      /* #d0c3a4; */
-      color: #002b36;
-      /* #073642; */
+      background: var(--bg_1);
+      color: var(--fg1);
     }
 
     #text-box {
@@ -166,7 +91,7 @@
       /* max-width: 44rem; */
       overflow-x: hidden;
       overflow-y: auto;
-      scrollbar-color: #888 var(--fig-fill);
+      scrollbar-color: #888;
       /* not safari? */
       scroll-behavior: smooth;
     }
@@ -181,7 +106,7 @@
       position: absolute;
       width: 100%;
       height: 100%;
-      background: var(--fig-bg);
+      background: var(--bg_0);
       transform-origin: bottom right;
       transform: rotate(0deg);
       transition-property: transform;
@@ -211,7 +136,7 @@
       /* without this, scrollbar causes infinite loop of resize events */
       position: relative;
       overflow: hidden;
-      background: var(--fig-bg);
+      background: var(--bg_0);
     }
 
     #figure-wrap {
@@ -224,7 +149,7 @@
 
     .fig {
       position: absolute;
-      background: var(--fig-bg);
+      background: var(--bg_0);
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -263,11 +188,25 @@
     }
 
     .play, .pause {
-      fill: #888;
+      fill: var(--dim_0);
+    }
+    .play:hover, .pause:hover {
+      fill: var(--fg_1);
     }
 
-    .play:hover, .pause:hover {
-      fill: #444;
+    .thumb {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      margin-top: 0.2rem;
+      height: 1.6rem;
+      width: 1.6rem;
+      border-radius: 0.8rem;
+      background: var(--dim_0);
+      cursor: pointer;
+    }
+    .thumb:hover {
+      background: var(--fg_1);
     }
 
     .slider {
@@ -281,23 +220,7 @@
       margin-top: 0.75rem;
       height: 0.5rem;
       border-radius: 0.25rem;
-      background: #ddd;
-    }
-
-    .thumb {
-      position: absolute;
-      top: 0px;
-      left: 0px;
-      margin-top: 0.2rem;
-      height: 1.6rem;
-      width: 1.6rem;
-      border-radius: 0.8rem;
-      background: #888;
-      cursor: pointer;
-    }
-
-    .thumb:hover {
-      background: #444;
+      background: var(--bg_2);
     }
 
     .pg-pager {

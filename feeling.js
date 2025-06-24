@@ -5,6 +5,41 @@ const {Application, Container, Graphics, Text, TextStyle, Transform,
 
 /* ------------------------------------------------------------------------ */
 
+class ThemeColors {
+    constructor() {
+        this.colors = {}
+        this.update()
+    }
+
+    /* Call theme.update() whenever color theme changes. */
+    update() {
+        const style = getComputedStyle(document.body);
+        for (const c of ["bg_0", "bg_1", "bg_2", "dim_0", "fg_0", "fg_1",
+                         "red", "orange", "yellow", "green", "cyan", "blue",
+                         "violet", "magenta"]) {
+            this.colors[c] = style.getPropertyValue("--" + c);
+        }
+    }
+
+    get bg_0() { return this.colors.bg_0; }
+    get bg_1() { return this.colors.bg_1; }
+    get bg_2() { return this.colors.bg_2; }
+    get dim_0() { return this.colors.dim_0; }
+    get fg_0() { return this.colors.fg_0; }
+    get fg_1() { return this.colors.fg_1; }
+    get red() { return this.colors.red; }
+    get orange() { return this.colors.orange; }
+    get yellow() { return this.colors.yellow; }
+    get green() { return this.colors.green; }
+    get cyan() { return this.colors.cyan; }
+    get blue() { return this.colors.blue; }
+    get violet() { return this.colors.violet; }
+    get magenta() { return this.colors.magenta; }
+}
+
+const theme = new ThemeColors();
+window.theme = theme;
+
 const theText = document.querySelector("#text-box");
 const theFigure = document.querySelector("#figure-box");
 const currentPage = document.getElementById("currentPage");
@@ -26,7 +61,7 @@ const figBgColor = (p =>
 const canvas = document.getElementById("figure");
 const app = new Application();
 await app.init({canvas: canvas, resizeTo: canvas.parentElement,
-                background: 0xfef3da, antialias: true,
+                background: theme.bg_0, antialias: true,
                 autoDensity: true,  // makes renderer view units CSS pixels
                 resolution: window.devicePixelRatio || 1});
 // PIXI.Text has independent resolution option
@@ -734,6 +769,7 @@ class EllipsePlus {
       a, -vScale*a).stroke(vtStroke);
     const vtraj = new Graphics().arc(a, -vScale*c, vScale*a,
       0, twoPi).stroke(vtStroke);
+    vtraj.alpha = vtrajr.alpha = 0.5;
     positionSpace.add(vtrajr, vtraj);
     const velocity = new Arrow(positionSpace.space, vStroke, [25, 10],
                                0, 0, 0, -vScale*(a+c));
@@ -771,6 +807,7 @@ class EllipsePlus {
 
     const style = new TextStyle({
       fontFamily: "Arial", fontSize: 1.17*rem/scale, fontWeight: "bold",
+      fill: theme.fg_0
     });
     const sLabel = new Text({text: "S", style: style});
     sLabel.anchor.set(0.5, 0.5);
@@ -953,7 +990,7 @@ class EllipsePlus {
     focus[1].position.set(-this.c, 0);
     label[2].position.set(-this.c, this.labelOffset*rem/this.vscale);
     this.vtraj.visible = this.vtrajr.visible = false;
-    this.vtraj.alpha = this.vtrajr.alpha = 1;
+    this.vtraj.alpha = this.vtrajr.alpha = 0.5;
   }
 
   eaSolve(ma, tol=1.e-6) {
@@ -1007,8 +1044,8 @@ const twoPi = 2*Math.PI;
 const xform = new Transform();
 const ellipse = new EllipsePlus(
   0, 0, 400, 320, Math.PI/10, {lw: 0.12, dot: 0.24, font: 1.2},
-  {f: "#f0e4cc", p: "#384c52", v: "#0073d2", a: "#b38800", op: "#539100",
-   vt: "#0073d244", s: "#8884"});
+  {f: theme.bg_0, p: theme.fg_1, v: theme.blue, a: theme.yellow,
+   op: theme.green, vt: theme.blue, s: "#8884"});
 
 // velocitySpace.space.rotation = -Math.PI/2;
 // velocitySpace.rescale(0, 60, 0.5);
@@ -1174,7 +1211,7 @@ defineFigure((frac) => {  // plain r+v+g vectors, P at theta=pi/10
     ellipse.pMove(twoPi*(0.05 + 3*frac), ellipse.dma, twoPi*0.05);
     ellipse.vtraj.visible = true;
     ellipse.vtrajr.visible = true;
-    ellipse.vtrajr.alpha = (frac > 2./3.)? 1 : 3*frac - 1;
+    ellipse.vtrajr.alpha = (frac > 2./3.)? 0.5 : 1.5*frac - 0.5;
   } else {
     ellipse.pMove(twoPi*(0.05 + 3*frac));
   }
@@ -1358,7 +1395,8 @@ defineFigure((frac) => {
   if (tnow <= tnext) {
     x = (tnow - tprev)/(tnext - tprev);  // varies from 0 to 1
     ellipse.pMove(twoPi*0.05, [1]);
-    vtraj.alpha = vtrajr.alpha = accel.alpha = velocity.alpha = x;
+    vtraj.alpha = vtrajr.alpha = 0.5*x;
+    accel.alpha = velocity.alpha = x;
     linePM.alpha = 1 - x;
     return;
   }
