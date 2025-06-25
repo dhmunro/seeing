@@ -1044,7 +1044,7 @@ const twoPi = 2*Math.PI;
 const xform = new Transform();
 const ellipse = new EllipsePlus(
   0, 0, 400, 320, Math.PI/10, {lw: 0.12, dot: 0.24, font: 1.2},
-  {f: theme.bg_0, p: theme.fg_1, v: theme.blue, a: theme.yellow,
+  {f: theme.bg_1, p: theme.fg_1, v: theme.blue, a: theme.yellow,
    op: theme.green, vt: theme.blue, s: "#8884"});
 
 // velocitySpace.space.rotation = -Math.PI/2;
