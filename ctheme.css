@@ -1,0 +1,222 @@
+/* ctheme.css
+
+   Defines selenized and solarized color themes which are set by classes on
+   the html element.  Selenized was inspired by solarized; it feautures
+   somewhat more distinguishable (contrasting) colors  at the expense of
+   completely different light and dark modes  whereas solarized reuses all
+   the colors of its light mode in its dark mode.
+
+   Solarized: https://ethanschoonover.com/solarized/
+   Selenized: https://github.com/jan-warchol/selenized
+   Cheatsheet: https://pensieve.swijaya.me/solarized-selenized-cheatsheet
+
+   Here we mostly use selenized color names: bg_0  bg_1  bg_2  dim_0  fg_0 
+   and fg_1 for base colors (which are nearly monochrome) and red  orange 
+   yellow  gree  cyan  blue  violet  and magenta for accent colors.  (Note
+   that solarized and selenized both add orange and violet hues to the usual
+   RGB primaries and CYM secondaries.)
+
+   Ordinary text has foreground and background colors fg_0/bg_0  while
+   selected text has fg_1/bg_1  which is roughly the asme contrast  so
+   it is just as easy to read.
+
+   Selenized also defines "bright" variants of the accent colors  with names
+   prefixed by "br_".  Solarized has two base colors with undefined uses
+   that are effectively higher contrast foregrounds against the background
+   color  which are here called "fg_x" and "fg_y".  Finally  selenized has
+   much higher contrast variants of "light" and "dark" called "white" and
+   "black".
+
+   To use  give your <html> element a pair of class names:
+
+   <html class="selenized light">  This is the default.
+
+   The first class can be "selenized" or "solarized"; the second class name
+   can be "light" or "dark".  For "selenized"  "white" or "black" can be used
+   instead of "light" and "dark" to get the high contrast versions.
+
+   In the document body  use color values of the form var(--bg_0) or
+   var(--blue).  Basic defaults for ordinary and selected text and visited
+   and unvisited links are supplied below.
+
+   Note that for colorblind people with protanomaly or deuteranomaly (common
+   types)  only the blue and yellow accent colors are easily distinguishable.
+ */
+
+ /* Make selenized light the initial values for the color use names. */
+ /* base colors            Use for      Solarized name: light  dark   */
+ @property --bg_0 {    /* background                    base3  base03 */
+    syntax: "<color>"; inherits: true; initial-value: #fbf3da;
+ }
+ @property --bg_1 {    /* selection background          base2  base02 */
+    syntax: "<color>"; inherits: true; initial-value: #ede5cc;
+ }
+ @property --bg_2 {    /* secondary background          base1  base01 */
+    syntax: "<color>"; inherits: true; initial-value: #d4cbb4;
+ }
+ @property --dim_0 {    /* dim foreground               base0  base00 */
+    syntax: "<color>"; inherits: true; initial-value: #8f9894;
+ }
+ @property --fg_0 {    /* foreground                    base00 base0  */
+    syntax: "<color>"; inherits: true; initial-value: #54666d;
+ }
+ @property --fg_1 {    /* selection foreground          base01 base1  */
+    syntax: "<color>"; inherits: true; initial-value: #3a4c52;
+ }
+
+ /* accent colors */
+@property --red {
+    syntax: "<color>"; inherits: true; initial-value: #d0202c;
+ }
+ @property --orange {
+    syntax: "<color>"; inherits: true; initial-value: #c35d20;
+ }
+ @property --yellow {
+    syntax: "<color>"; inherits: true; initial-value: #ad8900;
+ }
+ @property --green {
+    syntax: "<color>"; inherits: true; initial-value: #489200;
+ }
+ @property --cyan {
+    syntax: "<color>"; inherits: true; initial-value: #009c8e;
+ }
+ @property --blue {
+    syntax: "<color>"; inherits: true; initial-value: #0071d3;
+ }
+ @property --violet {
+    syntax: "<color>"; inherits: true; initial-value: #8862c5;
+ }
+ @property --magenta {
+    syntax: "<color>"; inherits: true; initial-value: #cc4999;
+ }
+
+/* Selenized bright accent colors variants */
+@property --br_red {
+    syntax: "<color>"; inherits: true; initial-value: #ca1528;
+ }
+ @property --br_orange {
+    syntax: "<color>"; inherits: true; initial-value: #bd581b;
+ }
+ @property --br_yellow {
+    syntax: "<color>"; inherits: true; initial-value: #a78400;
+ }
+ @property --br_green {
+    syntax: "<color>"; inherits: true; initial-value: #438d00;
+ }
+ @property --br_cyan {
+    syntax: "<color>"; inherits: true; initial-value: #009789;
+ }
+ @property --br_blue {
+    syntax: "<color>"; inherits: true; initial-value: #006ccd;
+ }
+ @property --br_violet {
+    syntax: "<color>"; inherits: true; initial-value: #835dc0;
+ }
+ @property --br_magenta {
+    syntax: "<color>"; inherits: true; initial-value: #c64494;
+ }
+
+ /* Solarized unused higher contrast foreground colors */
+ @property --fg_x {
+    syntax: "<color>"; inherits: true; initial-value: #073642;
+ }
+ @property --fg_y {
+    syntax: "<color>"; inherits: true; initial-value: #002b36;
+ }
+
+.selenized.light {  /* default */
+    --bg_0: #fbf3da; --bg_1: #ede5cc; --bg_2: #d4cbb4;
+    --dim_0: #8f9894; --fg_0: #54666d; --fg_1: #3a4c52;
+    --red: #d0202c; --orange: #c35d20; --yellow: #ad8900;
+    --green: #489200; --cyan: #009c8e; --blue: #0071d3;
+    --violet: #8862c5; --magenta: #cc4999;
+
+    --br_red: #ca1528; --br_orange: #bd581b; --br_yellow: #a78400;
+    --br_green: #438d00; --br_cyan: #009789; --br_blue: #006ccd;
+    --br_violet: #835dc0; --br_magenta: #c64494;
+}
+
+.solarized.light {
+    --bg_0: #fdf6e3; --bg_1: #eee8d5; --bg_2: #93a1a1;
+    --dim_0: #839496; --fg_0: #657b83; --fg_1: #586e76;
+    --red: #dc322f; --orange: #cb4b16; --yellow: #b58900;
+    --green: #859900; --cyan: #2aa198; --blue: #268bd2;
+    --violet: #6c71c4; --magenta: #d33682;
+
+    --fg_x: #073642; --fg_y: #002b36;
+}
+
+.selenized.dark {
+    --bg_0: #103c48; --bg_1: #194856; --bg_2: #2e5b69;
+    --dim_0: #738b90; --fg_0: #adbcbc; --fg_1: #c9d7d8;
+    --red: #f9554f; --orange: #ee8649; --yellow: #dbb32d;
+    --green: #76ba39; --cyan: #41c7b9; --blue: #4494f6;
+    --violet: #b089ec; --magenta: #f174bd;
+
+    --br_red: #ff675d; --br_orange: #fd9456; --br_yellow: #eac13c;
+    --br_green: #84c847; --br_cyan: #52d5c7; --br_blue: #5aa4ff;
+    --br_violet: #be97fb; --br_magenta: #ff85ce;
+}
+
+.solarized.dark {
+    --bg_0: #002b36; --bg_1: #073642; --bg_2: #586e76;
+    --dim_0: #657b83; --fg_0: #839496; --fg_1: #93a1a1;
+    --red: #dc322f; --orange: #cb4b16; --yellow: #b58900;
+    --green: #859900; --cyan: #2aa198; --blue: #268bd2;
+    --violet: #6c71c4; --magenta: #d33682;
+
+    --fg_x: #eee8d5; --fg_y: #fdf6e3;
+}
+
+.selenized.white {
+    --bg_0: #ffffff; --bg_1: #ebebeb; --bg_2: #cccccc;
+    --dim_0: #868686; --fg_0: #474747; --fg_1: #282828;
+    --red: #d7000c; --orange: #d14b00; --yellow: #c39700;
+    --green: #1d9600; --cyan: #00ac9c; --blue: #0064e5;
+    --violet: #7e50d6; --magenta: #dd0f9d;
+
+    --br_red: #c00000; --br_orange: #bb3800; --br_yellow: #ae8500;
+    --br_green: #008300; --br_cyan: #00988a; --br_blue: #0054d0;
+    --br_violet: #6b3fc2; --br_magenta: #c7008b;
+}
+
+.selenized.black {
+    --bg_0: #181818; --bg_1: #262626; --bg_2: #3b3b3b;
+    --dim_0: #777777; --fg_0: #b9b9b9; --fg_1: #dddddd;
+    --red: #ec4946; --orange: #e57f42; --yellow: #dbb32d;
+    --green: #70b433; --cyan: #3dc4b6; --blue: #358aea;
+    --violet: #a57fe1; --magenta: #eb6fb8;
+
+    --br_red: #ff5e56; --br_orange: #fa9153; --br_yellow: #f0c642;
+    --br_green: #84c847; --br_cyan: #56d8c9; --br_blue: #4f9cfe;
+    --br_violet: #b891f5; --br_magenta: #ff82cb;
+}
+
+/* Here are some very basic default color definitions: */
+
+:root {
+    background: var(--bg_0);
+    color: var(--fg_0);
+}
+::selection {
+    background: var(--bg_1);
+    color: var(--fg_1);
+}
+a {
+  outline-color: var(--dim_0);
+}
+a:link {
+  color: var(--blue);
+}
+a:visited {
+  color: var(--dim_0);
+}
+a:focus  a:hover {
+  text-decoration: none;
+  background: var(--bg_1);
+  color: var(--fg_1);
+}
+a:active {  /* reversed from body text */
+  background: var(--fg_0);
+  color: var(--bg_0);
+}
